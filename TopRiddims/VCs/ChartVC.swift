@@ -7,12 +7,14 @@
 
 import UIKit
 
-class ChartVC: UIViewController {
+class ChartVC: UIViewController{
     
+    var allChartData = [String : [Song]]()
     var countries: [K.Country]!
-    init(countries: [K.Country]) {
+    init(countries: [K.Country], allChartData: ) {
         super.init(nibName: nil, bundle: nil)
         self.countries = countries
+        self.allChartData = allChartData
     }
     required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
     
@@ -88,7 +90,17 @@ class ChartVC: UIViewController {
     }
     
     @objc func reloadButtonTapped(){
-        print("reloadButton Tapped")
+        let scrapingManager = ScrapingManager(countries: countries)
+        scrapingManager.delegate = self
+        scrapingManager.startLoadingWebPages()
+    }
+}
+
+extension ChartVC: ScrapingManagerDelegate{
+    func setCellWithSongsInfo(songs: [Song], cellIndexNumber: Int) {
+        let indexPath = IndexPath(item: cellIndexNumber, section: 0)
+//        let cell = chartCollectionView.cellForItem(at: indexPath) as! ChartCollectionViewCell
+//        cell.songs = songs
     }
 }
 
@@ -104,7 +116,7 @@ extension ChartVC: UICollectionViewDataSource{
         cell.backgroundColor = .systemGroupedBackground
         cell.country = countries[indexPath.row]
         cell.delegate = self
-        
+        print(indexPath)
         
         return cell
     }

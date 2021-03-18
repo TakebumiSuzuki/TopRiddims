@@ -21,7 +21,7 @@ class MainTabBarController: UITabBarController {
         let configuration = UIImage.SymbolConfiguration(weight: .thin)
         
         //実際はFireBaseからcountriesを事前にDLして格納した後chartVCを作る。
-        let chartVC = ChartVC(countries: [K.Country.haiti, K.Country.jamaica])
+        let chartVC = ChartVC(countries: [K.Country.haiti, K.Country.jamaica, K.Country.barbados, K.Country.puerto])
         let chartNav = generateNavController(rootVC: chartVC,
                                              title: "charts",
                                              selectedImage: UIImage(systemName: "bolt.fill", withConfiguration: configuration)!,

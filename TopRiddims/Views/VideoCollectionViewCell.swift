@@ -194,47 +194,47 @@ extension VideoCollectionViewCell: YTPlayerViewDelegate{
         return thumbnailImageView
     }
     
-    func playerViewDidBecomeReady(_ playerView: YTPlayerView) {
-        print("READY!!!!!")
-    }
+//    func playerViewDidBecomeReady(_ playerView: YTPlayerView) {
+//        print("READY!!!!!")
+//    }
     
 //    func playerViewPreferredWebViewBackgroundColor(_ playerView: YTPlayerView) -> UIColor {
 //        return UIColor.red
 //    }
-    
-    func playerView(_ playerView: YTPlayerView, didChangeTo quality: YTPlaybackQuality) {
-        print("DID CHANGE Quality")
-    }
-    
-    func playerView(_ playerView: YTPlayerView, receivedError error: YTPlayerError) {
-        print("ERROOR RECEIVED")
-    }
-    func playerView(_ playerView: YTPlayerView, didPlayTime playTime: Float) {
-        return
-    }
-    
-    func playerView(_ playerView: YTPlayerView, didChangeTo state: YTPlayerState) {
-        switch state{
-        case .unstarted:
-            print("-----unstarted")
-        case .ended:
-            print("-----ended")
-        case .playing:
-            let dict = ["playerObject": playerView]
-            NotificationCenter.default.post(name: Notification.Name(rawValue:"TestNotification"), object: nil, userInfo: dict)
-            print("-----playing")
-        case .paused:
-            print("-----paused")
-        case .buffering:
-            print("-----buffering")
-        case .cued:
-            print("-----cued")
-        case .unknown:
-            print("-----unknown")
-        @unknown default:
-            print("-----default")
-        }
-    }
+//
+//    func playerView(_ playerView: YTPlayerView, didChangeTo quality: YTPlaybackQuality) {
+//        print("DID CHANGE Quality")
+//    }
+//
+//    func playerView(_ playerView: YTPlayerView, receivedError error: YTPlayerError) {
+//        print("ERROOR RECEIVED")
+//    }
+//    func playerView(_ playerView: YTPlayerView, didPlayTime playTime: Float) {
+//        return
+//    }
+//
+//    func playerView(_ playerView: YTPlayerView, didChangeTo state: YTPlayerState) {
+//        switch state{
+//        case .unstarted:
+//            print("-----unstarted")
+//        case .ended:
+//            print("-----ended")
+//        case .playing:
+//            let dict = ["playerObject": playerView]
+//            NotificationCenter.default.post(name: Notification.Name(rawValue:"TestNotification"), object: nil, userInfo: dict)
+//            print("-----playing")
+//        case .paused:
+//            print("-----paused")
+//        case .buffering:
+//            print("-----buffering")
+//        case .cued:
+//            print("-----cued")
+//        case .unknown:
+//            print("-----unknown")
+//        @unknown default:
+//            print("-----default")
+//        }
+//    }
     
     
 }

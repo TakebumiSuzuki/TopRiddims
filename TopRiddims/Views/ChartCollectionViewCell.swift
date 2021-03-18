@@ -25,21 +25,21 @@ class ChartCollectionViewCell: UICollectionViewCell {
         didSet{
             countryLabel.text = country.name
             
-            let prefs = WKWebpagePreferences()
-            prefs.allowsContentJavaScript = true
-            let userContentController = WKUserContentController()
-
-            let config = WKWebViewConfiguration()
-            config.defaultWebpagePreferences = prefs
-            config.userContentController = userContentController
-            let webView = WKWebView(frame: .zero, configuration: config)
-            let webpageScraper = WebpageScraper(webView: webView, country: country)
-            webpageScraper.startFetchingData { (songs) in
-                self.songs = songs
-            }
+//            let prefs = WKWebpagePreferences()
+//            prefs.allowsContentJavaScript = true
+//            let userContentController = WKUserContentController()
+//
+//            let config = WKWebViewConfiguration()
+//            config.defaultWebpagePreferences = prefs
+//            config.userContentController = userContentController
+//            let webView = WKWebView(frame: .zero, configuration: config)
+//            let webpageScraper = WebpageScraper(webView: webView, country: country)
+//            webpageScraper.startFetchingData { (songs) in
+//                self.songs = songs
+//            }
         }
     }
-    private var songs = [Song](){
+    var songs = [Song](){
         didSet{
             DispatchQueue.main.async {
                 self.videoCollectionView.reloadData()

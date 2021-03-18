@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		097808DF858EBE3BF9436367 /* Pods_TopRiddims.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7FDF02ADAE7D1C6484A80E4B /* Pods_TopRiddims.framework */; };
+		0C2810A62603A6D00065C43D /* ScrapingManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0C2810A52603A6D00065C43D /* ScrapingManager.swift */; };
 		0C62B8AE25FE8F7300A203B2 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0C62B8AD25FE8F7300A203B2 /* AppDelegate.swift */; };
 		0C62B8B025FE8F7300A203B2 /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0C62B8AF25FE8F7300A203B2 /* SceneDelegate.swift */; };
 		0C62B8B725FE8F7600A203B2 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 0C62B8B625FE8F7600A203B2 /* Assets.xcassets */; };
@@ -29,6 +30,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		0C2810A52603A6D00065C43D /* ScrapingManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScrapingManager.swift; sourceTree = "<group>"; };
 		0C62B8AA25FE8F7300A203B2 /* TopRiddims.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = TopRiddims.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		0C62B8AD25FE8F7300A203B2 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		0C62B8AF25FE8F7300A203B2 /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
@@ -92,6 +94,7 @@
 				0C8A314726020E52003AF166 /* Song.swift */,
 				0C9D6F0226024F9000252205 /* Views */,
 				0C9D6F0126024F7800252205 /* VCs */,
+				0C2810A52603A6D00065C43D /* ScrapingManager.swift */,
 				0C8A314426020DFC003AF166 /* WebpageScraper.swift */,
 				0C62B8D225FF8E5D00A203B2 /* Extension + UIColor.swift */,
 				0CB575672601C9E500DE22F9 /* Extension + UIView.swift */,
@@ -259,6 +262,7 @@
 			files = (
 				0C8A314826020E52003AF166 /* Song.swift in Sources */,
 				0C62B8CD25FE932C00A203B2 /* LikesVC.swift in Sources */,
+				0C2810A62603A6D00065C43D /* ScrapingManager.swift in Sources */,
 				0C8A313926020183003AF166 /* ChartCollectionHeaderView.swift in Sources */,
 				0C8A314C26020F6B003AF166 /* VideoCollectionViewCell.swift in Sources */,
 				0C8A313D2602021E003AF166 /* ChartCollectionFooterView.swift in Sources */,
