@@ -12,9 +12,9 @@ import SwiftSoup
 class WebpageScraper{
     
     private var webView: WKWebView
-    private var country: K.Country
+    private var country: String
         
-    init(webView: WKWebView, country: K.Country) {
+    init(webView: MyWKWebView, country: String) {
         self.webView = webView
         self.country = country
     }
@@ -27,8 +27,9 @@ class WebpageScraper{
     }
     
     func startFetchingData(){
+        let countryEnum = K.Country(countryname: country)
         
-        guard let url = URL(string: "https://charts.youtube.com/location/" + country.rawValue) else { return }
+        guard let url = URL(string: "https://charts.youtube.com/location/" + countryEnum.rawValue) else { return }
         webView.load(URLRequest(url: url))
     }
     
@@ -78,4 +79,15 @@ class WebpageScraper{
         }
     }
     
+}
+
+class MyWKWebView: WKWebView{
+    
+    deinit {
+        print("WKWeb is being Deinitialized")
+        self.navigationDelegate = nil
+        self.uiDelegate = nil
+        self.stopLoading()
+        self.loadHTMLString("", baseURL: nil)
+    }
 }

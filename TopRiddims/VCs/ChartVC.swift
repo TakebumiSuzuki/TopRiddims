@@ -9,9 +9,9 @@ import UIKit
 
 class ChartVC: UIViewController{
     
-    var allChartData = [String : [Song]]()
+    var allChartData = [(country: String, songs:[Song])]()
     var countries: [K.Country]!
-    init(countries: [K.Country], allChartData: ) {
+    init(countries: [K.Country], allChartData: [(country: String, songs:[Song])]) {
         super.init(nibName: nil, bundle: nil)
         self.countries = countries
         self.allChartData = allChartData
@@ -90,7 +90,7 @@ class ChartVC: UIViewController{
     }
     
     @objc func reloadButtonTapped(){
-        let scrapingManager = ScrapingManager(countries: countries)
+        let scrapingManager = ScrapingManager(allChartData: allChartData)
         scrapingManager.delegate = self
         scrapingManager.startLoadingWebPages()
     }
@@ -98,9 +98,10 @@ class ChartVC: UIViewController{
 
 extension ChartVC: ScrapingManagerDelegate{
     func setCellWithSongsInfo(songs: [Song], cellIndexNumber: Int) {
-        let indexPath = IndexPath(item: cellIndexNumber, section: 0)
-//        let cell = chartCollectionView.cellForItem(at: indexPath) as! ChartCollectionViewCell
-//        cell.songs = songs
+        allChartData[cellIndexNumber].songs = songs
+        DispatchQueue.main.async {
+            self.chartCollectionView.reloadData()
+        }
     }
 }
 
@@ -109,15 +110,14 @@ extension ChartVC: ScrapingManagerDelegate{
 extension ChartVC: UICollectionViewDataSource{
 
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        return countries.count
+        return allChartData.count
     }
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: ChartCollectionViewCell.identifier, for: indexPath) as! ChartCollectionViewCell
         cell.backgroundColor = .systemGroupedBackground
-        cell.country = countries[indexPath.row]
+        cell.country = allChartData[indexPath.row].country
+        cell.songs = allChartData[indexPath.row].songs
         cell.delegate = self
-        print(indexPath)
-        
         return cell
     }
     func collectionView(_ collectionView: UICollectionView, viewForSupplementaryElementOfKind kind: String, at indexPath: IndexPath) -> UICollectionReusableView {

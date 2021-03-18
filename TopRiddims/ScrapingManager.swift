@@ -15,12 +15,12 @@ protocol ScrapingManagerDelegate: class{
 class ScrapingManager{
     
     weak var delegate: ScrapingManagerDelegate?
-    let countries: [K.Country]
+    let allChartData: [(country: String, songs:[Song])]
     private var scrapers: [WebpageScraper] = []
     private var finishedScrapersIndexNumbers: [Int] = []
     
-    init(countries: [K.Country]) {
-        self.countries = countries
+    init(allChartData: [(country: String, songs:[Song])]) {
+        self.allChartData = allChartData
     }
     
     deinit {
@@ -36,14 +36,12 @@ class ScrapingManager{
         config.defaultWebpagePreferences = prefs
         config.userContentController = userContentController
         
-        for i in 0..<countries.count{
-            let webView = WKWebView(frame: .zero, configuration: config)
-            let scraper = WebpageScraper(webView: webView, country: countries[i])
+        for i in 0..<allChartData.count{
+            let webView = MyWKWebView(frame: .zero, configuration: config)
+            let scraper = WebpageScraper(webView: webView, country: allChartData[i].country)
             scraper.startFetchingData()
             scrapers.append(scraper)
         }
-        
-        print(scrapers.count)
         
         startTimer {[weak self] (songs, indexNumber) in
             guard let self = self else { print("self is NIL! at Here"); return }
@@ -60,9 +58,9 @@ class ScrapingManager{
         Timer.scheduledTimer(withTimeInterval: 0.5, repeats: true) { (timer) in
             
             print("Timer is firing every 1 sec")
-            for i in 0..<self.countries.count{
+            for i in 0..<self.allChartData.count{
                 
-                if self.finishedScrapersIndexNumbers.count == self.countries.count{
+                if self.finishedScrapersIndexNumbers.count == self.allChartData.count{
                     print("All the data Fetching Job Done!")
                     timer.invalidate()
                     continue

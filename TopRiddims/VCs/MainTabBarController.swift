@@ -20,8 +20,31 @@ class MainTabBarController: UITabBarController {
         tabBar.tintColor = UIColor(named: "Black_Yellow")
         let configuration = UIImage.SymbolConfiguration(weight: .thin)
         
+        
+        let sampleData = [(country: "Jamaica",
+                           songs: [
+                            Song(trackID: "testTrack", songName: "testTrack", artistName: "testTrack"),
+                            Song(trackID: "testTrack2", songName: "testTrack2", artistName: "testTrack")
+                           ]),
+                          (country: "Haiti",
+                                             songs: [
+                                              Song(trackID: "testTrack", songName: "testTrack", artistName: "testTrack"),
+                                              Song(trackID: "testTrack2", songName: "testTrack2", artistName: "testTrack")
+                                             ]),
+                          (country: "Trinidad & Tobago",
+                                             songs: [
+                                              Song(trackID: "testTrack", songName: "testTrack", artistName: "testTrack"),
+                                              Song(trackID: "testTrack2", songName: "testTrack2", artistName: "testTrack")
+                                             ]),
+                          (country: "Barbados",
+                                             songs: [
+                                              Song(trackID: "testTrack", songName: "testTrack", artistName: "testTrack"),
+                                              Song(trackID: "testTrack2", songName: "testTrack2", artistName: "testTrack")
+                                             ])
+        ]
+        
         //実際はFireBaseからcountriesを事前にDLして格納した後chartVCを作る。
-        let chartVC = ChartVC(countries: [K.Country.haiti, K.Country.jamaica, K.Country.barbados, K.Country.puerto])
+        let chartVC = ChartVC(countries: [K.Country.puerto], allChartData: sampleData)
         let chartNav = generateNavController(rootVC: chartVC,
                                              title: "charts",
                                              selectedImage: UIImage(systemName: "bolt.fill", withConfiguration: configuration)!,

@@ -21,22 +21,9 @@ class ChartCollectionViewCell: UICollectionViewCell {
     private var videoWidth: CGFloat{ return self.frame.width * K.videoWidthMultiplier }
     private var videoHeight: CGFloat{ return videoWidth / 16 * 9 }
     
-    var country: K.Country!{
+    var country: String!{
         didSet{
-            countryLabel.text = country.name
-            
-//            let prefs = WKWebpagePreferences()
-//            prefs.allowsContentJavaScript = true
-//            let userContentController = WKUserContentController()
-//
-//            let config = WKWebViewConfiguration()
-//            config.defaultWebpagePreferences = prefs
-//            config.userContentController = userContentController
-//            let webView = WKWebView(frame: .zero, configuration: config)
-//            let webpageScraper = WebpageScraper(webView: webView, country: country)
-//            webpageScraper.startFetchingData { (songs) in
-//                self.songs = songs
-//            }
+            countryLabel.text = country
         }
     }
     var songs = [Song](){
@@ -154,9 +141,7 @@ extension ChartCollectionViewCell: UICollectionViewDataSource{
         if songs.isEmpty{   //videoViewのplaceHolderを作るために空であっても20にして送る。
             return 20
         }else{
-            print("data sorce called")
             return songs.count
-            
         }
     }
     

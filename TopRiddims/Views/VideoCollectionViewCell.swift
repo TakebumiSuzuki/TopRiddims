@@ -20,10 +20,9 @@ class VideoCollectionViewCell: UICollectionViewCell {
     
     var song: Song!{
         didSet{
-            if song.artistName == "" && song.songName == "" && song.trackID == ""{
+            if song.artistName == "" || song.songName == "" || song.trackID == ""{
                 return
             }
-            
             configureCell()
         }
     }
@@ -117,7 +116,7 @@ class VideoCollectionViewCell: UICollectionViewCell {
     private func setupNotifications(){
         NotificationCenter.default.addObserver(self, selector: #selector(pauseVideo), name: Notification.Name(rawValue:"TestNotification"), object: nil)
     }
-    @objc func pauseVideo(notification: NSNotification){
+    @objc private func pauseVideo(notification: NSNotification){
         let info = notification.userInfo
         guard let playerObject = info?["playerObject"] as? YTPlayerView else {return}
         if playerObject != self.playerView{
@@ -130,7 +129,7 @@ class VideoCollectionViewCell: UICollectionViewCell {
         
         self.addSubview(playerView)
 //        self.addSubview(overlayNumber)
-//        self.addSubview(thumbnailImageView)
+        self.addSubview(thumbnailImageView)
         self.addSubview(numberLabel)
         self.addSubview(songNameLabel)
         self.addSubview(artistNameLabel)
@@ -145,7 +144,7 @@ class VideoCollectionViewCell: UICollectionViewCell {
         //        overlayNumber.anchor(top: playerView.topAnchor, right: playerView.rightAnchor, width: 45, height: 45)
         
         
-//        thumbnailImageView.anchor(top: playerView.topAnchor, left: playerView.leftAnchor, bottom: playerView.bottomAnchor, right: playerView.rightAnchor)
+        thumbnailImageView.anchor(top: playerView.topAnchor, left: playerView.leftAnchor, bottom: playerView.bottomAnchor, right: playerView.rightAnchor)
         
         numberLabel.anchor(top: playerView.bottomAnchor, left: playerView.leftAnchor, paddingTop: 2, paddingLeft: 5)
         songNameLabel.anchor(top: playerView.bottomAnchor, left: numberLabel.rightAnchor, paddingTop: 2, paddingLeft: 10)
@@ -161,8 +160,8 @@ class VideoCollectionViewCell: UICollectionViewCell {
         
     }
     
-    private func configureCell(){
-        
+    private func configureCell(){  //Dequeueされるたびにsongが代入されるのでここも呼ばれる
+        print("---------------------------ConfiguringCell\(song.artistName)")
         thumbnailImageView.sd_setImage(with: URL(string: song.thumbnailURL), completed: nil)
         songNameLabel.text = song.songName
         artistNameLabel.text = song.artistName
@@ -190,9 +189,9 @@ class VideoCollectionViewCell: UICollectionViewCell {
 extension VideoCollectionViewCell: YTPlayerViewDelegate{
     
     //情報をパスされてローディングがスタートしてからサムネイルの準備終わるまでこの画面を表示する。
-    func playerViewPreferredInitialLoading(_ playerView: YTPlayerView) -> UIView? {
-        return thumbnailImageView
-    }
+//    func playerViewPreferredInitialLoading(_ playerView: YTPlayerView) -> UIView? {
+//        return thumbnailImageView
+//    }
     
 //    func playerViewDidBecomeReady(_ playerView: YTPlayerView) {
 //        print("READY!!!!!")
