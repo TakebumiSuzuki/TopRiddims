@@ -9,5 +9,6 @@ target 'TopRiddims' do
 pod 'SwiftSoup'
 pod 'youtube-ios-player-helper'
 pod 'SDWebImage', '~> 5.0'
+pod 'NVActivityIndicatorView'
 
 end

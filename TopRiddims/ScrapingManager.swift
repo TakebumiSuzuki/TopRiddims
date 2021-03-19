@@ -28,7 +28,7 @@ class ScrapingManager{
     }
     
     func startLoadingWebPages(){
-        
+        print("startLoading WebPages: \(Thread.isMainThread)")
         let prefs = WKWebpagePreferences()
         prefs.allowsContentJavaScript = true
         let userContentController = WKUserContentController()
@@ -40,7 +40,7 @@ class ScrapingManager{
             let webView = MyWKWebView(frame: .zero, configuration: config)
             let scraper = WebpageScraper(webView: webView, country: allChartData[i].country)
             scraper.startFetchingData()
-            scrapers.append(scraper)
+            self.scrapers.append(scraper)
         }
         
         startTimer {[weak self] (songs, indexNumber) in
@@ -55,36 +55,38 @@ class ScrapingManager{
     
     private func startTimer(completion: @escaping ([Song], Int) -> Void){
         
-        Timer.scheduledTimer(withTimeInterval: 0.5, repeats: true) { (timer) in
+        Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { (timer) in
             
-            print("Timer is firing every 1 sec")
-            for i in 0..<self.allChartData.count{
                 
-                if self.finishedScrapersIndexNumbers.count == self.allChartData.count{
-                    print("All the data Fetching Job Done!")
-                    timer.invalidate()
-                    continue
-                }
-                if self.finishedScrapersIndexNumbers.contains(i){
-                    print("indexNumber\(i) has already done!!")
-                    continue
-                }
-                let scraper = self.scrapers[i]
-                
-                if scraper.videoIDs.count == 20, scraper.songNames.count == 20, scraper.artistNames.count == 20 {
-                    var songs = [Song]()
-                    for n in 0..<20{
-                        let song = Song(trackID: scraper.videoIDs[n], songName: scraper.songNames[n], artistName: scraper.artistNames[n])
-                        songs.append(song)
+                print("Timer is firing every 1 sec")
+                for i in 0..<self.allChartData.count{
+                    print("---------INSIDE for loop: \(Thread.isMainThread)")
+                    if self.finishedScrapersIndexNumbers.count == self.allChartData.count{
+                        print("All the data Fetching Job Done!")
+                        timer.invalidate()
+                        continue
                     }
-                    print("FINISHED FETCHING \(i)")
-                    completion(songs, i)
-                    continue
-                }else{
-                    scraper.startScraping()
-                    print("indexNumber \(i) NOT YET")
-                    continue
-                }
+                    if self.finishedScrapersIndexNumbers.contains(i){
+                        print("indexNumber\(i) has already done!!")
+                        continue
+                    }
+                    let scraper = self.scrapers[i]
+                    
+                    if scraper.videoIDs.count == 20, scraper.songNames.count == 20, scraper.artistNames.count == 20 {
+                        var songs = [Song]()
+                        for n in 0..<20{
+                            let song = Song(trackID: scraper.videoIDs[n], songName: scraper.songNames[n], artistName: scraper.artistNames[n])
+                            songs.append(song)
+                        }
+                        print("FINISHED FETCHING \(i)")
+                        completion(songs, i)
+                        continue
+                    }else{
+                        scraper.startScraping()
+                        print("indexNumber \(i) NOT YET")
+                        continue
+                    }
+                
             }
         }
     }

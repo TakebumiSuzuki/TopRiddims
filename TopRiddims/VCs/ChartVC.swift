@@ -34,8 +34,8 @@ class ChartVC: UIViewController{
         cv.backgroundColor = .systemBackground
         cv.delegate = self
         cv.dataSource = self
-        cv.dragDelegate = self
-        cv.dropDelegate = self
+//        cv.dragDelegate = self
+//        cv.dropDelegate = self
         cv.dragInteractionEnabled = true //ドラッグ可能に
         
         cv.register(ChartCollectionViewCell.self, forCellWithReuseIdentifier: ChartCollectionViewCell.identifier)
@@ -92,6 +92,7 @@ class ChartVC: UIViewController{
     @objc func reloadButtonTapped(){
         let scrapingManager = ScrapingManager(allChartData: allChartData)
         scrapingManager.delegate = self
+        
         scrapingManager.startLoadingWebPages()
     }
 }
@@ -174,81 +175,82 @@ extension ChartVC: UICollectionViewDelegateFlowLayout{
 
 
 //MARK: - Drag&Drop
-extension ChartVC: UICollectionViewDragDelegate {
-    
-    func collectionView(_ collectionView: UICollectionView, itemsForBeginning session: UIDragSession, at indexPath: IndexPath) -> [UIDragItem]{
-        print("DragSession")
-        let n = "\(countries[indexPath.item])"
-        let itemProvider = NSItemProvider(object: n as NSString)
-        let dragItem = UIDragItem(itemProvider: itemProvider)
-        return [dragItem]
-    }
-}
-
-extension ChartVC: UICollectionViewDropDelegate{
-    
-    func collectionView(_ collectionView: UICollectionView, canHandle session: UIDropSession) -> Bool {
-        return session.hasItemsConforming(toTypeIdentifiers: NSString.readableTypeIdentifiersForItemProvider)
-    }
-    
-    func collectionView(_ collectionView: UICollectionView, dropSessionDidUpdate session: UIDropSession, withDestinationIndexPath destinationIndexPath: IndexPath?) -> UICollectionViewDropProposal {
-        if session.localDragSession != nil {
-            return UICollectionViewDropProposal(operation: .move, intent: .insertAtDestinationIndexPath)
-        } else {
-            return UICollectionViewDropProposal(operation: .copy, intent: .insertAtDestinationIndexPath)
-        }
-    }
-    
-    func collectionView(_ collectionView: UICollectionView, performDropWith coordinator: UICollectionViewDropCoordinator) {
-        let destinationIndexPath: IndexPath //移動先
-        if let indexPath = coordinator.destinationIndexPath, indexPath.row < collectionView.numberOfItems(inSection: 0) {
-            destinationIndexPath = indexPath
-        } else {
-            let section = collectionView.numberOfSections - 1
-            let item = collectionView.numberOfItems(inSection: section) - 1
-            //余白にドロップしたときは、末尾に移動
-            destinationIndexPath = IndexPath(item: item, section: section)
-        }
-        
-        switch coordinator.proposal.operation {
-        case .move:
-            let items = coordinator.items
-            if items.contains(where: { $0.sourceIndexPath != nil }) {
-                if items.count == 1, let item = items.first {
-                    reorder(collectionView, item: item, to: destinationIndexPath, with: coordinator) //セルの並び替え
-                }
-            }
-        default:
-            return
-        }
-    }
-    
-    // MARK: - PRIVATE METHODS
-    
-    /// セルの並び替え
-    ///
-    /// - Parameters:
-    ///   - sourceIndexPath: 移動元の位置
-    ///   - destinationIndexPath: 移動先の位置
-    private func reorder(_ collectionView: UICollectionView, item: UICollectionViewDropItem, to destinationIndexPath: IndexPath, with coordinator: UICollectionViewDropCoordinator) {
-        guard let sourceIndexPath = item.sourceIndexPath else {
-            return
-        }
-        
-        collectionView.performBatchUpdates({
-            //配列の更新
-            let n = countries.remove(at: sourceIndexPath.item)
-            countries.insert(n, at: destinationIndexPath.item)
-            
-            //セルの移動
-            collectionView.deleteItems(at: [sourceIndexPath])
-            collectionView.insertItems(at: [destinationIndexPath])
-        })
-        
-        coordinator.drop(item.dragItem, toItemAt: destinationIndexPath)
-    }
-    
-}
+//extension ChartVC: UICollectionViewDragDelegate {
+//
+//    func collectionView(_ collectionView: UICollectionView, itemsForBeginning session: UIDragSession, at indexPath: IndexPath) -> [UIDragItem]{
+//        let n = allChartData[indexPath.row]
+//        let itemProvide = NSItemProvider(object: n as (country: String, songs: [Song]))
+////        let n = "\(countries[indexPath.item])"
+////        let itemProvider = NSItemProvider(object: n as NSString)
+//        let dragItem = UIDragItem(itemProvider: itemProvider)
+//        return [dragItem]
+//    }
+//}
+//
+//extension ChartVC: UICollectionViewDropDelegate{
+//
+//    func collectionView(_ collectionView: UICollectionView, canHandle session: UIDropSession) -> Bool {
+//        return session.hasItemsConforming(toTypeIdentifiers: NSString.readableTypeIdentifiersForItemProvider)
+//    }
+//
+//    func collectionView(_ collectionView: UICollectionView, dropSessionDidUpdate session: UIDropSession, withDestinationIndexPath destinationIndexPath: IndexPath?) -> UICollectionViewDropProposal {
+//        if session.localDragSession != nil {
+//            return UICollectionViewDropProposal(operation: .move, intent: .insertAtDestinationIndexPath)
+//        } else {
+//            return UICollectionViewDropProposal(operation: .copy, intent: .insertAtDestinationIndexPath)
+//        }
+//    }
+//
+//    func collectionView(_ collectionView: UICollectionView, performDropWith coordinator: UICollectionViewDropCoordinator) {
+//        let destinationIndexPath: IndexPath //移動先
+//        if let indexPath = coordinator.destinationIndexPath, indexPath.row < collectionView.numberOfItems(inSection: 0) {
+//            destinationIndexPath = indexPath
+//        } else {
+//            let section = collectionView.numberOfSections - 1
+//            let item = collectionView.numberOfItems(inSection: section) - 1
+//            //余白にドロップしたときは、末尾に移動
+//            destinationIndexPath = IndexPath(item: item, section: section)
+//        }
+//
+//        switch coordinator.proposal.operation {
+//        case .move:
+//            let items = coordinator.items
+//            if items.contains(where: { $0.sourceIndexPath != nil }) {
+//                if items.count == 1, let item = items.first {
+//                    reorder(collectionView, item: item, to: destinationIndexPath, with: coordinator) //セルの並び替え
+//                }
+//            }
+//        default:
+//            return
+//        }
+//    }
+//
+//    // MARK: - PRIVATE METHODS
+//
+//    /// セルの並び替え
+//    ///
+//    /// - Parameters:
+//    ///   - sourceIndexPath: 移動元の位置
+//    ///   - destinationIndexPath: 移動先の位置
+//    private func reorder(_ collectionView: UICollectionView, item: UICollectionViewDropItem, to destinationIndexPath: IndexPath, with coordinator: UICollectionViewDropCoordinator) {
+//        guard let sourceIndexPath = item.sourceIndexPath else {
+//            return
+//        }
+//
+//        collectionView.performBatchUpdates({
+//            //配列の更新
+//            let n = countries.remove(at: sourceIndexPath.item)
+//            countries.insert(n, at: destinationIndexPath.item)
+//
+//            //セルの移動
+//            collectionView.deleteItems(at: [sourceIndexPath])
+//            collectionView.insertItems(at: [destinationIndexPath])
+//        })
+//
+//        coordinator.drop(item.dragItem, toItemAt: destinationIndexPath)
+//    }
+//
+//}
 
 
 //MARK: - CellDelegate
@@ -256,6 +258,8 @@ extension ChartVC: ChartCollectionViewCellDelegate{
     
     
 }
+
+
 
 
 

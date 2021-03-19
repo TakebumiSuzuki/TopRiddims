@@ -1,4 +1,7 @@
 PODS:
+  - NVActivityIndicatorView (5.1.1):
+    - NVActivityIndicatorView/Base (= 5.1.1)
+  - NVActivityIndicatorView/Base (5.1.1)
   - SDWebImage (5.10.4):
     - SDWebImage/Core (= 5.10.4)
   - SDWebImage/Core (5.10.4)
@@ -6,21 +9,24 @@ PODS:
   - youtube-ios-player-helper (1.0.3)
 
 DEPENDENCIES:
+  - NVActivityIndicatorView
   - SDWebImage (~> 5.0)
   - SwiftSoup
   - youtube-ios-player-helper
 
 SPEC REPOS:
   trunk:
+    - NVActivityIndicatorView
     - SDWebImage
     - SwiftSoup
     - youtube-ios-player-helper
 
 SPEC CHECKSUMS:
+  NVActivityIndicatorView: 1f6c5687f1171810aa27a3296814dc2d7dec3667
   SDWebImage: c666b97e1fa9c64b4909816a903322018f0a9c84
   SwiftSoup: f97bc4e988c7729d6457f9642f974c617a6e2510
   youtube-ios-player-helper: 0185c57db23c80d63d6ca11251d110abb8a4ca61
 
-PODFILE CHECKSUM: 48cbaff8e6fe1d488a36e21c358e71f1c8068146
+PODFILE CHECKSUM: 49a9b4d5b8301c5e061bb5ca85574f7f0bff1961
 
 COCOAPODS: 1.10.1
