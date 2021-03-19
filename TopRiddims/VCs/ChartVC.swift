@@ -63,8 +63,12 @@ class ChartVC: UIViewController{
         let navImageView = UIImageView(image:UIImage(named: "Top_Riddims")?.withTintColor(UIColor(named: "Black_Yellow")!))
         navigationItem.titleView = navImageView
         
-        let reloadImage = UIImage(systemName: "arrow.clockwise")!
-        let reloadButton = UIBarButtonItem(image: reloadImage, style: .plain, target: self, action: #selector(reloadButtonTapped))
+        let reloadImage = UIImage(systemName: "arrow.triangle.2.circlepath")!
+        let button = UIButton(type: .system)
+        button.setImage(reloadImage, for: .normal)
+        button.addTarget(self, action: #selector(reloadButtonTapped), for: .touchUpInside)
+        let reloadButton = UIBarButtonItem()
+        reloadButton.customView = button
         self.navigationItem.rightBarButtonItem = reloadButton
     }
     
@@ -90,9 +94,9 @@ class ChartVC: UIViewController{
     }
     
     @objc func reloadButtonTapped(){
+        self.navigationItem.rightBarButtonItem?.customView?.rotate360Degrees(duration: 2)
         let scrapingManager = ScrapingManager(allChartData: allChartData)
         scrapingManager.delegate = self
-        
         scrapingManager.startLoadingWebPages()
     }
 }

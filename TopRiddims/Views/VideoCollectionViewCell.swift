@@ -15,10 +15,12 @@ class VideoCollectionViewCell: UICollectionViewCell {
     private var playerAlreadySet: Bool = false
     static let identifier = "collectionViewCell"
     
+    
     //ChartCollectionViewnの中のDelegateFlowLayout内でitemの幅をvide幅とイコールにしているのでself.frame.widthでok
     private var videoWidth: CGFloat{ return self.frame.width }
     private var videoHeight: CGFloat{ return videoWidth / 16 * 9 }
     
+    var cellIndexNumber: Int = 0
     var song: Song!{
         didSet{
             if song.artistName == "" || song.songName == "" || song.trackID == ""{
@@ -42,6 +44,7 @@ class VideoCollectionViewCell: UICollectionViewCell {
         let buttonImage = UIImage(systemName: "play.circle", withConfiguration: config)
         bn.setImage(buttonImage, for: .normal)
         bn.tintColor = .white
+        bn.alpha = 0.8
         bn.addTarget(self, action: #selector(playButtonPressed), for: .touchUpInside)
         return bn
     }()
@@ -76,7 +79,7 @@ class VideoCollectionViewCell: UICollectionViewCell {
     private let numberLabel: UILabel = {
         let lb = UILabel()
         lb.text = "12"
-        lb.font = UIFont.systemFont(ofSize: 38, weight: .light)
+        lb.font = UIFont.systemFont(ofSize: 40, weight: .light)
         lb.textColor = .secondaryLabel
         return lb
     }()
@@ -97,20 +100,25 @@ class VideoCollectionViewCell: UICollectionViewCell {
         return lb
     }()
     
-    private let checkButton: UIButton = {
+    private lazy var checkButton: UIButton = {
         let bn = UIButton(type: .system)
-        let image = UIImage(systemName:"Checkmark.circle.fill")
+        let config = UIImage.SymbolConfiguration(pointSize: 18, weight: .thin, scale: .medium)
+        let image = UIImage(systemName: "checkmark.circle.fill", withConfiguration: config)
         bn.setImage(image, for: .normal)
         bn.contentMode = .scaleAspectFit
         bn.tintColor = #colorLiteral(red: 0.2745098174, green: 0.4862745106, blue: 0.1411764771, alpha: 1)
+        bn.addTarget(self, action: #selector(checkButtonPressed), for: .touchUpInside)
         return bn
     }()
-    private let heartButton: UIButton = {
+    
+    private lazy var heartButton: UIButton = {
         let bn = UIButton(type: .system)
-        let image = UIImage(systemName: "suit.heart.fill")
+        let config = UIImage.SymbolConfiguration(pointSize: 18, weight: .thin, scale: .medium)
+        let image = UIImage(systemName: "suit.heart.fill", withConfiguration: config)
         bn.setImage(image, for: .normal)
         bn.contentMode = .scaleAspectFit
         bn.tintColor = #colorLiteral(red: 0.8549019694, green: 0.250980407, blue: 0.4784313738, alpha: 1)
+        bn.addTarget(self, action: #selector(heartButtonPressed), for: .touchUpInside)
         return bn
     }()
     
@@ -154,29 +162,27 @@ class VideoCollectionViewCell: UICollectionViewCell {
 //        overlayNumber.anchor(top: playerView.topAnchor, right: playerView.rightAnchor, width: 45, height: 45)
         
         thumbnailImageView.anchor(top: playerView.topAnchor, left: playerView.leftAnchor, bottom: playerView.bottomAnchor, right: playerView.rightAnchor)
-        
-        customPlayButton.center(inView: thumbnailImageView)
-        
+        customPlayButton.center(inView: thumbnailImageView)  //サイズはプロパティ宣言内で行っている。
         spinner.center(inView: thumbnailImageView)
         spinner.setDimensions(height: 50, width: 50)  //これが図らずもcustomPlayButtonと同じ大きさになった。
         
         
-        numberLabel.anchor(top: playerView.bottomAnchor, left: playerView.leftAnchor, paddingTop: 2, paddingLeft: 5)
-        songNameLabel.anchor(top: playerView.bottomAnchor, left: numberLabel.rightAnchor, paddingTop: 2, paddingLeft: 10)
-        artistNameLabel.anchor(top: songNameLabel.bottomAnchor, left: numberLabel.rightAnchor, paddingTop: 0, paddingLeft: 10)
-        //        songNameLabel.centerX(inView: self, topAnchor: playerView.bottomAnchor, paddingTop: 2)
-        //        artistNameLabel.centerX(inView: self, topAnchor: songNameLabel.bottomAnchor, paddingTop: 2)
-
-        checkButton.setDimensions(height: 26, width: 26)
-        checkButton.anchor(top: playerView.bottomAnchor, right: playerView.rightAnchor, paddingTop: 4, paddingRight: 8)
-        heartButton.setDimensions(height: 30, width: 30)
-        heartButton.anchor(top: playerView.bottomAnchor, right: checkButton.leftAnchor, paddingTop: 2, paddingRight: 4)
+        numberLabel.anchor(top: playerView.bottomAnchor, left: playerView.leftAnchor, paddingTop: 1, paddingLeft: 4)
         
+        songNameLabel.anchor(top: playerView.bottomAnchor, left: numberLabel.rightAnchor, paddingTop: 2, paddingLeft: 10)
+        
+        checkButton.anchor(right: playerView.rightAnchor, paddingRight: 4)
+        checkButton.firstBaselineAnchor.constraint(equalTo: songNameLabel.firstBaselineAnchor).isActive = true
+        heartButton.anchor(right: checkButton.leftAnchor, paddingRight: 6)
+        heartButton.firstBaselineAnchor.constraint(equalTo: songNameLabel.firstBaselineAnchor).isActive = true
+        
+        artistNameLabel.anchor(top: songNameLabel.bottomAnchor, left: numberLabel.rightAnchor, paddingTop: 0, paddingLeft: 10)
     }
     
     private func configureCell(){  //Dequeueされるたびにsongが代入され、didSetでここが呼ばれる
         
         thumbnailImageView.sd_setImage(with: URL(string: song.thumbnailURL), completed: nil)
+        numberLabel.text = String(self.cellIndexNumber + 1)
         songNameLabel.text = song.songName
         artistNameLabel.text = song.artistName
         
@@ -196,6 +202,13 @@ class VideoCollectionViewCell: UICollectionViewCell {
 //        }else{
 //            playerView.cueVideo(byId: song.trackID, startSeconds: 0)
 //        }
+    }
+    
+    @objc func heartButtonPressed(){
+        print("Heart")
+    }
+    @objc func checkButtonPressed(){
+        print("Check")
     }
     
     @objc private func playButtonPressed(){ //カスタムのプレイボタン

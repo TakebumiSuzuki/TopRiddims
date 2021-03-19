@@ -13,9 +13,9 @@ struct K{
     
     static let chartCellAdditionalHeight: CGFloat = 110
     static let chartCellHeaderHeight: CGFloat = 40
-    static let chartCellFooterHeight: CGFloat = 160
+    static let chartCellFooterHeight: CGFloat = 140
     
-    static let ChartCollectionFooterPlusPointSize: CGFloat = 60
+    static let ChartCollectionFooterPlusPointSize: CGFloat = 70
     static let VideoCollectionViewEdgeInset = UIEdgeInsets(top: 0, left: 15, bottom: 0, right: 15)
     
     static let videoCollectionViewCellExtraHeight: CGFloat = 50

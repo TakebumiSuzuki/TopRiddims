@@ -47,7 +47,7 @@ class ChartCollectionViewCell: UICollectionViewCell {
     
     private lazy var leftArrow: UIButton = {
         let bn = UIButton(type: .system)
-        let config = UIImage.SymbolConfiguration(pointSize: 28, weight: .light, scale: .default)
+        let config = UIImage.SymbolConfiguration(pointSize: 28, weight: .thin, scale: .small)
         let image = UIImage(systemName: "arrowtriangle.left", withConfiguration: config)
         bn.setImage(image, for: .normal)
         bn.tintColor = .secondaryLabel
@@ -56,7 +56,7 @@ class ChartCollectionViewCell: UICollectionViewCell {
     }()
     private lazy var rightArrow: UIButton = {
         let bn = UIButton(type: .system)
-        let config = UIImage.SymbolConfiguration(pointSize: 28, weight: .light, scale: .default)
+        let config = UIImage.SymbolConfiguration(pointSize: 28, weight: .thin, scale: .small)
         let image = UIImage(systemName: "arrowtriangle.right", withConfiguration: config)
         bn.setImage(image, for: .normal)
         bn.tintColor = .secondaryLabel
@@ -113,19 +113,16 @@ class ChartCollectionViewCell: UICollectionViewCell {
         self.addSubview(videoCollectionView)
 //        addSubview(deleteButton)
         
-        
-        leftArrow.anchor(left: self.leftAnchor, paddingLeft: 40,  width: 30, height: 30)
-        leftArrow.centerYAnchor.constraint(equalTo: countryLabel.centerYAnchor).isActive = true
-        rightArrow.anchor(right: self.rightAnchor, paddingRight: 40,  width: 30, height: 30)
-        rightArrow.centerYAnchor.constraint(equalTo: countryLabel.centerYAnchor).isActive = true
-        
-        countryLabel.anchor(top: self.topAnchor, left: leftArrow.rightAnchor, right: rightArrow.leftAnchor, paddingTop: 10, paddingLeft: 10, paddingRight: 10)
+        countryLabel.centerX(inView: self, topAnchor: self.topAnchor, paddingTop: 10)
+        leftArrow.anchor(left: self.leftAnchor, paddingLeft: 20)
+        leftArrow.firstBaselineAnchor.constraint(equalTo: countryLabel.firstBaselineAnchor).isActive = true
+        rightArrow.anchor(right: self.rightAnchor, paddingRight: 20)
+        rightArrow.firstBaselineAnchor.constraint(equalTo: countryLabel.firstBaselineAnchor).isActive = true
         
         videoCollectionView.anchor(top: countryLabel.bottomAnchor, left: self.leftAnchor, paddingTop: 5, paddingLeft: 0, width: 2000, height: self.videoHeight + K.videoCollectionViewCellExtraHeight)
         
-        
-        
     }
+    
     
     @objc func deleteAction(){
 //        delegate?.deleteCell(self)
@@ -151,8 +148,11 @@ extension ChartCollectionViewCell: UICollectionViewDataSource{
         cell.backgroundColor = .systemGroupedBackground
         if songs.count == 20{
             cell.song = self.songs[indexPath.row]
+            cell.cellIndexNumber = indexPath.row
+            print(indexPath.row)
         }else{
             cell.song = Song(trackID: "", songName: "", artistName: "")
+            cell.cellIndexNumber = 0
         }
         return cell
     }
