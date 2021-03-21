@@ -6,6 +6,7 @@
 //
 import UIKit
 
+
 class ChartCollectionHeaderView: UICollectionReusableView{
     
     static var identifier = "header"

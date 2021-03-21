@@ -119,7 +119,7 @@ class ChartCollectionViewCell: UICollectionViewCell {
         rightArrow.anchor(right: self.rightAnchor, paddingRight: 20)
         rightArrow.firstBaselineAnchor.constraint(equalTo: countryLabel.firstBaselineAnchor).isActive = true
         
-        videoCollectionView.anchor(top: countryLabel.bottomAnchor, left: self.leftAnchor, paddingTop: 5, paddingLeft: 0, width: 2000, height: self.videoHeight + K.videoCollectionViewCellExtraHeight)
+        videoCollectionView.anchor(top: countryLabel.bottomAnchor, left: self.leftAnchor, right: self.rightAnchor, paddingTop: 5, paddingLeft: 0, paddingRight: 0, height: self.videoHeight + K.videoCollectionViewCellExtraHeight)
         
     }
     
@@ -135,11 +135,7 @@ class ChartCollectionViewCell: UICollectionViewCell {
 //MARK: - DataSource
 extension ChartCollectionViewCell: UICollectionViewDataSource{
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        if songs.isEmpty{   //videoViewのplaceHolderを作るために空であっても20にして送る。
-            return 20
-        }else{
-            return songs.count
-        }
+        return songs.count
     }
     
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
@@ -149,7 +145,6 @@ extension ChartCollectionViewCell: UICollectionViewDataSource{
         if songs.count == 20{
             cell.song = self.songs[indexPath.row]
             cell.cellIndexNumber = indexPath.row
-            print(indexPath.row)
         }else{
             cell.song = Song(trackID: "", songName: "", artistName: "")
             cell.cellIndexNumber = 0

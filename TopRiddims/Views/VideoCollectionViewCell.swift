@@ -20,7 +20,11 @@ class VideoCollectionViewCell: UICollectionViewCell {
     private var videoWidth: CGFloat{ return self.frame.width }
     private var videoHeight: CGFloat{ return videoWidth / 16 * 9 }
     
-    var cellIndexNumber: Int = 0
+    var cellIndexNumber: Int = 0{
+        didSet{
+            numberLabel.text = String(self.cellIndexNumber + 1)
+        }
+    }
     var song: Song!{
         didSet{
             if song.artistName == "" || song.songName == "" || song.trackID == ""{
@@ -78,7 +82,6 @@ class VideoCollectionViewCell: UICollectionViewCell {
     
     private let numberLabel: UILabel = {
         let lb = UILabel()
-        lb.text = "12"
         lb.font = UIFont.systemFont(ofSize: 40, weight: .light)
         lb.textColor = .secondaryLabel
         return lb
@@ -182,7 +185,6 @@ class VideoCollectionViewCell: UICollectionViewCell {
     private func configureCell(){  //Dequeueされるたびにsongが代入され、didSetでここが呼ばれる
         
         thumbnailImageView.sd_setImage(with: URL(string: song.thumbnailURL), completed: nil)
-        numberLabel.text = String(self.cellIndexNumber + 1)
         songNameLabel.text = song.songName
         artistNameLabel.text = song.artistName
         
@@ -272,4 +274,8 @@ extension VideoCollectionViewCell: YTPlayerViewDelegate{
     //    情報をパスされてローディングがスタートしてからサムネイルの準備終わるまでこの画面を表示する。
     //    func playerViewPreferredInitialLoading(_ playerView: YTPlayerView) -> UIView? {
     //    }
+}
+
+class custom: YTPlayerView{
+    
 }

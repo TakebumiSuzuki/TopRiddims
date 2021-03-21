@@ -7,9 +7,16 @@
 
 import UIKit
 
+
+protocol ChartCollectionFooterViewDelegate: class{
+    func footerPlusButtonPressed()
+}
+
 class ChartCollectionFooterView: UICollectionReusableView{
     
     static var identifier = "footer"
+    
+    weak var delegate: ChartCollectionFooterViewDelegate?
     
     private lazy var plusButton: UIButton = {
         let bn = UIButton(type: .system)
@@ -18,6 +25,7 @@ class ChartCollectionFooterView: UICollectionReusableView{
         bn.setImage(plusImage, for: .normal)
         bn.tintColor = UIColor.secondaryLabel
         bn.clipsToBounds = true
+        bn.addTarget(self, action: #selector(footerButtonPressed), for: .touchUpInside)
         return bn
     }()
     
@@ -26,8 +34,14 @@ class ChartCollectionFooterView: UICollectionReusableView{
         
         backgroundColor = .systemGroupedBackground
         self.addSubview(plusButton)
-        plusButton.center(inView: self)
+        
+        plusButton.centerX(inView: self, topAnchor: self.topAnchor, paddingTop: 17)
         plusButton.layer.cornerRadius = plusButton.intrinsicContentSize.width / 2
+    }
+    
+    
+    @objc func footerButtonPressed(){
+        delegate?.footerPlusButtonPressed()
     }
     
     

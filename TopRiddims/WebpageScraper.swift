@@ -26,11 +26,14 @@ class WebpageScraper{
         print("Scraper is being Deinitialized")
     }
     
+    
     func startFetchingData(){
         let countryEnum = K.Country(countryname: country)
-        
-        guard let url = URL(string: "https://charts.youtube.com/location/" + countryEnum.rawValue) else { return }
-        webView.load(URLRequest(url: url))
+        guard let url = URL(string: "https://charts.youtube.com/location/" + countryEnum.rawValue) else {
+            print("DEBUG: Something wrong with makeing url. Check out Country Enum!")
+            return
+        }
+        webView.load(URLRequest(url: url)) //このラインはメインスレッドで行わないとエラーになる。
     }
     
     
@@ -38,11 +41,13 @@ class WebpageScraper{
         
         webView.evaluateJavaScript("document.body.innerHTML"){ [weak self] result, error in
             
-            guard let self = self else { return }
+            guard let self = self else { print("DEBUG: self is nil at strtScraping handler!"); return }
             guard let html = result as? String, error == nil else {
                 print("DEBUG: error occured converting JS to html \(error!.localizedDescription)"); return
             }
+            
             DispatchQueue.global(qos: .userInitiated).async {
+//                print("DispatchQueueの中はメインスレッド?: \(Thread.isMainThread)")
                 do{
                     var ids = [String]()
                     let doc: Document = try SwiftSoup.parse(html)
@@ -83,13 +88,4 @@ class WebpageScraper{
     
 }
 
-class MyWKWebView: WKWebView{
-    
-    deinit {
-        print("WKWeb is being Deinitialized")
-        self.navigationDelegate = nil
-        self.uiDelegate = nil
-        self.stopLoading()
-        self.loadHTMLString("", baseURL: nil)
-    }
-}
+

@@ -8,7 +8,7 @@
 import Foundation
 import MobileCoreServices
 
-class Song{
+struct Song{
     
     
     var trackID: String = ""
