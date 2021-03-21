@@ -8,7 +8,23 @@
 import UIKit
 import M13Checkbox
 
+protocol MapVCDelegate: class{
+    func newCountriesSelected(selectedCountries: [String])
+}
+
 class MapVC: UIViewController{
+    
+    weak var delegate: MapVCDelegate?
+    var allChartData: [(country: String, songs:[Song])]!
+    
+    var allCheckButtons = [MapCheckBox]()
+    var selectedCountries = [String]()
+    
+    init(allChartData: [(country: String, songs:[Song])]) {
+        super.init(nibName: nil, bundle: nil)
+        self.allChartData = allChartData
+    }
+    required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
     
     private let scrollView: UIScrollView = {
         let sv = UIScrollView(frame: .zero)
@@ -29,21 +45,27 @@ class MapVC: UIViewController{
         return iv
     }()
     
-    private lazy var mapBox: MapCheckBoxLeft = {
-        let mb = MapCheckBoxLeft(countryName: "Jamaica  ", boxColor: UIColor.systemPink)
-        mb.delegate = self
-        return mb
-    }()
-    
-    
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        setupNav()
         setupViews()
     }
     
+    private func setupNav(){
+        navigationItem.title = "Select Areas"
+        let attributes:[NSAttributedString.Key : Any] = [.font: UIFont.systemFont(ofSize: 22, weight: .light),
+                                                         .foregroundColor: UIColor(named: "Black_Yellow")!]
+        navigationController?.navigationBar.titleTextAttributes = attributes
+        let leftItem = UIBarButtonItem(title: "Cancel", style: .plain, target: self, action: #selector(cancelButtonTapped))
+        leftItem.tintColor = UIColor(named: "Black_Yellow")!
+        navigationItem.leftBarButtonItem = leftItem
+        let rightItem = UIBarButtonItem(title: "Done", style: .done, target: self, action: #selector(doneButtonTapped))
+        rightItem.tintColor = UIColor(named: "Black_Yellow")!
+        navigationItem.rightBarButtonItem = rightItem
+    }
     
-    func setupViews(){
+    private func setupViews(){
         
         view.backgroundColor = .systemBackground
         scrollView.backgroundColor = .systemBackground
@@ -69,21 +91,81 @@ class MapVC: UIViewController{
         
         mapImageView.fillSuperview()
         
-        mapImageView.addSubview(mapBox)
-        mapBox.anchor(top: mapImageView.topAnchor, right: mapImageView.rightAnchor, paddingTop: 200, paddingLeft: 100, paddingRight: 400)
-        
-        setMapCheckBoxes()
+        setMapCheckBoxes(mapHeight: contentViewHeight, mapWidth: contentViewWidth)
+        fillCheckButtons()
     }
     
+//    lazy var jamaica:MapCheckBoxLeft = {
+//        let box = MapCheckBoxLeft(countryName: "Jamaica", boxColor: .systemPink)
+//        box.delegate = self
+//        return box
+//    }()
+//    lazy var trini = MapCheckBoxRight(countryName: "Trinidad & Tobago", boxColor: .systemPink)
+//    lazy var haiti = MapCheckBoxRight(countryName: "Haiti", boxColor: .systemPink)
+//    lazy var barbados = MapCheckBoxRight(countryName: "Barbados", boxColor: .systemPink)
+//    lazy var puerto = MapCheckBoxLeft(countryName: "Puerto Rico", boxColor: .systemPink)
+//    lazy var stLucia = MapCheckBoxRight(countryName: "St Lucia", boxColor: .systemPink)
+//    lazy var miami = MapCheckBoxLeft(countryName: "Miami", boxColor: .systemPink)
+//    lazy var guadeloupe = MapCheckBoxRight(countryName: "Guadeloupe", boxColor: .systemPink)
     
-    func setMapCheckBoxes(){
+//    let jamaica: MapCheckBox!
+    
+    func setMapCheckBoxes(mapHeight: CGFloat, mapWidth: CGFloat){
         
         for country in K.Country.allCases{
-            print(country.name)
+            let box: MapCheckBox
+            if country.tailDirection == .right{
+                let checkBox = MapCheckBoxRight(countryName: country.name, boxColor: .systemPink)
+                checkBox.delegate = self
+                box = checkBox
+            }else{
+                let checkBox = MapCheckBoxLeft(countryName: country.name, boxColor: .systemPink)
+                checkBox.delegate = self
+                box = checkBox
+            }
+            allCheckButtons.append(box)
+            mapImageView.addSubview(box)
+            
+            switch country{
+            case .jamaica:
+                box.anchor(top: mapImageView.topAnchor, right: mapImageView.rightAnchor, paddingTop: mapHeight*0.46, paddingRight: mapWidth*0.8)
+            case .trini:
+                box.anchor(top: mapImageView.topAnchor, right: mapImageView.rightAnchor, paddingTop: mapHeight*0.945, paddingRight: mapWidth*0.01)
+            case .haiti:
+                box.anchor(top: mapImageView.topAnchor, right: mapImageView.rightAnchor, paddingTop: mapHeight*0.40, paddingRight: mapWidth*0.57)
+            case .barbados:
+                box.anchor(top: mapImageView.topAnchor, right: mapImageView.rightAnchor, paddingTop: mapHeight*0.78, paddingRight: mapWidth*0.01)
+            case .puerto:
+                box.anchor(top: mapImageView.topAnchor, right: mapImageView.rightAnchor, paddingTop: mapHeight*0.51, paddingRight: mapWidth*0.25)
+            case .stLucia:
+                box.anchor(top: mapImageView.topAnchor, right: mapImageView.rightAnchor, paddingTop: mapHeight*0.75, paddingRight: mapWidth*0.13)
+            case .miami:
+                box.anchor(top: mapImageView.topAnchor, left: mapImageView.leftAnchor, paddingTop: mapHeight*0.04, paddingLeft: mapWidth*0.12)
+            case .guadeloupe:
+                box.anchor(top: mapImageView.topAnchor, right: mapImageView.rightAnchor, paddingTop: mapHeight*0.58, paddingRight: mapWidth*0.16)
+            }
+        
+        }
+        
+    }
+    private func fillCheckButtons(){
+        var countries = [String]() //allChartDataから国名だけ取り出した配列を作る
+        allChartData.forEach{ countries.append($0.country) }
+        allCheckButtons.forEach{
+            if countries.contains($0.countryName){
+                $0.checkBox.checkState = .checked
+                selectedCountries.append($0.countryName)
+            }
         }
         
     }
     
+    @objc func cancelButtonTapped(){
+        dismiss(animated: true, completion: nil)
+    }
+    @objc func doneButtonTapped(){
+        delegate?.newCountriesSelected(selectedCountries: selectedCountries)
+    }
     
 }
 
@@ -92,12 +174,15 @@ class MapVC: UIViewController{
 
 extension MapVC: MapCheckBoxDelegate{
     func checkButtonIsOn(_ checkBox: MapCheckBox) {
-        let cb = checkBox
-        print(cb.countryName)
+        let box = checkBox
+        if !selectedCountries.contains(box.countryName){
+            selectedCountries.append(box.countryName)
+        }
     }
-    
     func checkButtonIsOff(_ checkBox: MapCheckBox) {
-        return
+        let box = checkBox
+        selectedCountries = selectedCountries.filter{ $0 != box.countryName }
+        
     }
 }
 

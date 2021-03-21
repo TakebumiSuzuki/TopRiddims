@@ -8,17 +8,15 @@
 import UIKit
 import M13Checkbox
 
-
-
 class MapCheckBoxLeft: UIStackView, MapCheckBox{
     
     weak var delegate: MapCheckBoxDelegate?
     
     var countryName: String = ""
     var boxColor: UIColor = .red
-    let height: CGFloat = 22
+    let height: CGFloat = 20
     let tailLength: CGFloat = 8
-    let fontSize: CGFloat = 15
+    let fontSize: CGFloat = 14
     
     
     private let tailView: UIImageView = {
@@ -32,8 +30,8 @@ class MapCheckBoxLeft: UIStackView, MapCheckBox{
         return view
     }()
     
-    private let checkBox: MyCheckBox = {
-        let cb = MyCheckBox(frame: .zero)
+    lazy var checkBox: CustomCheckBox = {
+        let cb = CustomCheckBox(frame: .zero)
         cb.addTarget(self, action: #selector(buttonGotTapped), for: .valueChanged)
         return cb
     }()
@@ -49,12 +47,12 @@ class MapCheckBoxLeft: UIStackView, MapCheckBox{
         super.init(frame: .zero)
         
         self.isUserInteractionEnabled = true
-        self.layer.cornerRadius = 2
+        self.layer.cornerRadius = 3
         self.clipsToBounds = true  //右サイドに丸みをつけるために必要
         
         self.countryName = countryName
         self.boxColor = boxColor
-        countryLabel.text = "\(countryName)"
+        countryLabel.text = "\(countryName)  "
         
         addArrangedSubview(tailView)
         addArrangedSubview(checkBoxContainerView)

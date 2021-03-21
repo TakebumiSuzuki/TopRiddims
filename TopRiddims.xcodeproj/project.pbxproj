@@ -31,7 +31,7 @@
 		0CC5BC5A26067B8500C6AAFF /* MapVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0CC5BC5926067B8500C6AAFF /* MapVC.swift */; };
 		0CC5BC7626076DBF00C6AAFF /* MapCheckBoxRight.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0CC5BC7526076DBF00C6AAFF /* MapCheckBoxRight.swift */; };
 		0CC5BC7B2607864E00C6AAFF /* MapCheckBoxLeft.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0CC5BC7A2607864E00C6AAFF /* MapCheckBoxLeft.swift */; };
-		0CC5BC7E260792C200C6AAFF /* MyCheckBox.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0CC5BC7D260792C200C6AAFF /* MyCheckBox.swift */; };
+		0CC5BC7E260792C200C6AAFF /* CustomCheckBox.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0CC5BC7D260792C200C6AAFF /* CustomCheckBox.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -60,7 +60,7 @@
 		0CC5BC5926067B8500C6AAFF /* MapVC.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MapVC.swift; sourceTree = "<group>"; };
 		0CC5BC7526076DBF00C6AAFF /* MapCheckBoxRight.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MapCheckBoxRight.swift; sourceTree = "<group>"; };
 		0CC5BC7A2607864E00C6AAFF /* MapCheckBoxLeft.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MapCheckBoxLeft.swift; sourceTree = "<group>"; };
-		0CC5BC7D260792C200C6AAFF /* MyCheckBox.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MyCheckBox.swift; sourceTree = "<group>"; };
+		0CC5BC7D260792C200C6AAFF /* CustomCheckBox.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomCheckBox.swift; sourceTree = "<group>"; };
 		6BA4A93417FC5CB5E3622C08 /* Pods-TopRiddims.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-TopRiddims.debug.xcconfig"; path = "Target Support Files/Pods-TopRiddims/Pods-TopRiddims.debug.xcconfig"; sourceTree = "<group>"; };
 		7FDF02ADAE7D1C6484A80E4B /* Pods_TopRiddims.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_TopRiddims.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		8FDFA2D930FBD8E24C53E416 /* Pods-TopRiddims.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-TopRiddims.release.xcconfig"; path = "Target Support Files/Pods-TopRiddims/Pods-TopRiddims.release.xcconfig"; sourceTree = "<group>"; };
@@ -108,7 +108,7 @@
 				0C8A314426020DFC003AF166 /* WebpageScraper.swift */,
 				0CC5BC7526076DBF00C6AAFF /* MapCheckBoxRight.swift */,
 				0CC5BC7A2607864E00C6AAFF /* MapCheckBoxLeft.swift */,
-				0CC5BC7D260792C200C6AAFF /* MyCheckBox.swift */,
+				0CC5BC7D260792C200C6AAFF /* CustomCheckBox.swift */,
 				0C62B8D225FF8E5D00A203B2 /* Extension + UIColor.swift */,
 				0CB575672601C9E500DE22F9 /* Extension + UIView.swift */,
 				0CAC7E0C2605CCFE00582E3A /* AlertService.swift */,
@@ -284,7 +284,7 @@
 				0C8A313D2602021E003AF166 /* ChartCollectionFooterView.swift in Sources */,
 				0CB575702601CBE200DE22F9 /* ChartCollectionViewCell.swift in Sources */,
 				0CC5BC5A26067B8500C6AAFF /* MapVC.swift in Sources */,
-				0CC5BC7E260792C200C6AAFF /* MyCheckBox.swift in Sources */,
+				0CC5BC7E260792C200C6AAFF /* CustomCheckBox.swift in Sources */,
 				0C62B8D025FE934100A203B2 /* SettingVC.swift in Sources */,
 				0C62B8AE25FE8F7300A203B2 /* AppDelegate.swift in Sources */,
 				0C62B8D325FF8E5D00A203B2 /* Extension + UIColor.swift in Sources */,

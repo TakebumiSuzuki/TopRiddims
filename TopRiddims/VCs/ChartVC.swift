@@ -15,11 +15,11 @@ import UIKit
 class ChartVC: UIViewController{
     
     var allChartData = [(country: String, songs:[Song])]()
-    var countries: [K.Country]!
+//    var countries: [K.Country]!
     var scrapingManager: ScrapingManager?
     init(countries: [K.Country], allChartData: [(country: String, songs:[Song])]) {
         super.init(nibName: nil, bundle: nil)
-        self.countries = countries
+//        self.countries = countries
         self.allChartData = allChartData
     }
     required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
@@ -202,7 +202,8 @@ extension ChartVC: ScrapingManagerDelegate{
 extension ChartVC: ChartCollectionFooterViewDelegate{
     
     func footerPlusButtonPressed(){
-        let mapVC = MapVC()
+        let mapVC = MapVC(allChartData: allChartData)
+        mapVC.delegate = self
         let nav = UINavigationController(rootViewController: mapVC)
         nav.modalPresentationStyle = .automatic
         present(nav, animated: true, completion: nil)
@@ -382,6 +383,23 @@ extension ChartVC: UICollectionViewDelegateFlowLayout{
 
 //MARK: - CellDelegate
 extension ChartVC: ChartCollectionViewCellDelegate{
+    
+    
+}
+
+//MARK: - MapDelegate
+extension ChartVC:  MapVCDelegate{
+    func newCountriesSelected(selectedCountries: [String]) {
+        dismiss(animated: true, completion: nil)
+        allChartData = allChartData.filter{ selectedCountries.contains($0.country) }
+        chartCollectionView.reloadData()
+        
+        var currentEntries = [String]()
+        allChartData.forEach{ currentEntries.append($0.country) }
+        print(currentEntries)
+        let newEntries: [String] = selectedCountries.filter{ !currentEntries.contains($0) }
+        print(newEntries)
+    }
     
     
 }

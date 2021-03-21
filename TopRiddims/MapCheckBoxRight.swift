@@ -12,8 +12,9 @@ protocol MapCheckBoxDelegate: class{
     func checkButtonIsOn(_ checkBox: MapCheckBox)
     func checkButtonIsOff(_ checkBox: MapCheckBox)
 }
-protocol MapCheckBox{
+protocol MapCheckBox: UIView{
     var countryName: String { get }
+    var checkBox: CustomCheckBox { get set}
 }
 
 class MapCheckBoxRight: UIStackView, MapCheckBox{
@@ -22,19 +23,20 @@ class MapCheckBoxRight: UIStackView, MapCheckBox{
     
     var countryName: String = ""
     var boxColor: UIColor = .red
-    let height: CGFloat = 22
+    let height: CGFloat = 20
     let tailLength: CGFloat = 8
-    let fontSize: CGFloat = 15
+    let fontSize: CGFloat = 14
     
     
     private let halfCircleView: UIImageView = {
         let iv = UIImageView(image: UIImage(named: "HalfCircle"))
         iv.contentMode = .scaleAspectFill
+        iv.isUserInteractionEnabled = true
         return iv
     }()
     
-    private lazy var checkBox: MyCheckBox = {
-        let cb = MyCheckBox(frame: .zero)
+    lazy var checkBox: CustomCheckBox = {
+        let cb = CustomCheckBox(frame: .zero)
         cb.addTarget(self, action: #selector(buttonGotTapped), for: .valueChanged)
         return cb
     }()
@@ -89,6 +91,7 @@ class MapCheckBoxRight: UIStackView, MapCheckBox{
     
     
     @objc func buttonGotTapped(){
+        print("ok")
         switch checkBox.checkState {
         case .unchecked:
             delegate?.checkButtonIsOff(self)

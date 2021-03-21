@@ -26,6 +26,9 @@ struct K{
         case haiti = "0x8eb6c6f37fcbbb11%3A0xb51438b24c54f6d3"
         case barbados = "0x8c43f1fbae321aa3%3A0xeec51b38cf4362b"
         case puerto = "0x8c0296261b92a7f9%3A0xf336ec2818049b1a"
+        case stLucia = "0x8c406065f12da31d%3A0x6e7486c4e8399df5"
+        case miami = "0x88d9b0a20ec8c111%3A0xff96f271ddad4f65"
+        case guadeloupe = "0x8c13438a3f6dbde9%3A0xbc4ee8ffba83b57d"
         
         
         var name: String{
@@ -35,8 +38,28 @@ struct K{
             case .haiti: return "Haiti"
             case .barbados: return "Barbados"
             case .puerto: return "Puerto Rico"
+            case .stLucia: return "St Lucia"
+            case .miami: return "Miami"
+            case .guadeloupe: return "Guadeloupe"
             }
         }
+        
+        enum TailDirection{
+            case right, left
+        }
+        var tailDirection: TailDirection{
+            switch self{
+            case .jamaica: return .right
+            case .trini: return .right
+            case .haiti: return .right
+            case .barbados: return .right
+            case .puerto: return .left
+            case .stLucia: return .right
+            case .miami: return .left
+            case .guadeloupe: return .right
+            }
+        }
+        
         init(countryname: String) {
             switch countryname{
             case "Jamaica":
@@ -54,6 +77,18 @@ struct K{
             case "Puerto Rico":
                 guard let country = Country(rawValue: "0x8c0296261b92a7f9%3A0xf336ec2818049b1a") else{preconditionFailure("Company is undefined.")}
                 self = country
+            case "St Lucia":
+                guard let country = Country(rawValue: "0x8c406065f12da31d%3A0x6e7486c4e8399df5") else{preconditionFailure("Company is undefined.")}
+                self = country
+            case "Miami":
+                guard let country = Country(rawValue: "0x88d9b0a20ec8c111%3A0xff96f271ddad4f65") else{preconditionFailure("Company is undefined.")}
+                self = country
+                
+            case "Guadeloupe":
+                guard let country = Country(rawValue: "Guadeloupe") else{preconditionFailure("Company is undefined.")}
+                self = country
+                
+                
             default:
                 preconditionFailure("Company is undefined.")
             }
