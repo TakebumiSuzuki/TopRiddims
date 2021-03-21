@@ -6,13 +6,12 @@
 //
 
 import UIKit
+import M13Checkbox
 
 class MapVC: UIViewController{
     
-    let scrollView: UIScrollView = {
+    private let scrollView: UIScrollView = {
         let sv = UIScrollView(frame: .zero)
-        sv.backgroundColor = .red
-        
         return sv
     }()
     
@@ -21,12 +20,19 @@ class MapVC: UIViewController{
         return view
     }()
     
-    let mapImageView: UIImageView = {
+    private let mapImageView: UIImageView = {
        let iv = UIImageView()
         iv.image = UIImage(named: "CaribbeanMap")!
         iv.contentMode = .scaleAspectFit
         iv.clipsToBounds = true
+        iv.isUserInteractionEnabled = true  //ボタンが反応するために必要
         return iv
+    }()
+    
+    private lazy var mapBox: MapCheckBoxLeft = {
+        let mb = MapCheckBoxLeft(countryName: "Jamaica  ", boxColor: UIColor.systemPink)
+        mb.delegate = self
+        return mb
     }()
     
     
@@ -41,7 +47,7 @@ class MapVC: UIViewController{
         
         view.backgroundColor = .systemBackground
         scrollView.backgroundColor = .systemBackground
-        let bottomSpaceHeight: CGFloat = 80
+        let bottomSpaceHeight: CGFloat = 70
         
         view.addSubview(scrollView)
         scrollView.addSubview(clearContainerView)
@@ -63,11 +69,38 @@ class MapVC: UIViewController{
         
         mapImageView.fillSuperview()
         
+        mapImageView.addSubview(mapBox)
+        mapBox.anchor(top: mapImageView.topAnchor, right: mapImageView.rightAnchor, paddingTop: 200, paddingLeft: 100, paddingRight: 400)
+        
+        setMapCheckBoxes()
     }
     
     
+    func setMapCheckBoxes(){
+        
+        for country in K.Country.allCases{
+            print(country.name)
+        }
+        
+    }
+    
     
 }
+
+
+
+
+extension MapVC: MapCheckBoxDelegate{
+    func checkButtonIsOn(_ checkBox: MapCheckBox) {
+        let cb = checkBox
+        print(cb.countryName)
+    }
+    
+    func checkButtonIsOff(_ checkBox: MapCheckBox) {
+        return
+    }
+}
+
 
 
 

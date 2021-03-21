@@ -20,7 +20,7 @@ struct K{
     
     static let videoCollectionViewCellExtraHeight: CGFloat = 50
     
-    enum Country: String, Equatable{
+    enum Country: String, Equatable, CaseIterable{
         case jamaica = "0x8eda2a1bc6cf719d%3A0x59a0d1c0b5120efa"
         case trini = "0x8c3607976350b6c5%3A0xff082855c639f127"
         case haiti = "0x8eb6c6f37fcbbb11%3A0xb51438b24c54f6d3"

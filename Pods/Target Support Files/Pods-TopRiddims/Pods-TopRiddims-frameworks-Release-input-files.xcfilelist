@@ -1,4 +1,5 @@
 ${PODS_ROOT}/Target Support Files/Pods-TopRiddims/Pods-TopRiddims-frameworks.sh
+${BUILT_PRODUCTS_DIR}/M13Checkbox/M13Checkbox.framework
 ${BUILT_PRODUCTS_DIR}/NVActivityIndicatorView/NVActivityIndicatorView.framework
 ${BUILT_PRODUCTS_DIR}/SDWebImage/SDWebImage.framework
 ${BUILT_PRODUCTS_DIR}/SwiftSoup/SwiftSoup.framework
