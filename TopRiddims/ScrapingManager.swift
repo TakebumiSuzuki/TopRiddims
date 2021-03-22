@@ -30,6 +30,7 @@ class ScrapingManager{
     
     private var scrapedIndexNumbers: [Int] = [] { //scrapingが終わるとそのindexNumberが次々とここにappendされる
         didSet{
+            print("scrapedIndexNumbers:\(scrapedIndexNumbers)")
             if self.scrapedIndexNumbers.count == self.chartDataToFetch.count{
                 print("All the data Fetching Job Done!")
                 timer.invalidate()
@@ -78,7 +79,6 @@ class ScrapingManager{
             
             let modifiedIndexNumber = indexNumber + self.startingIndex
             self.delegate?.setCellWithSongsInfo(songs: songs, countryIndexNumber: modifiedIndexNumber)
-            self.scrapedIndexNumbers.append(modifiedIndexNumber)
         }
     }
     
@@ -109,6 +109,7 @@ class ScrapingManager{
                     }
                     print("----FINISHED FETCHING \(i)/\(self.chartDataToFetch.count)")
                     completion(songs, i)
+                    self.scrapedIndexNumbers.append(i)
                     continue
                 }else{
                     scraper.startScraping()

@@ -9,7 +9,7 @@ import UIKit
 import M13Checkbox
 
 protocol MapVCDelegate: class{
-    func newCountriesSelected(selectedCountries: [String])
+    func newCountrySelectionDone(selectedCountries: [String])
 }
 
 class MapVC: UIViewController{
@@ -95,21 +95,6 @@ class MapVC: UIViewController{
         fillCheckButtons()
     }
     
-//    lazy var jamaica:MapCheckBoxLeft = {
-//        let box = MapCheckBoxLeft(countryName: "Jamaica", boxColor: .systemPink)
-//        box.delegate = self
-//        return box
-//    }()
-//    lazy var trini = MapCheckBoxRight(countryName: "Trinidad & Tobago", boxColor: .systemPink)
-//    lazy var haiti = MapCheckBoxRight(countryName: "Haiti", boxColor: .systemPink)
-//    lazy var barbados = MapCheckBoxRight(countryName: "Barbados", boxColor: .systemPink)
-//    lazy var puerto = MapCheckBoxLeft(countryName: "Puerto Rico", boxColor: .systemPink)
-//    lazy var stLucia = MapCheckBoxRight(countryName: "St Lucia", boxColor: .systemPink)
-//    lazy var miami = MapCheckBoxLeft(countryName: "Miami", boxColor: .systemPink)
-//    lazy var guadeloupe = MapCheckBoxRight(countryName: "Guadeloupe", boxColor: .systemPink)
-    
-//    let jamaica: MapCheckBox!
-    
     func setMapCheckBoxes(mapHeight: CGFloat, mapWidth: CGFloat){
         
         for country in K.Country.allCases{
@@ -164,7 +149,7 @@ class MapVC: UIViewController{
         dismiss(animated: true, completion: nil)
     }
     @objc func doneButtonTapped(){
-        delegate?.newCountriesSelected(selectedCountries: selectedCountries)
+        delegate?.newCountrySelectionDone(selectedCountries: selectedCountries)
     }
     
 }

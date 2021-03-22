@@ -85,10 +85,8 @@ class MapCheckBoxLeft: UIStackView, MapCheckBox{
         switch checkBox.checkState {
         case .unchecked:
             delegate?.checkButtonIsOff(self)
-            print("Its' off now")
         case .checked:
             delegate?.checkButtonIsOn(self)
-            print("Its' on now")
         case .mixed:
             return
         }

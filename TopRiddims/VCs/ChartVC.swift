@@ -82,7 +82,7 @@ class ChartVC: UIViewController{
     }()
     
     
-    
+//MARK: - ViewLifeCycle
     override func viewDidLoad() {
         super.viewDidLoad()
         setupNavBar()
@@ -162,17 +162,18 @@ class ChartVC: UIViewController{
 
 //MARK: - ScrapingManager Delegate
 extension ChartVC: ScrapingManagerDelegate{
-    
+    //チャート情報をゲットできた国から順番にこのメソッドが呼ばれる
     func setCellWithSongsInfo(songs: [Song], countryIndexNumber: Int) {
-        allChartData[countryIndexNumber].songs = songs
+        allChartData[countryIndexNumber].songs = songs //グローバル変数のallChartDataをアップデート
         
+        //以下は、アップデートするcellをつかみ、メインキューで表示させる
         let indexPath = IndexPath(row: countryIndexNumber, section: 0)
         guard let cellToLiveUpdate = chartCollectionView.cellForItem(at: indexPath) as? ChartCollectionViewCell else{
-            print("IndexNumber \(countryIndexNumber) is out of screen, so this is not for liveupdate")
+            print("IndexNumber \(countryIndexNumber) is out of screen, so this doesn't show liveupdate")
             return
         }
         DispatchQueue.main.async {
-            cellToLiveUpdate.songs = songs
+            cellToLiveUpdate.songs = songs  //この時点でdidSetが起動し自動アップデートが行われる
             let flash = CABasicAnimation(keyPath: "opacity")
             flash.duration = 0.5
             flash.fromValue = 1
@@ -182,6 +183,7 @@ extension ChartVC: ScrapingManagerDelegate{
             cellToLiveUpdate.layer.add(flash, forKey: nil)
         }
     }
+    //以下の2つのうちどちらかが必ず呼ばれる。
     func fetchingDataAllDone(){
         scrapingManager = nil //これによりfetching関連で作ったインスタンスを消去
         onOffSwitch.toggle() //delegateで自動で呼ばれるのでtoggleをしておかないといけない
@@ -199,6 +201,7 @@ extension ChartVC: ScrapingManagerDelegate{
     }
 }
 
+//MARK: - Footer Delegate (Plus Button)
 extension ChartVC: ChartCollectionFooterViewDelegate{
     
     func footerPlusButtonPressed(){
@@ -209,32 +212,55 @@ extension ChartVC: ChartCollectionFooterViewDelegate{
         present(nav, animated: true, completion: nil)
         
         
-//        let newCountryData: [(country: String, songs:[Song])] = [(country: "Puerto Rico",
-//                                                             songs: [Song]())]
-//        let startingIndex = allChartData.count
+//        let newCountryData: [(country: String, songs:[Song])] = [(country: "Puerto Rico",songs: [Song]())]
 //
-//        allChartData.append(contentsOf: newCountryData)
-//
-//        for i in 0..<newCountryData.count{
-//            chartCollectionView.insertItems(at: [IndexPath(item: (allChartData.count - i - 1), section: 0)])
-        
-        
-//        chartCollectionView.reloadData()  //即席のUIアップデート。ここで動きをつける必要あり
-//        print(allChartData)
-        
-//        smallCircleImageView.rotate360Degrees(duration: 2)
-//        smallPauseImageView.isHidden = false
-//        onOffSwitch.toggle()
-//
-//        scrapingManager = ScrapingManager(chartDataToFetch: newCountryData, startingIndex: startingIndex)
-//        scrapingManager?.delegate = self
-//        scrapingManager?.startLoadingWebPages()
-//    }
     }
 }
 
+//MARK: - MapDelegate
+extension ChartVC:  MapVCDelegate{
+    
+    func newCountrySelectionDone(selectedCountries: [String]) {
+        dismiss(animated: true, completion: nil)
+        allChartData = allChartData.filter{ selectedCountries.contains($0.country) }
+        chartCollectionView.reloadData()
+        
+        var currentEntries = [String]()
+        allChartData.forEach{ currentEntries.append($0.country) }
+        let newEntries: [String] = selectedCountries.filter{ !currentEntries.contains($0) }
+        updateWithNewCountries(newEntries: newEntries)
+    }
+    
+    private func updateWithNewCountries(newEntries: [String]){
+        //単純なString配列のnewEntriesを新しいデータ構造に変換し、allChartDataの末尾に加える
+        if newEntries.isEmpty{ return }
+        var newCountryData = [(country: String, songs:[Song])]()
+        newEntries.forEach{
+            let data = (country: $0, songs: [Song]())
+            newCountryData.append(data)
+        }
+        let startingIndex = allChartData.count
+        allChartData.append(contentsOf: newCountryData)
+        
+        //新しく追加された国をUI即席アップデートでcollectionViewに加える。この時animationの為insertItemsメソッドを使う。
+        for i in 0..<newCountryData.count{
+            chartCollectionView.insertItems(at: [IndexPath(item: (startingIndex + i), section: 0)])
+        }
+        
+        //実際のデータアップロード
+        smallCircleImageView.rotate360Degrees(duration: 2)
+        smallPauseImageView.isHidden = false
+        onOffSwitch.toggle()
+        
+        scrapingManager = ScrapingManager(chartDataToFetch: newCountryData, startingIndex: startingIndex)
+        scrapingManager?.delegate = self
+        scrapingManager?.startLoadingWebPages()
+    }
+    
+}
 
-//MARK: - DataSource
+
+//MARK: - chartCollectionView DataSource
 extension ChartVC: UICollectionViewDataSource{
 
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
@@ -263,7 +289,7 @@ extension ChartVC: UICollectionViewDataSource{
     }
 }
 
-//MARK: - Delegate
+//MARK: - chartCollectionView Delegate
 extension ChartVC: UICollectionViewDelegate{
     
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
@@ -280,7 +306,7 @@ extension ChartVC: UICollectionViewDelegate{
 }
 
 
-//MARK: - FlowLayout
+//MARK: - chartCollectionView FlowLayout
 extension ChartVC: UICollectionViewDelegateFlowLayout{
     
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
@@ -387,22 +413,7 @@ extension ChartVC: ChartCollectionViewCellDelegate{
     
 }
 
-//MARK: - MapDelegate
-extension ChartVC:  MapVCDelegate{
-    func newCountriesSelected(selectedCountries: [String]) {
-        dismiss(animated: true, completion: nil)
-        allChartData = allChartData.filter{ selectedCountries.contains($0.country) }
-        chartCollectionView.reloadData()
-        
-        var currentEntries = [String]()
-        allChartData.forEach{ currentEntries.append($0.country) }
-        print(currentEntries)
-        let newEntries: [String] = selectedCountries.filter{ !currentEntries.contains($0) }
-        print(newEntries)
-    }
-    
-    
-}
+
 
 
 
