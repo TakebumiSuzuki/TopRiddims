@@ -58,7 +58,7 @@ class VideoCollectionViewCell: UICollectionViewCell {
        return spinner
     }()
     
-    private lazy var playerView: YTPlayerView! = {
+    lazy var playerView: YTPlayerView! = {
         print("新しいプレーヤーがイニシャライズされました。")
         return makeNewPlayer ()
     }()

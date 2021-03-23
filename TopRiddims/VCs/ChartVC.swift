@@ -15,6 +15,14 @@ import youtube_ios_player_helper
 
 class ChartVC: UIViewController{
     
+    private var pageNumbers: [Int] = {
+        var array = [Int]()
+        for _ in 0...19{
+            array.append(0)
+        }
+        return array
+    }()
+    
     var allChartData = [(country: String, songs:[Song])]()
 //    var countries: [K.Country]!
     var scrapingManager: ScrapingManager?
@@ -122,6 +130,8 @@ class ChartVC: UIViewController{
     }
     @objc func findFR(){
         print("現在のFR\(view.currentFirstResponder())")
+        guard let cell = chartCollectionView.cellForItem(at: IndexPath(row: 0, section: 0)) as? ChartCollectionViewCell else {return}
+        cell.videoCollectionView.setContentOffset(CGPoint(x: 500, y: 0), animated: true)
         
     }
     
@@ -414,6 +424,34 @@ extension ChartVC: UICollectionViewDelegateFlowLayout{
 
 //MARK: - CellDelegate
 extension ChartVC: ChartCollectionViewCellDelegate{
+    func rightArrowTapped(_ cell: ChartCollectionViewCell) {
+        guard let row = chartCollectionView.indexPath(for: cell)?.row else{return}
+        let origPageNumber = pageNumbers[row]
+        if origPageNumber != 19{
+            let newNumber = origPageNumber+1
+            pageNumbers[row] = newNumber
+            scrollVideo(row: row, rank: newNumber)
+        }
+    }
+    
+    func leftArrowTapped(_ cell: ChartCollectionViewCell) {
+        guard let row = chartCollectionView.indexPath(for: cell)?.row else{return}
+        let origPageNumber = pageNumbers[row]
+        if origPageNumber != 0{
+            let newNumber = origPageNumber-1
+            pageNumbers[row] = newNumber
+            scrollVideo(row: row, rank: newNumber)
+            
+        }
+    }
+    
+    func scrollVideo(row: Int, rank: Int){
+        print(pageNumbers)
+        guard let cell = chartCollectionView.cellForItem(at: IndexPath(row: row, section: 0)) as? ChartCollectionViewCell else {return}
+        cell.videoCollectionView.setContentOffset(CGPoint(x: 100*rank, y: 0), animated: true)
+        
+    }
+    
     
     
 }

@@ -9,7 +9,8 @@ import UIKit
 import WebKit
 
 protocol ChartCollectionViewCellDelegate: class{
-    
+    func rightArrowTapped(_ cell: ChartCollectionViewCell)
+    func leftArrowTapped(_ cell: ChartCollectionViewCell)
 }
 
 
@@ -47,28 +48,28 @@ class ChartCollectionViewCell: UICollectionViewCell {
     
     private lazy var leftArrow: UIButton = {
         let bn = UIButton(type: .system)
-        let config = UIImage.SymbolConfiguration(pointSize: 28, weight: .thin, scale: .small)
-        let image = UIImage(systemName: "arrowtriangle.left", withConfiguration: config)
+        let config = UIImage.SymbolConfiguration(pointSize: 30, weight: .thin, scale: .large)
+        let image = UIImage(systemName: "arrowtriangle.left.fill", withConfiguration: config)
         bn.setImage(image, for: .normal)
-        bn.tintColor = .secondaryLabel
+        bn.tintColor = .separator
         bn.addTarget(self, action: #selector(leftArrowTapped), for: .touchUpInside)
         return bn
     }()
     private lazy var rightArrow: UIButton = {
         let bn = UIButton(type: .system)
-        let config = UIImage.SymbolConfiguration(pointSize: 28, weight: .thin, scale: .small)
-        let image = UIImage(systemName: "arrowtriangle.right", withConfiguration: config)
+        let config = UIImage.SymbolConfiguration(pointSize: 30, weight: .thin, scale: .large)
+        let image = UIImage(systemName: "arrowtriangle.right.fill", withConfiguration: config)
         bn.setImage(image, for: .normal)
-        bn.tintColor = .secondaryLabel
+        bn.tintColor = .separator
         bn.addTarget(self, action: #selector(rightArrowTapped), for: .touchUpInside)
         return bn
     }()
     
     @objc func leftArrowTapped(){
-        print("Left tapped")
+        delegate?.leftArrowTapped(self)
     }
     @objc func rightArrowTapped(){
-        print("Right tapped")
+        delegate?.rightArrowTapped(self)
     }
     
 //    @objc func longTapped(_ gesture: UILongPressGestureRecognizer){
@@ -90,14 +91,6 @@ class ChartCollectionViewCell: UICollectionViewCell {
         return cv
     }()
     
-//    private lazy var deleteButton: UIButton = {
-//        let bn = UIButton(type: .system)
-//        bn.setTitle("delete", for: .normal)
-//        bn.addTarget(self, action: #selector(deleteAction), for: .touchUpInside)
-//        bn.backgroundColor = .yellow
-//        return bn
-//    }()
-    
     override init(frame: CGRect) {
         super.init(frame: frame)
         
@@ -109,21 +102,20 @@ class ChartCollectionViewCell: UICollectionViewCell {
     private func setupViews(){
         
         self.addSubview(countryLabel)
+        self.addSubview(videoCollectionView)
         self.addSubview(rightArrow)
         self.addSubview(leftArrow)
-        self.addSubview(videoCollectionView)
-//        addSubview(deleteButton)
         
         countryLabel.centerX(inView: self, topAnchor: self.topAnchor, paddingTop: 10)
-        leftArrow.anchor(left: self.leftAnchor, paddingLeft: 20)
-        leftArrow.firstBaselineAnchor.constraint(equalTo: countryLabel.firstBaselineAnchor).isActive = true
-        rightArrow.anchor(right: self.rightAnchor, paddingRight: 20)
-        rightArrow.firstBaselineAnchor.constraint(equalTo: countryLabel.firstBaselineAnchor).isActive = true
         
         videoCollectionView.anchor(top: countryLabel.bottomAnchor, left: self.leftAnchor, right: self.rightAnchor, paddingTop: 5, paddingLeft: 0, paddingRight: 0, height: self.videoHeight + K.videoCollectionViewCellExtraHeight)
-        print(videoCollectionView.contentOffset)
-        videoCollectionView.contentOffset = CGPoint(x: 50, y: 5)
-        print(videoCollectionView.contentOffset)
+        
+        let arrowWidth = (self.frame.width-videoWidth)/2
+        print(arrowWidth)
+        
+        leftArrow.anchor(top: countryLabel.bottomAnchor, left: self.leftAnchor, paddingTop: videoHeight/2, paddingLeft: 3, width: arrowWidth-6, height: arrowWidth)
+        rightArrow.anchor(top: countryLabel.bottomAnchor, right: self.rightAnchor, paddingTop: videoHeight/2, paddingRight: 3, width: arrowWidth-6, height: arrowWidth)
+        
     }
     
     
