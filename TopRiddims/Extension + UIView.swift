@@ -12,6 +12,22 @@ import UIKit
 
 extension UIView{
     
+    
+    func currentFirstResponder() -> UIResponder? {
+        if self.isFirstResponder {
+            return self
+        }
+        for view in self.subviews {
+            if let responder = view.currentFirstResponder() {
+                return responder
+            }
+        }
+        return nil
+    }
+    
+    
+    
+    
     func rotate360Degrees(duration: CFTimeInterval = 1) {
         let rotateAnimation = CABasicAnimation(keyPath: "transform.rotation")
         rotateAnimation.fromValue = 0.0

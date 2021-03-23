@@ -6,12 +6,15 @@
 //
 
 import UIKit
+import youtube_ios_player_helper
+
 
 class MainTabBarController: UITabBarController {
-
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         configureTabs()
+        
     }
     
     private func configureTabs(){
@@ -51,6 +54,7 @@ class MainTabBarController: UITabBarController {
                                              unselectedImage: UIImage(systemName: "bolt", withConfiguration: configuration)!)
         
         let likesVC = LikesVC()
+        
         let likesNav = generateNavController(rootVC: likesVC,
                                              title: "likes",
                                              selectedImage: UIImage(systemName: "suit.heart.fill", withConfiguration: configuration)!,

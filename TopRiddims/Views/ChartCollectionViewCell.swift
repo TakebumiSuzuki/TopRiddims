@@ -75,7 +75,7 @@ class ChartCollectionViewCell: UICollectionViewCell {
 //        delegate?.handlinglongTapped(gesture)
 //    }
     
-    private lazy var videoCollectionView: UICollectionView = {
+    lazy var videoCollectionView: UICollectionView = {  //表示オフセット情報を管理するためにprivateは外した。
         let layout = UICollectionViewFlowLayout()
         layout.scrollDirection = .horizontal
         let cv = UICollectionView(frame: .zero, collectionViewLayout: layout)
@@ -86,6 +86,7 @@ class ChartCollectionViewCell: UICollectionViewCell {
         cv.showsHorizontalScrollIndicator = false
         cv.contentInset = K.VideoCollectionViewEdgeInset
         cv.register(VideoCollectionViewCell.self, forCellWithReuseIdentifier: VideoCollectionViewCell.identifier)
+//        cv.isPagingEnabled = true
         return cv
     }()
     
@@ -120,7 +121,9 @@ class ChartCollectionViewCell: UICollectionViewCell {
         rightArrow.firstBaselineAnchor.constraint(equalTo: countryLabel.firstBaselineAnchor).isActive = true
         
         videoCollectionView.anchor(top: countryLabel.bottomAnchor, left: self.leftAnchor, right: self.rightAnchor, paddingTop: 5, paddingLeft: 0, paddingRight: 0, height: self.videoHeight + K.videoCollectionViewCellExtraHeight)
-        
+        print(videoCollectionView.contentOffset)
+        videoCollectionView.contentOffset = CGPoint(x: 50, y: 5)
+        print(videoCollectionView.contentOffset)
     }
     
     
@@ -144,7 +147,7 @@ extension ChartCollectionViewCell: UICollectionViewDataSource{
         cell.backgroundColor = .systemGroupedBackground
         if songs.count == 20{
             cell.song = self.songs[indexPath.row]
-            cell.cellIndexNumber = indexPath.row
+            cell.cellIndexNumber = indexPath.row  //順位の情報
         }else{
             cell.song = Song(trackID: "", songName: "", artistName: "")
             cell.cellIndexNumber = 0
@@ -155,6 +158,12 @@ extension ChartCollectionViewCell: UICollectionViewDataSource{
 
 //MARK: - Delegate
 extension ChartCollectionViewCell: UICollectionViewDelegate{
+    
+//    func scrollViewWillEndDragging(_ scrollView: UIScrollView, withVelocity velocity: CGPoint, targetContentOffset: UnsafeMutablePointer<CGPoint>) {
+////        print(targetContentOffset.pointee)
+////        targetContentOffset.pointee = CGPoint(x: 200, y: 0)
+//    }
+    
     
 }
 

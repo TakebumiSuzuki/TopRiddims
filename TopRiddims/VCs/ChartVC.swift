@@ -11,6 +11,7 @@
 
 
 import UIKit
+import youtube_ios_player_helper
 
 class ChartVC: UIViewController{
     
@@ -87,9 +88,17 @@ class ChartVC: UIViewController{
         super.viewDidLoad()
         setupNavBar()
         setupViews()
-//        handleStatusBar()
+        NotificationCenter.default.addObserver(self, selector: #selector(newVideoDidStartPlay), name: Notification.Name(rawValue:"videoAboutToPlayNotification"), object: nil)
     }
     
+    //これらは、今再生中のプレイヤーをfirstResponderにするため。でないとprogrammaticallyにplay()した時に、scrollすると再生が止まってしまう。
+    var newVideoPlaying: UIView?
+    @objc func newVideoDidStartPlay(notification: NSNotification){  //他のどこかのcellでビデオがプレイされ始める時の通知
+        let info = notification.userInfo
+        guard let playerObject = info?["playerObject"] as? YTPlayerView else {return}
+        newVideoPlaying = playerObject.webView?.scrollView.subviews.first
+        newVideoPlaying?.becomeFirstResponder()
+}
     
     private func setupNavBar(){
 //        navigationController?.hidesBarsOnSwipe = true
@@ -105,28 +114,22 @@ class ChartVC: UIViewController{
         smallCircleImageView.center(inView: clearButton)
         smallPauseImageView.center(inView: clearButton)
         self.navigationItem.rightBarButtonItem = rightButton
+        
+        
+        let buttonItem = UIBarButtonItem(title: "test", style: .done, target: self, action: #selector(findFR))
+        navigationItem.leftBarButtonItem = buttonItem
+        
+    }
+    @objc func findFR(){
+        print("現在のFR\(view.currentFirstResponder())")
+        
     }
     
     private func setupViews(){
         view.addSubview(chartCollectionView)
         chartCollectionView.fillSuperview()
     }
-    
-//    private func handleStatusBar(){
-//        if #available(iOS 13.0, *) {  //hidesBarsOnSwipe設定によって文字がかぶるようになったstatusBarを覆い隠すため。
-//            let window = UIApplication.shared.windows.filter {$0.isKeyWindow}.first
-//            let statusBarFrame = window?.windowScene?.statusBarManager?.statusBarFrame
-//            let statusBarView = UIView(frame: statusBarFrame!)
-//            self.view.addSubview(statusBarView)
-//            statusBarView.backgroundColor = .systemBackground
-//        } else {
-//            //Below iOS13
-//            let statusBarFrame = UIApplication.shared.statusBarFrame
-//            let statusBarView = UIView(frame: statusBarFrame)
-//            self.view.addSubview(statusBarView)
-//            statusBarView.backgroundColor = .systemBackground
-//        }
-//    }
+
     
     @objc func reloadButtonTapped(){
         onOffSwitch.toggle()
@@ -267,6 +270,7 @@ extension ChartVC: UICollectionViewDataSource{
         return allChartData.count
     }
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
+        
         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: ChartCollectionViewCell.identifier, for: indexPath) as! ChartCollectionViewCell
         cell.backgroundColor = .systemGroupedBackground
         cell.country = allChartData[indexPath.row].country
@@ -312,6 +316,7 @@ extension ChartVC: UICollectionViewDelegateFlowLayout{
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
         let width = view.frame.width
         let height = videoHeight + K.chartCellAdditionalHeight
+        print("Flowlayoutのsize for item呼ばれました")
         return CGSize(width: width, height: height)
     }
     

@@ -12,15 +12,14 @@ import NVActivityIndicatorView
 
 class VideoCollectionViewCell: UICollectionViewCell {
     
-    private var playerAlreadySet: Bool = false
-    static let identifier = "collectionViewCell"
     
+    static let identifier = "collectionViewCell"
     
     //ChartCollectionViewnの中のDelegateFlowLayout内でitemの幅をvide幅とイコールにしているのでself.frame.widthでok
     private var videoWidth: CGFloat{ return self.frame.width }
     private var videoHeight: CGFloat{ return videoWidth / 16 * 9 }
     
-    var cellIndexNumber: Int = 0{
+    var cellIndexNumber: Int = 0{ //曲の順位
         didSet{
             numberLabel.text = String(self.cellIndexNumber + 1)
         }
@@ -41,7 +40,7 @@ class VideoCollectionViewCell: UICollectionViewCell {
         iv.backgroundColor = .systemBackground
         return iv
     }()
-    
+
     private lazy var customPlayButton: UIButton = {
         let bn = UIButton(type: .system)
         let config = UIImage.SymbolConfiguration(pointSize: 60, weight: .thin, scale: .medium)
@@ -52,33 +51,27 @@ class VideoCollectionViewCell: UICollectionViewCell {
         bn.addTarget(self, action: #selector(playButtonPressed), for: .touchUpInside)
         return bn
     }()
-    
+
     private let spinner: NVActivityIndicatorView = {
         let spinner = NVActivityIndicatorView(frame: .zero, type: .circleStrokeSpin, color: .yellow, padding: 0)
         spinner.isHidden = true
        return spinner
     }()
     
-    private lazy var playerView: YTPlayerView = {
+    private lazy var playerView: YTPlayerView! = {
+        print("新しいプレーヤーがイニシャライズされました。")
+        return makeNewPlayer ()
+    }()
+    
+    //このメソッドはイニシャライズ時だけでなく、一度ロードしたplyerをdeallocateして再度新規で作り直す時にも使う。
+    private func makeNewPlayer () -> YTPlayerView{
         let pv = YTPlayerView()
         pv.delegate = self
         pv.layer.cornerRadius = 6
         pv.clipsToBounds = true
         pv.backgroundColor = .separator
         return pv
-    }()
-    
-    //    private let overlayNumber: UILabel = {
-    //        let lb = UILabel()
-    //         lb.text = "10"
-    //        lb.font = UIFont.systemFont(ofSize: 28, weight: .light)
-    //        lb.backgroundColor = .red
-    //        lb.layer.cornerRadius = 4
-    //        lb.textAlignment = .center
-    //        lb.textColor = .white
-    //        lb.clipsToBounds = true
-    //         return lb
-    //     }()
+    }
     
     private let numberLabel: UILabel = {
         let lb = UILabel()
@@ -91,7 +84,6 @@ class VideoCollectionViewCell: UICollectionViewCell {
         let lb = UILabel()
         lb.font = UIFont.systemFont(ofSize: 18, weight: .regular)
         lb.textColor = .secondaryLabel
-        lb.text = "Test Song Name by Someone"
         return lb
     }()
     
@@ -99,7 +91,6 @@ class VideoCollectionViewCell: UICollectionViewCell {
         let lb = UILabel()
         lb.font = UIFont.systemFont(ofSize: 16, weight: .regular)
         lb.textColor = .secondaryLabel
-        lb.text = "Test Artist Name"
         return lb
     }()
     
@@ -125,7 +116,7 @@ class VideoCollectionViewCell: UICollectionViewCell {
         return bn
     }()
     
-    
+    //MARK: - View Life Cycle
     override init(frame: CGRect) {
         super.init(frame: frame)  //ここを.zeroにしたためにDelegateFlowLayoutで指定したサイズが効かずバグとなった
         setupNotifications()
@@ -134,6 +125,7 @@ class VideoCollectionViewCell: UICollectionViewCell {
     required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
     
     
+    //あるvideoが再生された時にその他の全てのcellのビデオにポーズを送るため。また、ChartVC上でfirstResponder管理にも使う。
     private func setupNotifications(){
         NotificationCenter.default.addObserver(self, selector: #selector(newVideoPlayInvoked), name: Notification.Name(rawValue:"videoAboutToPlayNotification"), object: nil)
     }
@@ -147,10 +139,11 @@ class VideoCollectionViewCell: UICollectionViewCell {
     
     
     private func setupViews(){
+        //セルが新規作成された時に呼ばれる初期設定。(チャート１行(1国)につき作られるのは3つほどで、dequeueで使いまわされる)
         self.clipsToBounds = true
         
+        //playerViewに他のviewをsubViewとして加えることはできないっぽい。youtubePlayerが課している機能制限かと。
         self.addSubview(playerView)
-//        self.addSubview(overlayNumber)
         self.addSubview(thumbnailImageView)
         self.addSubview(customPlayButton)
         self.addSubview(spinner)
@@ -162,50 +155,52 @@ class VideoCollectionViewCell: UICollectionViewCell {
         
         playerView.setDimensions(height: videoHeight, width: videoWidth)
         playerView.centerX(inView: self, topAnchor: self.topAnchor, paddingTop: 0)
-//        overlayNumber.anchor(top: playerView.topAnchor, right: playerView.rightAnchor, width: 45, height: 45)
         
         thumbnailImageView.anchor(top: playerView.topAnchor, left: playerView.leftAnchor, bottom: playerView.bottomAnchor, right: playerView.rightAnchor)
-        customPlayButton.center(inView: thumbnailImageView)  //サイズはプロパティ宣言内で行っている。
+        customPlayButton.anchor(top: playerView.topAnchor, left: playerView.leftAnchor, bottom: playerView.bottomAnchor, right: playerView.rightAnchor) //中央に位置するプレイボタンのサイズはプロパティ宣言内で行っている。
         spinner.center(inView: thumbnailImageView)
         spinner.setDimensions(height: 50, width: 50)  //これが図らずもcustomPlayButtonと同じ大きさになった。
         
-        
         numberLabel.anchor(top: playerView.bottomAnchor, left: playerView.leftAnchor, paddingTop: 1, paddingLeft: 4)
-        
         songNameLabel.anchor(top: playerView.bottomAnchor, left: numberLabel.rightAnchor, paddingTop: 2, paddingLeft: 10)
+        artistNameLabel.anchor(top: songNameLabel.bottomAnchor, left: numberLabel.rightAnchor, paddingTop: 0, paddingLeft: 10)
         
         checkButton.anchor(right: playerView.rightAnchor, paddingRight: 4)
         checkButton.firstBaselineAnchor.constraint(equalTo: songNameLabel.firstBaselineAnchor).isActive = true
         heartButton.anchor(right: checkButton.leftAnchor, paddingRight: 6)
         heartButton.firstBaselineAnchor.constraint(equalTo: songNameLabel.firstBaselineAnchor).isActive = true
-        
-        artistNameLabel.anchor(top: songNameLabel.bottomAnchor, left: numberLabel.rightAnchor, paddingTop: 0, paddingLeft: 10)
     }
     
+    
+    //MARK: - Dequeue補正
     private func configureCell(){  //Dequeueされるたびにsongが代入され、didSetでここが呼ばれる
+        //順位表示についてはdequeue時に個別に代入されdidSetで表示される。
         
         thumbnailImageView.sd_setImage(with: URL(string: song.thumbnailURL), completed: nil)
         songNameLabel.text = song.songName
         artistNameLabel.text = song.artistName
+        spinner.stopAnimating()
+        spinner.isHidden = true
+        thumbnailImageView.isHidden = false  //これらがあると、dequeueの際にポーズされたビデオの上に乗っかってまた最初から再生になってしまう。
+        customPlayButton.isHidden = false
         
-//        if playerAlreadySet == false{
-//            playerAlreadySet = playerView.load(withVideoId: song.trackID,
-//                                               playerVars: ["playsinline": 1,
-//                                                            "controls" : 1,
-//                                                            "autohide" : 1,
-//                                                            "showinfo" : 1,  //これを0にすると音量と全画面ボタンが上部になってしまう
-//                                                            "rel": 1,
-//                                                            "fs" : 0,
-//                                                            "modestbranding": 1,
-//                                                            "autoplay": 0,
-//                                                            "disablekb": 1,
-//                                                            "iv_load_policy": 3])
-//
-//        }else{
-//            playerView.cueVideo(byId: song.trackID, startSeconds: 0)
-//        }
+        
+        playerView.playerState { (state, error) in
+            if let error = error{
+                print("プレイヤーエラーですよ\(error.localizedDescription)")
+            }
+            print("現在のプレイヤーの状態\(state.rawValue)")
+            if state.rawValue == 3{  //3以外になることはないと思われる
+                self.playerView = nil  //ここで、dequeueの時に拾われた古いplayerインスタンスを消去している。
+                self.playerView = self.makeNewPlayer()
+                self.setupViews() //ここでviewの中に再度addSubview()し、またconstraintをし直している。なぜなら新規のplayerはframeが.zeroなので。
+                print("現在のプレイヤーが廃棄された後、新しく作られました")
+            }
+        }
     }
     
+    
+    //MARK: - Button Handling
     @objc func heartButtonPressed(){
         print("Heart")
     }
@@ -213,14 +208,18 @@ class VideoCollectionViewCell: UICollectionViewCell {
         print("Check")
     }
     
-    @objc private func playButtonPressed(){ //カスタムのプレイボタン
+    @objc private func playButtonPressed(){ //カスタムのプレイボタンが押された時
+        
         customPlayButton.isHidden = true
         spinner.isHidden = false
         spinner.startAnimating()
+//        2秒かけて、カスタムで用意した(assetフォルダの中にある)真っ黒画面に移行する
         UIView.transition(with: self.thumbnailImageView, duration: 2.0, options: .transitionCrossDissolve, animations: {
                 self.thumbnailImageView.image = UIImage.init(named: "BlackScreen")
             }, completion: nil)
-        playerAlreadySet = playerView.load(withVideoId: song.trackID,
+        
+        //ここでロードの作業を行うと、自動でYTPlayerViewDelegateのDidBecomeReadyが呼ばれるのでそこから再生命令を出す。
+        playerView.load(withVideoId: song.trackID,
                                            playerVars: ["playsinline": 1,
                                                         "controls" : 1,
                                                         "autohide" : 1,
@@ -239,7 +238,6 @@ class VideoCollectionViewCell: UICollectionViewCell {
 extension VideoCollectionViewCell: YTPlayerViewDelegate{
     
     func playerViewDidBecomeReady(_ playerView: YTPlayerView) {
-        print("Video is Ready Play! (Loading is Done..)")
         playerView.playVideo()
     }
 
@@ -255,15 +253,16 @@ extension VideoCollectionViewCell: YTPlayerViewDelegate{
             spinner.stopAnimating()
             spinner.isHidden = true
             thumbnailImageView.isHidden = true
+            
             let dict = ["playerObject": playerView]
             NotificationCenter.default.post(name: Notification.Name(rawValue:"videoAboutToPlayNotification"), object: nil, userInfo: dict)
             
         case .paused:
-            print("Video is Paused")
+            return
         case .buffering:
             print("Video is Buffering")
         case .cued:
-            print("Video is Cued")
+            return
         case .unknown:
             print("-----unknown")
         @unknown default:
@@ -276,6 +275,3 @@ extension VideoCollectionViewCell: YTPlayerViewDelegate{
     //    }
 }
 
-class custom: YTPlayerView{
-    
-}
