@@ -12,7 +12,7 @@ import NVActivityIndicatorView
 
 class VideoCollectionViewCell: UICollectionViewCell {
     
-    
+    //MARK: - Properties
     static let identifier = "collectionViewCell"
     
     //ChartCollectionViewnの中のDelegateFlowLayout内でitemの幅をvide幅とイコールにしているのでself.frame.widthでok
@@ -32,12 +32,14 @@ class VideoCollectionViewCell: UICollectionViewCell {
             configureCell()
         }
     }
+    
+    //MARK: - UI Components
     private lazy var thumbnailImageView: UIImageView = {
         let iv = UIImageView()
         iv.contentMode = .scaleAspectFill
         iv.layer.cornerRadius = 6
         iv.clipsToBounds = true
-        iv.backgroundColor = .systemBackground
+        iv.backgroundColor = .systemBackground  //これがビデオロードされていない時のバックグラウンド。色を変えても良いのでは?
         return iv
     }()
 
@@ -46,7 +48,7 @@ class VideoCollectionViewCell: UICollectionViewCell {
         let config = UIImage.SymbolConfiguration(pointSize: 60, weight: .thin, scale: .medium)
         let buttonImage = UIImage(systemName: "play.circle", withConfiguration: config)
         bn.setImage(buttonImage, for: .normal)
-        bn.tintColor = .white
+        bn.tintColor = .white  //これも上のthumbnailと合わせて色を変える余地がある
         bn.alpha = 0.8
         bn.addTarget(self, action: #selector(playButtonPressed), for: .touchUpInside)
         return bn
@@ -58,18 +60,18 @@ class VideoCollectionViewCell: UICollectionViewCell {
        return spinner
     }()
     
-    lazy var playerView: YTPlayerView! = {
+    lazy var playerView: YTPlayerView! = {  //nilにする時にchartVCからアクセスする必要があるのでprivateはつけない。
         print("新しいプレーヤーがイニシャライズされました。")
-        return makeNewPlayer ()
+        return createNewPlayer ()
     }()
     
     //このメソッドはイニシャライズ時だけでなく、一度ロードしたplyerをdeallocateして再度新規で作り直す時にも使う。
-    private func makeNewPlayer () -> YTPlayerView{
+    private func createNewPlayer () -> YTPlayerView{
         let pv = YTPlayerView()
         pv.delegate = self
         pv.layer.cornerRadius = 6
         pv.clipsToBounds = true
-        pv.backgroundColor = .separator
+        pv.backgroundColor = .red
         return pv
     }
     
@@ -118,30 +120,15 @@ class VideoCollectionViewCell: UICollectionViewCell {
     
     //MARK: - View Life Cycle
     override init(frame: CGRect) {
-        super.init(frame: frame)  //ここを.zeroにしたためにDelegateFlowLayoutで指定したサイズが効かずバグとなった
+        super.init(frame: frame)  //当初ここを.zeroにしたためにDelegateFlowLayoutで指定したサイズが効かずバグとなった
         setupNotifications()
         setupViews()
     }
     required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
     
-    
-    //あるvideoが再生された時にその他の全てのcellのビデオにポーズを送るため。また、ChartVC上でfirstResponder管理にも使う。
-    private func setupNotifications(){
-        NotificationCenter.default.addObserver(self, selector: #selector(newVideoPlayInvoked), name: Notification.Name(rawValue:"videoAboutToPlayNotification"), object: nil)
-    }
-    @objc private func newVideoPlayInvoked(notification: NSNotification){  //他のどこかのcellでビデオがプレイされ始める時の通知
-        let info = notification.userInfo
-        guard let playerObject = info?["playerObject"] as? YTPlayerView else {return}
-        if playerObject != self.playerView{
-            playerView.pauseVideo()
-        }
-    }
-    
-    
     private func setupViews(){
         //セルが新規作成された時に呼ばれる初期設定。(チャート１行(1国)につき作られるのは3つほどで、dequeueで使いまわされる)
         self.clipsToBounds = true
-        
         //playerViewに他のviewをsubViewとして加えることはできないっぽい。youtubePlayerが課している機能制限かと。
         self.addSubview(playerView)
         self.addSubview(thumbnailImageView)
@@ -171,6 +158,18 @@ class VideoCollectionViewCell: UICollectionViewCell {
         heartButton.firstBaselineAnchor.constraint(equalTo: songNameLabel.firstBaselineAnchor).isActive = true
     }
     
+    //あるvideoが再生された時にその他の全てのcellのビデオにポーズを送るため。また、ChartVC上でfirstResponder管理にも使う。
+    private func setupNotifications(){
+        NotificationCenter.default.addObserver(self, selector: #selector(newVideoPlayInvoked), name: Notification.Name(rawValue:"videoAboutToPlayNotification"), object: nil)
+    }
+    @objc private func newVideoPlayInvoked(notification: NSNotification){  //他のどこかのcellでビデオがプレイされ始める時の通知
+        let info = notification.userInfo
+        guard let playerObject = info?["playerObject"] as? YTPlayerView else {return}
+        if playerObject != self.playerView{
+            playerView.pauseVideo()
+        }
+    }
+    
     
     //MARK: - Dequeue補正
     private func configureCell(){  //Dequeueされるたびにsongが代入され、didSetでここが呼ばれる
@@ -184,7 +183,6 @@ class VideoCollectionViewCell: UICollectionViewCell {
         thumbnailImageView.isHidden = false  //これらがあると、dequeueの際にポーズされたビデオの上に乗っかってまた最初から再生になってしまう。
         customPlayButton.isHidden = false
         
-        
         playerView.playerState { (state, error) in
             if let error = error{
                 print("プレイヤーエラーですよ\(error.localizedDescription)")
@@ -192,7 +190,7 @@ class VideoCollectionViewCell: UICollectionViewCell {
             print("現在のプレイヤーの状態\(state.rawValue)")
             if state.rawValue == 3{  //3以外になることはないと思われる
                 self.playerView = nil  //ここで、dequeueの時に拾われた古いplayerインスタンスを消去している。
-                self.playerView = self.makeNewPlayer()
+                self.playerView = self.createNewPlayer()
                 self.setupViews() //ここでviewの中に再度addSubview()し、またconstraintをし直している。なぜなら新規のplayerはframeが.zeroなので。
                 print("現在のプレイヤーが廃棄された後、新しく作られました")
             }

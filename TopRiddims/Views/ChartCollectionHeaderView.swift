@@ -26,7 +26,8 @@ class ChartCollectionHeaderView: UICollectionReusableView{
         
         backgroundColor = .systemGroupedBackground
         self.addSubview(label)
-        label.anchor(top: self.topAnchor, left: self.leftAnchor, bottom: self.bottomAnchor, right: self.rightAnchor, paddingLeft: 20, paddingRight: 20)
+        let paddingLeft = (self.frame.width*0.1/2)
+        label.anchor(top: self.topAnchor, left: self.leftAnchor, bottom: self.bottomAnchor, right: self.rightAnchor, paddingLeft: paddingLeft, paddingRight: paddingLeft)
         
         label.text = "updated: 2021.3.18"  //テキストFireBaseから情報取得する必要あり
     }

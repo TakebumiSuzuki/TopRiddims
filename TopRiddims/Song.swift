@@ -8,7 +8,7 @@
 import Foundation
 import MobileCoreServices
 
-struct Song{
+class Song{
     
     
     var trackID: String = ""
@@ -17,6 +17,9 @@ struct Song{
     var thumbnailURL: String{
         return "https://i.ytimg.com/vi/\(trackID)/hqdefault.jpg"
     }
+    var liked: Bool = false
+    var checked: Bool = false
+    
     
     init(trackID: String, songName: String, artistName: String) {
         self.trackID = trackID

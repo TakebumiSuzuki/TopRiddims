@@ -15,6 +15,21 @@ import youtube_ios_player_helper
 
 class ChartVC: UIViewController{
     
+    //MARK: - Initialization
+    var allChartData = [(country: String, songs:[Song])]()
+    var scrapingManager: ScrapingManager?
+    init(countries: [K.Country], allChartData: [(country: String, songs:[Song])]) {
+        super.init(nibName: nil, bundle: nil)
+        self.allChartData = allChartData
+    }
+    required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
+    
+    
+    //MARK: - Propaties
+    
+    private var videoWidth: CGFloat{ return view.frame.width * K.videoWidthMultiplier }
+    private var videoHeight: CGFloat{ return videoWidth / 16 * 9 }
+    
     private var pageNumbers: [Int] = {
         var array = [Int]()
         for _ in 0...19{
@@ -22,38 +37,23 @@ class ChartVC: UIViewController{
         }
         return array
     }()
-    
-    var allChartData = [(country: String, songs:[Song])]()
-//    var countries: [K.Country]!
-    var scrapingManager: ScrapingManager?
-    init(countries: [K.Country], allChartData: [(country: String, songs:[Song])]) {
-        super.init(nibName: nil, bundle: nil)
-//        self.countries = countries
-        self.allChartData = allChartData
-    }
-    required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
-    
-    
-    private var videoWidth: CGFloat{ return view.frame.width * K.videoWidthMultiplier }
-    private var videoHeight: CGFloat{ return videoWidth / 16 * 9 }
-    
     var videoIDs = [String]()
     var songNames = [String]()
     var artistNames = [String]()
+    private var onOffSwitch: Bool = false  //navBar内のreloadボタンの管理
     
-    private var onOffSwitch: Bool = false
     
-    
+    //MARK: - View Components
     private lazy var chartCollectionView: UICollectionView = {
         let layout = UICollectionViewFlowLayout()
         layout.scrollDirection = .vertical
         let cv = UICollectionView(frame: .zero, collectionViewLayout: layout)
-        cv.backgroundColor = .systemBackground
+        cv.backgroundColor = .systemGroupedBackground //navBarの色と上下にbounceした時に伸ばした下地に関係する
         cv.delegate = self
         cv.dataSource = self
 //        cv.dragDelegate = self
 //        cv.dropDelegate = self
-        cv.dragInteractionEnabled = true //ドラッグ可能に
+//        cv.dragInteractionEnabled = true //ドラッグ可能になくても良いかと
         
         cv.register(ChartCollectionViewCell.self, forCellWithReuseIdentifier: ChartCollectionViewCell.identifier)
         cv.register(ChartCollectionHeaderView.self,
@@ -65,7 +65,7 @@ class ChartVC: UIViewController{
         return cv
     }()
     
-    private lazy var clearButton: UIButton = { //setupNavBar内でnavigationItemに格納する
+    private lazy var dummyButton: UIButton = { //setupNavBar内でnavigationItemに格納する
         let bn = UIButton(type: .system)
         bn.addTarget(self, action: #selector(reloadButtonTapped), for: .touchUpInside)
         bn.frame = CGRect(x: 0, y: 0, width: 40, height: 40)
@@ -91,64 +91,62 @@ class ChartVC: UIViewController{
     }()
     
     
-//MARK: - ViewLifeCycle
+//MARK: - View Life Cycles
     override func viewDidLoad() {
         super.viewDidLoad()
         setupNavBar()
         setupViews()
-        NotificationCenter.default.addObserver(self, selector: #selector(newVideoDidStartPlay), name: Notification.Name(rawValue:"videoAboutToPlayNotification"), object: nil)
+        setupNotifications()
     }
     
-    //これらは、今再生中のプレイヤーをfirstResponderにするため。でないとprogrammaticallyにplay()した時に、scrollすると再生が止まってしまう。
-    var newVideoPlaying: UIView?
-    @objc func newVideoDidStartPlay(notification: NSNotification){  //他のどこかのcellでビデオがプレイされ始める時の通知
-        let info = notification.userInfo
-        guard let playerObject = info?["playerObject"] as? YTPlayerView else {return}
-        newVideoPlaying = playerObject.webView?.scrollView.subviews.first
-        newVideoPlaying?.becomeFirstResponder()
-}
     
     private func setupNavBar(){
-//        navigationController?.hidesBarsOnSwipe = true
         let navImageView = UIImageView(image:UIImage(named: "Top_Riddims")?.withTintColor(UIColor(named: "Black_Yellow")!))
         navigationItem.titleView = navImageView
         
         let rightButton = UIBarButtonItem()
-        rightButton.customView = clearButton
-        
-        clearButton.addSubview(smallCircleImageView)
-        clearButton.addSubview(smallPauseImageView)
-        
-        smallCircleImageView.center(inView: clearButton)
-        smallPauseImageView.center(inView: clearButton)
+        rightButton.customView = dummyButton
+        dummyButton.addSubview(smallCircleImageView)
+        dummyButton.addSubview(smallPauseImageView)
+        smallCircleImageView.center(inView: dummyButton)
+        smallPauseImageView.center(inView: dummyButton)
         self.navigationItem.rightBarButtonItem = rightButton
-        
         
         let buttonItem = UIBarButtonItem(title: "test", style: .done, target: self, action: #selector(findFR))
         navigationItem.leftBarButtonItem = buttonItem
-        
     }
+    
     @objc func findFR(){
         print("現在のFR\(view.currentFirstResponder())")
         guard let cell = chartCollectionView.cellForItem(at: IndexPath(row: 0, section: 0)) as? ChartCollectionViewCell else {return}
-        cell.videoCollectionView.setContentOffset(CGPoint(x: 500, y: 0), animated: true)
-        
     }
+    
     
     private func setupViews(){
         view.addSubview(chartCollectionView)
         chartCollectionView.fillSuperview()
     }
+    
+    //これらは、今再生中のプレイヤーをfirstResponderにするため。でないとprogrammaticallyにplay()した時に、scrollすると再生が止まってしまう。
+    private func setupNotifications(){  //videoのcellから送られてくる再生notificationをキャッチする
+        NotificationCenter.default.addObserver(self, selector: #selector(newVideoDidStartPlay), name: Notification.Name(rawValue:"videoAboutToPlayNotification"), object: nil)
+    }
+    private var newVideoPlaying: UIView? //ここに代入されたvideoのviewをfirst responderにしている。
+    @objc private func newVideoDidStartPlay(notification: NSNotification){  //他のどこかのcellでビデオがプレイされ始める時の通知
+        let info = notification.userInfo
+        guard let playerObject = info?["playerObject"] as? YTPlayerView else {return}
+        newVideoPlaying = playerObject.webView?.scrollView.subviews.first
+        newVideoPlaying?.becomeFirstResponder()
+    }
 
     
-    @objc func reloadButtonTapped(){
+    //MARK: - Handle Button Taps
+    @objc private func reloadButtonTapped(){
         onOffSwitch.toggle()
-        
         if onOffSwitch{
-            handleFetchingData()
+            handleFetchingData()  //データ取得を開始
         }else{
-            handlePauseFetching()
-            
+            handlePauseFetching()  //データ取得をキャンセル
         }
     }
     
@@ -171,7 +169,9 @@ class ChartVC: UIViewController{
         }
         scrapingManager = nil  //これで綺麗さっぱり全てのオブジェクトがdismissされる。
     }
+    
 }
+
 
 //MARK: - ScrapingManager Delegate
 extension ChartVC: ScrapingManagerDelegate{
@@ -202,7 +202,6 @@ extension ChartVC: ScrapingManagerDelegate{
         onOffSwitch.toggle() //delegateで自動で呼ばれるのでtoggleをしておかないといけない
         smallCircleImageView.stopRotation()
         smallPauseImageView.isHidden = true
-        print(allChartData)
     }
     func timeOutNotice(){
         let alert = AlertService(vc: self)
@@ -214,30 +213,29 @@ extension ChartVC: ScrapingManagerDelegate{
     }
 }
 
-//MARK: - Footer Delegate (Plus Button)
+
+
+//MARK: - FooterからのMap関連 Delegate
 extension ChartVC: ChartCollectionFooterViewDelegate{
     
     func footerPlusButtonPressed(){
         let mapVC = MapVC(allChartData: allChartData)
         mapVC.delegate = self
         let nav = UINavigationController(rootViewController: mapVC)
-        nav.modalPresentationStyle = .automatic
+//        nav.modalPresentationStyle = .automatic  //デフォルトなので必要ないかと
         present(nav, animated: true, completion: nil)
-        
-        
-//        let newCountryData: [(country: String, songs:[Song])] = [(country: "Puerto Rico",songs: [Song]())]
-//
     }
 }
 
-//MARK: - MapDelegate
+//MARK: - MapVC Delegate
 extension ChartVC:  MapVCDelegate{
     
     func newCountrySelectionDone(selectedCountries: [String]) {
         dismiss(animated: true, completion: nil)
         allChartData = allChartData.filter{ selectedCountries.contains($0.country) }
-        chartCollectionView.reloadData()
-        
+        DispatchQueue.main.async {
+            self.chartCollectionView.reloadData()
+        }
         var currentEntries = [String]()
         allChartData.forEach{ currentEntries.append($0.country) }
         let newEntries: [String] = selectedCountries.filter{ !currentEntries.contains($0) }
@@ -249,27 +247,29 @@ extension ChartVC:  MapVCDelegate{
         if newEntries.isEmpty{ return }
         var newCountryData = [(country: String, songs:[Song])]()
         newEntries.forEach{
-            let data = (country: $0, songs: [Song]())
+            let data = (country: $0, songs: [Song(trackID: "trackID", songName: "Getting songs now!", artistName: "Please wait for a moment...")])
+            //songNameとartistnameを空にしたら、下のinsertItemsの段で、一番目の要素(jamaica)から挿入された。UIKitのバグかと。
             newCountryData.append(data)
         }
         let startingIndex = allChartData.count
         allChartData.append(contentsOf: newCountryData)
-        
         //新しく追加された国をUI即席アップデートでcollectionViewに加える。この時animationの為insertItemsメソッドを使う。
-        for i in 0..<newCountryData.count{
-            chartCollectionView.insertItems(at: [IndexPath(item: (startingIndex + i), section: 0)])
+        DispatchQueue.main.async {
+            for i in 0..<newCountryData.count{
+                self.chartCollectionView.insertItems(at: [IndexPath(item: (startingIndex + i), section: 0)])
+            }
+            self.chartCollectionView.scrollToItem(at: IndexPath(row: self.allChartData.count-1, section: 0), at: .bottom, animated: true)
+            
+            //実際のデータアップロード
+            self.smallCircleImageView.rotate360Degrees(duration: 2)
+            self.smallPauseImageView.isHidden = false
+            self.onOffSwitch.toggle()
         }
-        
-        //実際のデータアップロード
-        smallCircleImageView.rotate360Degrees(duration: 2)
-        smallPauseImageView.isHidden = false
-        onOffSwitch.toggle()
         
         scrapingManager = ScrapingManager(chartDataToFetch: newCountryData, startingIndex: startingIndex)
         scrapingManager?.delegate = self
         scrapingManager?.startLoadingWebPages()
     }
-    
 }
 
 
@@ -282,9 +282,9 @@ extension ChartVC: UICollectionViewDataSource{
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         
         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: ChartCollectionViewCell.identifier, for: indexPath) as! ChartCollectionViewCell
-        cell.backgroundColor = .systemGroupedBackground
         cell.country = allChartData[indexPath.row].country
-        cell.songs = allChartData[indexPath.row].songs
+        cell.pageNumber = pageNumbers[indexPath.row]
+        cell.songs = allChartData[indexPath.row].songs  //ここでsongsに情報が代入された時点でdidSetでアップデートされる
         cell.delegate = self
         return cell
     }
@@ -310,6 +310,7 @@ extension ChartVC: UICollectionViewDelegate{
         print("Cell Was Tapped")
     }
     
+    
 //    func collectionView(_ collectionView: UICollectionView, canMoveItemAt indexPath: IndexPath) -> Bool {
 //        true
 //    }
@@ -326,7 +327,6 @@ extension ChartVC: UICollectionViewDelegateFlowLayout{
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
         let width = view.frame.width
         let height = videoHeight + K.chartCellAdditionalHeight
-        print("Flowlayoutのsize for item呼ばれました")
         return CGSize(width: width, height: height)
     }
     
@@ -424,6 +424,13 @@ extension ChartVC: UICollectionViewDelegateFlowLayout{
 
 //MARK: - CellDelegate
 extension ChartVC: ChartCollectionViewCellDelegate{
+    func handleDragScrollInfo(_ cell: ChartCollectionViewCell, xBoundPoint: CGFloat) {
+        guard let row = chartCollectionView.indexPath(for: cell)?.row else{return}
+        let newPageNumber = round(xBoundPoint/view.frame.width)
+        pageNumbers[row] = Int(newPageNumber)
+        print(pageNumbers)
+    }
+    
     func rightArrowTapped(_ cell: ChartCollectionViewCell) {
         guard let row = chartCollectionView.indexPath(for: cell)?.row else{return}
         let origPageNumber = pageNumbers[row]
@@ -441,15 +448,13 @@ extension ChartVC: ChartCollectionViewCellDelegate{
             let newNumber = origPageNumber-1
             pageNumbers[row] = newNumber
             scrollVideo(row: row, rank: newNumber)
-            
         }
     }
     
     func scrollVideo(row: Int, rank: Int){
-        print(pageNumbers)
         guard let cell = chartCollectionView.cellForItem(at: IndexPath(row: row, section: 0)) as? ChartCollectionViewCell else {return}
-        cell.videoCollectionView.setContentOffset(CGPoint(x: 100*rank, y: 0), animated: true)
-        
+        cell.videoCollectionView.setContentOffset(CGPoint(x: view.frame.width*CGFloat(rank), y: 0), animated: true)
+        print(pageNumbers)
     }
     
     

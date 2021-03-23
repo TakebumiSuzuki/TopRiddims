@@ -9,13 +9,13 @@ import UIKit
 
 struct K{
     
-    static let videoWidthMultiplier: CGFloat = 0.9
-    
-    static let chartCellAdditionalHeight: CGFloat = 110
     static let chartCellHeaderHeight: CGFloat = 40
-    static let chartCellFooterHeight: CGFloat = 140
     
+    static let chartCellFooterHeight: CGFloat = 130
     static let ChartCollectionFooterPlusPointSize: CGFloat = 70
+    
+    static let videoWidthMultiplier: CGFloat = 0.9
+    static let chartCellAdditionalHeight: CGFloat = 110
     static let VideoCollectionViewEdgeInset = UIEdgeInsets(top: 0, left: 15, bottom: 0, right: 15)
     
     static let videoCollectionViewCellExtraHeight: CGFloat = 50
