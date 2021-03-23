@@ -40,7 +40,7 @@ class ChartVC: UIViewController{
     var videoIDs = [String]()
     var songNames = [String]()
     var artistNames = [String]()
-    private var onOffSwitch: Bool = false  //navBar内のreloadボタンの管理
+    private var reloadingOnOff: Bool = false  //navBar内のreloadボタンの管理
     
     
     //MARK: - View Components
@@ -62,6 +62,8 @@ class ChartVC: UIViewController{
         cv.register(ChartCollectionFooterView.self,
                                 forSupplementaryViewOfKind: UICollectionView.elementKindSectionFooter,
                                 withReuseIdentifier: ChartCollectionFooterView.identifier)
+        let longPressGesture = UILongPressGestureRecognizer(target: self, action: #selector(cellLongPressed))
+        cv.addGestureRecognizer(longPressGesture)
         return cv
     }()
     
@@ -112,38 +114,78 @@ class ChartVC: UIViewController{
         smallPauseImageView.center(inView: dummyButton)
         self.navigationItem.rightBarButtonItem = rightButton
         
-        let buttonItem = UIBarButtonItem(title: "test", style: .done, target: self, action: #selector(findFR))
+        let buttonItem = UIBarButtonItem(title: "Jump", style: .plain, target: self, action: #selector(jumpToPlayingVideo))
         navigationItem.leftBarButtonItem = buttonItem
     }
-    
-    @objc func findFR(){
-        print("現在のFR\(view.currentFirstResponder())")
-        guard let cell = chartCollectionView.cellForItem(at: IndexPath(row: 0, section: 0)) as? ChartCollectionViewCell else {return}
-    }
-    
     
     private func setupViews(){
         view.addSubview(chartCollectionView)
         chartCollectionView.fillSuperview()
     }
     
+    
+    //MARK: - Notification - FirstResponder関連、そしてjump機能。重要!
     //これらは、今再生中のプレイヤーをfirstResponderにするため。でないとprogrammaticallyにplay()した時に、scrollすると再生が止まってしまう。
+    private var nowPlayingChartCellIndex: Int?
+    private var nowPlayingVideoCellIndex: Int?
+    private var newVideoPlaying: UIView? //ここに代入されたvideoのviewをfirst responderにしている。
     private func setupNotifications(){  //videoのcellから送られてくる再生notificationをキャッチする
         NotificationCenter.default.addObserver(self, selector: #selector(newVideoDidStartPlay), name: Notification.Name(rawValue:"videoAboutToPlayNotification"), object: nil)
     }
-    private var newVideoPlaying: UIView? //ここに代入されたvideoのviewをfirst responderにしている。
     @objc private func newVideoDidStartPlay(notification: NSNotification){  //他のどこかのcellでビデオがプレイされ始める時の通知
         let info = notification.userInfo
         guard let playerObject = info?["playerObject"] as? YTPlayerView else {return}
         newVideoPlaying = playerObject.webView?.scrollView.subviews.first
         newVideoPlaying?.becomeFirstResponder()
+        
+        //以下はjump機能の為に付け加えた
+        guard let chartCellIndex = info?["chartCellIndex"] as? Int else {return}
+        guard let videoCellIndex = info?["videoCellIndex"] as? Int else {return}
+        nowPlayingChartCellIndex = chartCellIndex
+        nowPlayingVideoCellIndex = videoCellIndex
+    }
+    
+    @objc func jumpToPlayingVideo(){
+//        print("現在のFR\(view.currentFirstResponder())")
+        guard let chartIndex = self.nowPlayingChartCellIndex, let videoIndex = self.nowPlayingVideoCellIndex else{return}
+        DispatchQueue.main.async {
+            self.chartCollectionView.scrollToItem(at: IndexPath(item: chartIndex, section: 0), at: .centeredVertically, animated: true)
+            guard let chartCell = self.chartCollectionView.cellForItem(at: IndexPath(row: chartIndex, section: 0)) as? ChartCollectionViewCell else{return}
+            chartCell.videoCollectionView.scrollToItem(at: IndexPath(row: videoIndex, section: 0), at: .centeredHorizontally, animated: true)
+        }
+        //以下でpageNumbersをアップデートする。
+        pageNumbers[chartIndex] = videoIndex
     }
 
+    //MARK: - Gesture Handling
+    @objc private func cellLongPressed(_ gesture: UILongPressGestureRecognizer){
+        if reloadingOnOff { return }
+        guard let targetIndexPath = chartCollectionView.indexPathForItem(at: gesture.location(in: chartCollectionView)) else{return}
+        guard let cell = chartCollectionView.cellForItem(at: targetIndexPath) else{return}
+        
+        switch gesture.state{
+        case .began:
+            cell.backgroundColor = .systemGray5
+           chartCollectionView.beginInteractiveMovementForItem(at: targetIndexPath)
+            print("began")
+        case .changed:
+            chartCollectionView.updateInteractiveMovementTargetPosition(gesture.location(in: chartCollectionView))
+        case .ended:
+            chartCollectionView.endInteractiveMovement()
+            cell.backgroundColor = .clear
+            print("ended")
+        case .cancelled:
+            chartCollectionView.cancelInteractiveMovement()
+            print("canceled")
+        default:
+            return
+        }
+    }
     
     //MARK: - Handle Button Taps
     @objc private func reloadButtonTapped(){
-        onOffSwitch.toggle()
-        if onOffSwitch{
+        reloadingOnOff.toggle()
+        if reloadingOnOff{
             handleFetchingData()  //データ取得を開始
         }else{
             handlePauseFetching()  //データ取得をキャンセル
@@ -199,7 +241,7 @@ extension ChartVC: ScrapingManagerDelegate{
     //以下の2つのうちどちらかが必ず呼ばれる。
     func fetchingDataAllDone(){
         scrapingManager = nil //これによりfetching関連で作ったインスタンスを消去
-        onOffSwitch.toggle() //delegateで自動で呼ばれるのでtoggleをしておかないといけない
+        reloadingOnOff.toggle() //delegateで自動で呼ばれるのでtoggleをしておかないといけない
         smallCircleImageView.stopRotation()
         smallPauseImageView.isHidden = true
     }
@@ -207,7 +249,7 @@ extension ChartVC: ScrapingManagerDelegate{
         let alert = AlertService(vc: self)
         alert.showSimpleAlert(title: "Time Out Error!", message: "There seem to be internet connection probem. Please try updating later again.", style: .alert)
         scrapingManager = nil
-        onOffSwitch.toggle()  //delegateで自動で呼ばれるのでtoggleをしておかないといけない
+        reloadingOnOff.toggle()  //delegateで自動で呼ばれるのでtoggleをしておかないといけない
         smallCircleImageView.stopRotation()
         smallPauseImageView.isHidden = true
     }
@@ -263,7 +305,7 @@ extension ChartVC:  MapVCDelegate{
             //実際のデータアップロード
             self.smallCircleImageView.rotate360Degrees(duration: 2)
             self.smallPauseImageView.isHidden = false
-            self.onOffSwitch.toggle()
+            self.reloadingOnOff.toggle()
         }
         
         scrapingManager = ScrapingManager(chartDataToFetch: newCountryData, startingIndex: startingIndex)
@@ -282,6 +324,7 @@ extension ChartVC: UICollectionViewDataSource{
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         
         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: ChartCollectionViewCell.identifier, for: indexPath) as! ChartCollectionViewCell
+        cell.chartCellIndexNumber = indexPath.row  //Jump機能の為
         cell.country = allChartData[indexPath.row].country
         cell.pageNumber = pageNumbers[indexPath.row]
         cell.songs = allChartData[indexPath.row].songs  //ここでsongsに情報が代入された時点でdidSetでアップデートされる
@@ -310,14 +353,13 @@ extension ChartVC: UICollectionViewDelegate{
         print("Cell Was Tapped")
     }
     
-    
-//    func collectionView(_ collectionView: UICollectionView, canMoveItemAt indexPath: IndexPath) -> Bool {
-//        true
-//    }
-//    func collectionView(_ collectionView: UICollectionView, moveItemAt sourceIndexPath: IndexPath, to destinationIndexPath: IndexPath) {
-//        let item = countries.remove(at: sourceIndexPath.row)
-//        countries.insert(item, at: destinationIndexPath.row)
-//    }
+    func collectionView(_ collectionView: UICollectionView, canMoveItemAt indexPath: IndexPath) -> Bool {
+        true
+    }
+    func collectionView(_ collectionView: UICollectionView, moveItemAt sourceIndexPath: IndexPath, to destinationIndexPath: IndexPath) {
+        let item = allChartData.remove(at: sourceIndexPath.row)
+        allChartData.insert(item, at: destinationIndexPath.row)
+    }
 }
 
 
@@ -341,85 +383,6 @@ extension ChartVC: UICollectionViewDelegateFlowLayout{
         return CGSize(width: view.frame.width, height: K.chartCellFooterHeight)
     }
 }
-
-
-//MARK: - Drag&Drop
-//extension ChartVC: UICollectionViewDragDelegate {
-//
-//    func collectionView(_ collectionView: UICollectionView, itemsForBeginning session: UIDragSession, at indexPath: IndexPath) -> [UIDragItem]{
-//        let n = allChartData[indexPath.row]
-//        let itemProvide = NSItemProvider(object: n as (country: String, songs: [Song]))
-////        let n = "\(countries[indexPath.item])"
-////        let itemProvider = NSItemProvider(object: n as NSString)
-//        let dragItem = UIDragItem(itemProvider: itemProvider)
-//        return [dragItem]
-//    }
-//}
-//
-//extension ChartVC: UICollectionViewDropDelegate{
-//
-//    func collectionView(_ collectionView: UICollectionView, canHandle session: UIDropSession) -> Bool {
-//        return session.hasItemsConforming(toTypeIdentifiers: NSString.readableTypeIdentifiersForItemProvider)
-//    }
-//
-//    func collectionView(_ collectionView: UICollectionView, dropSessionDidUpdate session: UIDropSession, withDestinationIndexPath destinationIndexPath: IndexPath?) -> UICollectionViewDropProposal {
-//        if session.localDragSession != nil {
-//            return UICollectionViewDropProposal(operation: .move, intent: .insertAtDestinationIndexPath)
-//        } else {
-//            return UICollectionViewDropProposal(operation: .copy, intent: .insertAtDestinationIndexPath)
-//        }
-//    }
-//
-//    func collectionView(_ collectionView: UICollectionView, performDropWith coordinator: UICollectionViewDropCoordinator) {
-//        let destinationIndexPath: IndexPath //移動先
-//        if let indexPath = coordinator.destinationIndexPath, indexPath.row < collectionView.numberOfItems(inSection: 0) {
-//            destinationIndexPath = indexPath
-//        } else {
-//            let section = collectionView.numberOfSections - 1
-//            let item = collectionView.numberOfItems(inSection: section) - 1
-//            //余白にドロップしたときは、末尾に移動
-//            destinationIndexPath = IndexPath(item: item, section: section)
-//        }
-//
-//        switch coordinator.proposal.operation {
-//        case .move:
-//            let items = coordinator.items
-//            if items.contains(where: { $0.sourceIndexPath != nil }) {
-//                if items.count == 1, let item = items.first {
-//                    reorder(collectionView, item: item, to: destinationIndexPath, with: coordinator) //セルの並び替え
-//                }
-//            }
-//        default:
-//            return
-//        }
-//    }
-//
-//    // MARK: - PRIVATE METHODS
-//
-//    /// セルの並び替え
-//    ///
-//    /// - Parameters:
-//    ///   - sourceIndexPath: 移動元の位置
-//    ///   - destinationIndexPath: 移動先の位置
-//    private func reorder(_ collectionView: UICollectionView, item: UICollectionViewDropItem, to destinationIndexPath: IndexPath, with coordinator: UICollectionViewDropCoordinator) {
-//        guard let sourceIndexPath = item.sourceIndexPath else {
-//            return
-//        }
-//
-//        collectionView.performBatchUpdates({
-//            //配列の更新
-//            let n = countries.remove(at: sourceIndexPath.item)
-//            countries.insert(n, at: destinationIndexPath.item)
-//
-//            //セルの移動
-//            collectionView.deleteItems(at: [sourceIndexPath])
-//            collectionView.insertItems(at: [destinationIndexPath])
-//        })
-//
-//        coordinator.drop(item.dragItem, toItemAt: destinationIndexPath)
-//    }
-//
-//}
 
 
 //MARK: - CellDelegate
@@ -457,13 +420,6 @@ extension ChartVC: ChartCollectionViewCellDelegate{
         print(pageNumbers)
     }
     
-    
-    
 }
-
-
-
-
-
 
 

@@ -19,6 +19,8 @@ class VideoCollectionViewCell: UICollectionViewCell {
     private var videoWidth: CGFloat{ return self.frame.width }
     private var videoHeight: CGFloat{ return videoWidth / 16 * 9 }
     
+    var chartCollectionCellIndex: Int = 0  //jump機能の為に作った。notificationでChartVCに送る。
+    
     var cellIndexNumber: Int = 0{ //曲の順位
         didSet{
             numberLabel.text = String(self.cellIndexNumber + 1)
@@ -252,7 +254,8 @@ extension VideoCollectionViewCell: YTPlayerViewDelegate{
             spinner.isHidden = true
             thumbnailImageView.isHidden = true
             
-            let dict = ["playerObject": playerView]
+            //後半の二つは、ChartVCのnavBarのjump機能の為につけた。
+            let dict = ["playerObject": playerView, "chartCellIndex": chartCollectionCellIndex, "videoCellIndex": cellIndexNumber] as [String : Any]
             NotificationCenter.default.post(name: Notification.Name(rawValue:"videoAboutToPlayNotification"), object: nil, userInfo: dict)
             
         case .paused:

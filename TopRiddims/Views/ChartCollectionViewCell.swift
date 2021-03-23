@@ -25,6 +25,8 @@ class ChartCollectionViewCell: UICollectionViewCell {
     private var videoWidth: CGFloat{ return self.frame.width * K.videoWidthMultiplier }
     private var videoHeight: CGFloat{ return videoWidth / 16 * 9 }
     
+    var chartCellIndexNumber: Int = 0  //ChartVCのjump機能の為
+    
     //以下の二つのプロパティはdequeue時にallChartDataから分裂してそれぞれに代入される。
     var country: String!{  
         didSet{
@@ -106,7 +108,10 @@ class ChartCollectionViewCell: UICollectionViewCell {
     }
     
     private func setupViews(){
+        self.layer.cornerRadius = 6 //ジェスチャーで動かした時に形が綺麗に見えるように
+        self.clipsToBounds = true
         self.backgroundColor = .systemGroupedBackground
+        
         let offsetX = self.frame.width*CGFloat(pageNumber)
         videoCollectionView.setContentOffset(CGPoint(x: offsetX, y: 0), animated: true)
         
@@ -138,9 +143,8 @@ extension ChartCollectionViewCell: UICollectionViewDataSource{
     }
     
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
-        
         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: VideoCollectionViewCell.identifier, for: indexPath) as! VideoCollectionViewCell
-        
+            cell.chartCollectionCellIndex = chartCellIndexNumber  //ChatVCのjump機能のために。
             cell.song = self.songs[indexPath.row]
             cell.cellIndexNumber = indexPath.row  //順位の情報
         return cell
