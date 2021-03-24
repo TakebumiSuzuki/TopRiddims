@@ -19,7 +19,7 @@ class Song{
     }
     var liked: Bool = false
     var checked: Bool = false
-    
+    var showPlayButton: Bool = true
     
     init(trackID: String, songName: String, artistName: String) {
         self.trackID = trackID

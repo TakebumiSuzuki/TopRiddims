@@ -14,11 +14,11 @@ import UIKit
 import youtube_ios_player_helper
 
 class ChartVC: UIViewController{
-    
+    /*
     //MARK: - Initialization
     var allChartData = [(country: String, songs:[Song])]()
     var scrapingManager: ScrapingManager?
-    init(countries: [K.Country], allChartData: [(country: String, songs:[Song])]) {
+    init(allChartData: [(country: String, songs:[Song])]) {
         super.init(nibName: nil, bundle: nil)
         self.allChartData = allChartData
     }
@@ -51,10 +51,6 @@ class ChartVC: UIViewController{
         cv.backgroundColor = .systemGroupedBackground //navBarの色と上下にbounceした時に伸ばした下地に関係する
         cv.delegate = self
         cv.dataSource = self
-//        cv.dragDelegate = self
-//        cv.dropDelegate = self
-//        cv.dragInteractionEnabled = true //ドラッグ可能になくても良いかと
-        
         cv.register(ChartCollectionViewCell.self, forCellWithReuseIdentifier: ChartCollectionViewCell.identifier)
         cv.register(ChartCollectionHeaderView.self,
                                 forSupplementaryViewOfKind: UICollectionView.elementKindSectionHeader,
@@ -129,14 +125,17 @@ class ChartVC: UIViewController{
     private var nowPlayingChartCellIndex: Int?
     private var nowPlayingVideoCellIndex: Int?
     private var newVideoPlaying: UIView? //ここに代入されたvideoのviewをfirst responderにしている。
+    private var ytPlayer: YTPlayerView?
     private func setupNotifications(){  //videoのcellから送られてくる再生notificationをキャッチする
         NotificationCenter.default.addObserver(self, selector: #selector(newVideoDidStartPlay), name: Notification.Name(rawValue:"videoAboutToPlayNotification"), object: nil)
     }
     @objc private func newVideoDidStartPlay(notification: NSNotification){  //他のどこかのcellでビデオがプレイされ始める時の通知
         let info = notification.userInfo
         guard let playerObject = info?["playerObject"] as? YTPlayerView else {return}
+        ytPlayer = playerObject
         newVideoPlaying = playerObject.webView?.scrollView.subviews.first
         newVideoPlaying?.becomeFirstResponder()
+        print("video Viewは\(playerObject)")
         
         //以下はjump機能の為に付け加えた
         guard let chartCellIndex = info?["chartCellIndex"] as? Int else {return}
@@ -146,12 +145,30 @@ class ChartVC: UIViewController{
     }
     
     @objc func jumpToPlayingVideo(){
-//        print("現在のFR\(view.currentFirstResponder())")
+        print("現在のFR\(view.currentFirstResponder())")
         guard let chartIndex = self.nowPlayingChartCellIndex, let videoIndex = self.nowPlayingVideoCellIndex else{return}
         DispatchQueue.main.async {
             self.chartCollectionView.scrollToItem(at: IndexPath(item: chartIndex, section: 0), at: .centeredVertically, animated: true)
             guard let chartCell = self.chartCollectionView.cellForItem(at: IndexPath(row: chartIndex, section: 0)) as? ChartCollectionViewCell else{return}
             chartCell.videoCollectionView.scrollToItem(at: IndexPath(row: videoIndex, section: 0), at: .centeredHorizontally, animated: true)
+            
+            guard let videoCell = chartCell.videoCollectionView.cellForItem(at: IndexPath(row: videoIndex, section: 0)) as? VideoCollectionViewCell else{return}
+//            videoCell.playerView?.videoLoadedFraction({ (foat, error) in
+//            })
+//            videoCell.playerView?.playerState({ (state, error) in
+//                print(state.rawValue)
+//            })
+//            videoCell.playerView?.currentTime({ (float, error) in
+//                print(float)
+//            })
+//            videoCell.playerView?.setLoop(true)
+            videoCell.playerView?.pauseVideo()
+            videoCell.playerView?.playVideo()
+            if let tabbar = self.tabBarController as? MainTabBarController{
+                tabbar.showVideoWindow(video: self.ytPlayer!)
+            }
+            
+            print("再生　called")
         }
         //以下でpageNumbersをアップデートする。
         pageNumbers[chartIndex] = videoIndex
@@ -391,7 +408,6 @@ extension ChartVC: ChartCollectionViewCellDelegate{
         guard let row = chartCollectionView.indexPath(for: cell)?.row else{return}
         let newPageNumber = round(xBoundPoint/view.frame.width)
         pageNumbers[row] = Int(newPageNumber)
-        print(pageNumbers)
     }
     
     func rightArrowTapped(_ cell: ChartCollectionViewCell) {
@@ -417,9 +433,10 @@ extension ChartVC: ChartCollectionViewCellDelegate{
     func scrollVideo(row: Int, rank: Int){
         guard let cell = chartCollectionView.cellForItem(at: IndexPath(row: row, section: 0)) as? ChartCollectionViewCell else {return}
         cell.videoCollectionView.setContentOffset(CGPoint(x: view.frame.width*CGFloat(rank), y: 0), animated: true)
-        print(pageNumbers)
+        
     }
-    
+    */
 }
+
 
 

@@ -8,6 +8,11 @@
 import UIKit
 
 struct K{
+    static let floatingPlayerWidthMultiplier: CGFloat = 0.87
+    static let floatingPlayerTopBottomInsets: CGFloat = 3
+    static let videoCoverWidthMultiplier: CGFloat = 0.47
+    static let videoCollectionViewWidthMultiplier: CGFloat = 0.65
+    
     
     static let chartCellHeaderHeight: CGFloat = 40
     

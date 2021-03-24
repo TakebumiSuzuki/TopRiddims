@@ -11,5 +11,5 @@ pod 'youtube-ios-player-helper'
 pod 'SDWebImage', '~> 5.0'
 pod 'NVActivityIndicatorView'
 pod 'M13Checkbox'
-
+pod 'iCarousel'
 end
