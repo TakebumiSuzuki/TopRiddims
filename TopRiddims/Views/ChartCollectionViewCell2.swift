@@ -8,11 +8,11 @@
 import UIKit
 import WebKit
 
-protocol ChartCollectionViewCellDelegate: class{
-    func rightArrowTapped(_ cell: ChartCollectionViewCell)
-    func leftArrowTapped(_ cell: ChartCollectionViewCell)
-    func handleDragScrollInfo(_ cell: ChartCollectionViewCell, xBoundPoint: CGFloat)
-}
+//protocol ChartCollectionViewCellDelegate: class{
+//    func rightArrowTapped(_ cell: ChartCollectionViewCell)
+//    func leftArrowTapped(_ cell: ChartCollectionViewCell)
+//    func handleDragScrollInfo(_ cell: ChartCollectionViewCell, xBoundPoint: CGFloat)
+//}
 /*
 
 class ChartCollectionViewCell: UICollectionViewCell {

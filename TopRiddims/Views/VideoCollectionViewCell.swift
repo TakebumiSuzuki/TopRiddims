@@ -6,7 +6,6 @@
 //
 
 import UIKit
-import youtube_ios_player_helper
 import SDWebImage
 import NVActivityIndicatorView
 
@@ -22,17 +21,20 @@ class VideoCollectionViewCell: UIView{
                 if self.showPlayButton{
                     self.playButton.isHidden = false
                     self.pauseButton.isHidden = true
+                    self.spinner.isHidden = true
+                    self.spinner.isHidden = true
+                    self.spinner.stopAnimating()
                     self.song.showPlayButton = true
                 }else{
                     self.playButton.isHidden = true
-                    self.pauseButton.isHidden = false
-                    self.song.showPlayButton = false
+                    self.spinner.isHidden = false
+                    self.spinner.isHidden = false
+                    self.spinner.startAnimating()
                 }
             }
         }
     }
 
-    //ChartCollectionViewnの中のDelegateFlowLayout内でitemの幅をvide幅とイコールにしているのでself.frame.widthでok
     var videoWidth: CGFloat = 0
     private var videoHeight: CGFloat{ return videoWidth/16*9 }
     
@@ -83,15 +85,15 @@ class VideoCollectionViewCell: UIView{
         return bn
     }()
 
-//    private let spinner: NVActivityIndicatorView = {
-//        let spinner = NVActivityIndicatorView(frame: .zero, type: .circleStrokeSpin, color: .yellow, padding: 0)
-//        spinner.isHidden = true
-//       return spinner
-//    }()
+    private let spinner: NVActivityIndicatorView = {
+        let spinner = NVActivityIndicatorView(frame: .zero, type: .circleStrokeSpin, color: .yellow, padding: 0)
+        spinner.isHidden = true
+       return spinner
+    }()
     
     
 
-    //MARK: - View Life Cycle
+    //MARK: - ViewLifeCycles
     override init(frame: CGRect) {
         super.init(frame: frame)  //当初ここを.zeroにしたためにDelegateFlowLayoutで指定したサイズが効かずバグとなった
         setupViews()
@@ -100,12 +102,11 @@ class VideoCollectionViewCell: UIView{
     required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
     
     private func setupViews(){
-        //セルが新規作成された時に呼ばれる初期設定。(チャート１行(1国)につき作られるのは3つほどで、dequeueで使いまわされる)
         self.clipsToBounds = true
         self.addSubview(thumbnailImageView)
         self.addSubview(playButton)
         self.addSubview(pauseButton)
-//        self.addSubview(spinner)
+        self.addSubview(spinner)
     }
     
     override func layoutSubviews() {
@@ -113,69 +114,58 @@ class VideoCollectionViewCell: UIView{
         thumbnailImageView.fillSuperview()
         playButton.center(inView: self)
         pauseButton.center(inView: self)
-//        spinner.center(inView: thumbnailImageView)
-//        spinner.setDimensions(height: 20, width: 20)
+        spinner.center(inView: thumbnailImageView)
+        spinner.setDimensions(height: 20, width: 20)
     }
     
-    func setupObservers(){
+    
+    //MARK: - Observers
+    private func setupObservers(){
         NotificationCenter.default.addObserver(self, selector: #selector(someSongPlayingNow), name: Notification.Name(rawValue:"NowPlaying"), object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(someSongPausedNow), name: Notification.Name(rawValue:"NowPausing"), object: nil)
     }
-    @objc func someSongPlayingNow(notification: NSNotification){
+    @objc private func someSongPlayingNow(notification: NSNotification){
         guard let userInfo = notification.userInfo else{return}
         guard let playingTrackID = userInfo["trackID"] as? String else{return}
-        print("いまプレイしている曲のID\(playingTrackID)")
         if playingTrackID == song.trackID{
-            showPlayButton = false
+            print("started playback")
+            DispatchQueue.main.async {[weak self] in
+                guard let self = self else {return}
+                self.spinner.stopAnimating()
+                self.spinner.isHidden = true
+                self.pauseButton.isHidden = false
+                self.song.showPlayButton = false            }
         }else{
             showPlayButton = true
         }
     }
-    @objc func someSongPausedNow(notification: NSNotification){
+    @objc private func someSongPausedNow(notification: NSNotification){
         showPlayButton = true
     }
     
     
     //MARK: - NotificationsとFirstResponder検知機能、Jump機能  --いらない
     
-    //MARK: - Dequeue補正
-    private func configureCell(){  //Dequeueされるたびにsongが代入され、didSetでここが呼ばれる
-        //順位表示についてはdequeue時に個別に代入されdidSetで表示される。
-        
+    //MARK: - Dequeueリセット
+    private func configureCell(){
         thumbnailImageView.sd_setImage(with: URL(string: song.thumbnailURL), completed: nil)
-        playButton.isHidden = false
-//        spinner.stopAnimating()
-//        spinner.isHidden = true
+        spinner.stopAnimating()
+        spinner.isHidden = true
     }
         
-        //MARK: - Button Handling
+    
+    //MARK: - Button Handling
+    
+    @objc private func playButtonPressed(){ //カスタムのプレイボタンが押された時
+        showPlayButton = false
         
-        @objc private func playButtonPressed(){ //カスタムのプレイボタンが押された時
-            showPlayButton = false
-            print("プレイボタン押された")
-            let dict: [String: Any] = ["trackID": song.trackID]
-            NotificationCenter.default.post(name: Notification.Name(rawValue:"videoPlayOrder"), object: nil, userInfo: dict)
-            
-//            spinner.isHidden = false
-//            spinner.startAnimating()
-    //        2秒かけて、カスタムで用意した(assetフォルダの中にある)真っ黒画面に移行する
-//            UIView.transition(with: self.thumbnailImageView, duration: 2.0, options: .transitionCrossDissolve, animations: {
-//                    self.thumbnailImageView.image = UIImage.init(named: "BlackScreen")
-//                }, completion: nil)
-            
-//            playerView = VideoPlayer.videoPlayer
-//            playerView?.delegate = self
-//            playerView?.layer.cornerRadius = 6
-//            playerView?.clipsToBounds = true
-//
-//            self.addSubview(playerView!)
-//            playerView?.setDimensions(height: videoHeight, width: videoWidth)
-//            playerView?.centerX(inView: self, topAnchor: self.topAnchor, paddingTop: 0)
-//
+        let dict: [String: Any] = ["trackID": song.trackID]
+        NotificationCenter.default.post(name: Notification.Name(rawValue:"videoPlayOrder"), object: nil, userInfo: dict)
     }
+    
     @objc private func pauseButtonPressed(){
         showPlayButton = true
-        print("ポーズボタン押された")
+        
         let dict: [String: Any] = ["trackID": song.trackID]
         NotificationCenter.default.post(name: Notification.Name(rawValue:"videoPauseOrder"), object: nil, userInfo: dict)
     }

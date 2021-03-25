@@ -6,7 +6,6 @@
 //
 
 import UIKit
-import youtube_ios_player_helper
 
 class LikesVC: UIViewController{
     
@@ -14,17 +13,15 @@ class LikesVC: UIViewController{
     //MARK: - Initialization
     var allChartData = [(country: String, songs:[Song])]()
     var scrapingManager: ScrapingManager?
-    var videoPlayer: YTPlayerView!
-    init(allChartData: [(country: String, songs:[Song])], videoPlayer: YTPlayerView) {
+    init(allChartData: [(country: String, songs:[Song])]) {
         super.init(nibName: nil, bundle: nil)
         self.allChartData = allChartData
-        self.videoPlayer = videoPlayer
     }
     required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
     
     
     //MARK: - Properties
-    private var videoWidth: CGFloat{ return view.frame.width*0.95*K.videoCoverWidthMultiplier}
+    private var videoWidth: CGFloat{ return view.frame.width*K.chartCellWidthMultiplier*K.videoCoverWidthMultiplier}
     private var videoHeight: CGFloat{ return videoWidth / 16 * 9 }
     
     private var pageNumbers: [Int] = {
@@ -44,7 +41,7 @@ class LikesVC: UIViewController{
     
     let playerPlaceholderView: UIView = {
         let view = UIView()
-        view.backgroundColor = .systemGroupedBackground
+        view.backgroundColor = UIColor.lightGray.withAlphaComponent(0.7)
         return view
     }()
     private lazy var chartCollectionView: UICollectionView = {
@@ -62,6 +59,7 @@ class LikesVC: UIViewController{
                                 forSupplementaryViewOfKind: UICollectionView.elementKindSectionFooter,
                                 withReuseIdentifier: ChartCollectionFooterView.identifier)
         let longPressGesture = UILongPressGestureRecognizer(target: self, action: #selector(cellLongPressed))
+        longPressGesture.minimumPressDuration = 1 //デフォルトは0.5だとの事
         cv.addGestureRecognizer(longPressGesture)
         return cv
     }()
@@ -295,9 +293,9 @@ extension LikesVC: UICollectionViewDataSource{
         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: ChartCollectionViewCell.identifier, for: indexPath) as! ChartCollectionViewCell
         cell.chartCellIndexNumber = indexPath.row  //Jump機能の為
         cell.country = allChartData[indexPath.row].country
-        cell.pageNumber = pageNumbers[indexPath.row]
+        cell.currentPageIndexNum = pageNumbers[indexPath.row]
         cell.songs = allChartData[indexPath.row].songs  //ここでsongsに情報が代入された時点でdidSetでアップデートされる
-        cell.cellSelfWidth = view.frame.width*0.95
+        cell.cellSelfWidth = view.frame.width*K.chartCellWidthMultiplier
         cell.delegate = self
         return cell
     }
@@ -331,13 +329,13 @@ extension LikesVC: UICollectionViewDelegate{
 extension LikesVC: UICollectionViewDelegateFlowLayout{
     
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
-        let width = view.frame.width*0.95
+        let width = view.frame.width*K.chartCellWidthMultiplier
         let height = videoHeight + 80
         return CGSize(width: width, height: height)
     }
     
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, insetForSectionAt section: Int) -> UIEdgeInsets {
-        let inset = view.frame.width*0.025 //2.5%のみの四方インセット
+        let inset = view.frame.width*(1-K.chartCellWidthMultiplier)/2 //2.5%のみの四方インセット
         return UIEdgeInsets(top: inset, left: inset, bottom: inset, right: inset)
     }
     
@@ -354,36 +352,27 @@ extension LikesVC: UICollectionViewDelegateFlowLayout{
 }
 //MARK: - CellDelegate
 extension LikesVC: ChartCollectionViewCellDelegate{
-    func handleDragScrollInfo(_ cell: ChartCollectionViewCell, xBoundPoint: CGFloat) {
-        guard let row = chartCollectionView.indexPath(for: cell)?.row else{return}
-        let newPageNumber = round(xBoundPoint/view.frame.width)
-        pageNumbers[row] = Int(newPageNumber)
+    func handleDragScrollInfo(chartCellIndexNumber: Int, newCurrentPageIndex: Int) {
+        pageNumbers[chartCellIndexNumber] = newCurrentPageIndex
+        print(pageNumbers)
     }
     
-    func rightArrowTapped(_ cell: ChartCollectionViewCell) {
-        guard let row = chartCollectionView.indexPath(for: cell)?.row else{return}
-        let origPageNumber = pageNumbers[row]
+    func rightArrowTapped(chartCellIndexNumber: Int) {
+        let origPageNumber = pageNumbers[chartCellIndexNumber]
         if origPageNumber != 19{
             let newNumber = origPageNumber+1
-            pageNumbers[row] = newNumber
-            scrollVideo(row: row, rank: newNumber)
+            pageNumbers[chartCellIndexNumber] = newNumber
         }
+        print(pageNumbers)
     }
     
-    func leftArrowTapped(_ cell: ChartCollectionViewCell) {
-        guard let row = chartCollectionView.indexPath(for: cell)?.row else{return}
-        let origPageNumber = pageNumbers[row]
+    func leftArrowTapped(chartCellIndexNumber: Int) {
+        let origPageNumber = pageNumbers[chartCellIndexNumber]
         if origPageNumber != 0{
             let newNumber = origPageNumber-1
-            pageNumbers[row] = newNumber
-            scrollVideo(row: row, rank: newNumber)
+            pageNumbers[chartCellIndexNumber] = newNumber
         }
-    }
-    
-    func scrollVideo(row: Int, rank: Int){
-//        guard let cell = chartCollectionView.cellForItem(at: IndexPath(row: row, section: 0)) as? ChartCollectionViewCell else {return}
-//        cell.videoCollectionView.setContentOffset(CGPoint(x: view.frame.width*CGFloat(rank), y: 0), animated: true)
-//        
+        print(pageNumbers)
     }
     
 }

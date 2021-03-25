@@ -7,10 +7,12 @@
 
 import UIKit
 import youtube_ios_player_helper
+import NVActivityIndicatorView
 
 
 class MainTabBarController: UITabBarController {
     
+    //MARK: - Properties
     var currentTrackID: String?
     
     lazy var videoPlayer: YTPlayerView = {
@@ -22,6 +24,20 @@ class MainTabBarController: UITabBarController {
         return vp
     }()
     
+    private let blackImageView: UIImageView = {
+        let iv = UIImageView()
+        iv.image = UIImage(named: "BlackScreen")
+        iv.layer.cornerRadius = 4
+        iv.clipsToBounds = true
+        return iv
+    }()
+    
+    private let spinner: NVActivityIndicatorView = {
+        let spinner = NVActivityIndicatorView(frame: .zero, type: .circleStrokeSpin, color: .yellow, padding: 0)
+        return spinner
+    }()
+    
+    //MARK: - ViewLifeCycles
     override func viewDidLoad() {
         super.viewDidLoad()
         configureTabs()
@@ -30,51 +46,75 @@ class MainTabBarController: UITabBarController {
     
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
-        showVideoWindow(videoPlayer: videoPlayer)
+        setupVideoView()
     }
     
-    func showVideoWindow(videoPlayer: YTPlayerView){
+    private func setupVideoView(){
         view.addSubview(videoPlayer)
+        view.addSubview(blackImageView)
+        view.addSubview(spinner)
         view.bringSubviewToFront(videoPlayer)
+        view.bringSubviewToFront(blackImageView)
+        view.bringSubviewToFront(spinner)
+        blackImageView.alpha = 0
+        spinner.isHidden = true
         
         guard let nav = self.viewControllers![1] as? UINavigationController else{return}
-//        guard let vc = nav.viewControllers.first as? LikesVC else {return}  //必要ない
+        //        guard let vc = nav.viewControllers.first as? LikesVC else {return}  //必要ない
         
         let playerWidth = view.frame.width * K.floatingPlayerWidthMultiplier
         videoPlayer.centerX(inView: view, topAnchor: view.safeAreaLayoutGuide.topAnchor, paddingTop: nav.navigationBar.frame.maxY + K.floatingPlayerTopBottomInsets)
         videoPlayer.setDimensions(height: playerWidth/16*9, width: playerWidth)
+        
+        blackImageView.centerX(inView: view, topAnchor: view.safeAreaLayoutGuide.topAnchor, paddingTop: nav.navigationBar.frame.maxY + K.floatingPlayerTopBottomInsets)
+        blackImageView.setDimensions(height: playerWidth/16*9, width: playerWidth)
+        
+        spinner.center(inView: blackImageView)
+        spinner.setDimensions(height: 40, width: 40)
     }
-    func setupObservers(){
+    
+    private func setupObservers(){
         NotificationCenter.default.addObserver(self, selector: #selector(playVideo), name: Notification.Name(rawValue:"videoPlayOrder"), object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(pauseVideo), name: Notification.Name(rawValue:"videoPauseOrder"), object: nil)
     }
     @objc func playVideo(notification: NSNotification){
         let info = notification.userInfo
         guard let trackID = info?["trackID"] as? String else {return}
-        currentTrackID = trackID
-        videoPlayer.load(withVideoId: trackID,
-                         playerVars: ["playsinline": 1,
-                                      "controls" : 1,
-                                      "autohide" : 1,
-                                      "showinfo" : 1,  //これを0にすると音量と全画面ボタンが上部になってしまう
-                                      "rel": 1,
-                                      "fs" : 0,
-                                      "modestbranding": 1,
-                                      "autoplay": 0,
-                                      "disablekb": 1,
-                                      "iv_load_policy": 3])
-        
+        if currentTrackID == trackID{
+            videoPlayer.playVideo()
+        }else{
+            currentTrackID = trackID
+            videoPlayer.load(withVideoId: trackID, playerVars: ["playsinline": 1,
+                                                                "controls" : 1,
+                                                                "autohide" : 1,
+                                                                "showinfo" : 1,  //これを0にすると音量と全画面ボタンが上部になってしまう
+                                                                "rel": 1,
+                                                                "fs" : 0,
+                                                                "modestbranding": 1,
+                                                                "autoplay": 0,
+                                                                "disablekb": 1,
+                                                                "iv_load_policy": 3])
+        }
+        DispatchQueue.main.async { [weak self] in
+            guard let self = self else {return}
+            self.blackImageView.alpha = 1
+            self.spinner.isHidden = false
+            self.spinner.startAnimating()
+        }
     }
+    
     @objc func pauseVideo(notification: NSNotification){
         print("got info")
-//        let info = notification.userInfo //使わないと思うが念のため
-//        guard let trackID = info?["trackID"] as? String else {return}
+        //        let info = notification.userInfo //使わないと思うが念のため
+        //        guard let trackID = info?["trackID"] as? String else {return}
         videoPlayer.pauseVideo()
     }
     
+    
+    //MARK: - 各タブ設定
     private func configureTabs(){
         
-//        tabBar.itemPositioning = .centered //itemの配置の仕方。必要ないかも。
+        //        tabBar.itemPositioning = .centered //itemの配置の仕方。必要ないかも。
         tabBar.tintColor = UIColor(named: "Black_Yellow")
         let configuration = UIImage.SymbolConfiguration(weight: .thin)
         
@@ -85,31 +125,31 @@ class MainTabBarController: UITabBarController {
                             Song(trackID: "testTrack2", songName: "testTrack2", artistName: "testTrack")
                            ]),
                           (country: "Haiti",
-                                             songs: [
-                                              Song(trackID: "testTrack", songName: "testTrack", artistName: "testTrack"),
-                                              Song(trackID: "testTrack2", songName: "testTrack2", artistName: "testTrack")
-                                             ]),
+                           songs: [
+                            Song(trackID: "testTrack", songName: "testTrack", artistName: "testTrack"),
+                            Song(trackID: "testTrack2", songName: "testTrack2", artistName: "testTrack")
+                           ]),
                           (country: "Trinidad & Tobago",
-                                             songs: [
-                                              Song(trackID: "testTrack", songName: "testTrack", artistName: "testTrack"),
-                                              Song(trackID: "testTrack2", songName: "testTrack2", artistName: "testTrack")
-                                             ]),
+                           songs: [
+                            Song(trackID: "testTrack", songName: "testTrack", artistName: "testTrack"),
+                            Song(trackID: "testTrack2", songName: "testTrack2", artistName: "testTrack")
+                           ]),
                           (country: "Barbados",
-                                             songs: [
-                                              Song(trackID: "testTrack", songName: "testTrack", artistName: "testTrack"),
-                                              Song(trackID: "testTrack2", songName: "testTrack2", artistName: "testTrack")
-                                             ])
+                           songs: [
+                            Song(trackID: "testTrack", songName: "testTrack", artistName: "testTrack"),
+                            Song(trackID: "testTrack2", songName: "testTrack2", artistName: "testTrack")
+                           ])
         ]
         
         //実際はFireBaseからcountriesを事前にDLして格納した後chartVCを作る。
         let chartVC = ChartVC()
-//            ChartVC(allChartData: sampleData)
+        //            ChartVC(allChartData: sampleData)
         let chartNav = generateNavController(rootVC: chartVC,
                                              title: "charts",
                                              selectedImage: UIImage(systemName: "bolt.fill", withConfiguration: configuration)!,
                                              unselectedImage: UIImage(systemName: "bolt", withConfiguration: configuration)!)
         
-        let likesVC = LikesVC(allChartData: sampleData, videoPlayer: YTPlayerView())
+        let likesVC = LikesVC(allChartData: sampleData)
         
         let likesNav = generateNavController(rootVC: likesVC,
                                              title: "likes",
@@ -137,14 +177,13 @@ class MainTabBarController: UITabBarController {
 }
 
 
-
 //MARK: - YTPlayer Delegate
 extension MainTabBarController: YTPlayerViewDelegate{
     
     func playerViewDidBecomeReady(_ playerView: YTPlayerView) {
         playerView.playVideo()
     }
-
+    
     func playerView(_ playerView: YTPlayerView, didChangeTo state: YTPlayerState) {
         switch state{
         case .unstarted:
@@ -159,15 +198,20 @@ extension MainTabBarController: YTPlayerViewDelegate{
             guard let trackID = currentTrackID else {return}
             let dic: [String: String] = ["trackID": trackID]
             NotificationCenter.default.post(name: Notification.Name(rawValue:"NowPlaying"), object: nil, userInfo: dic)
+            DispatchQueue.main.async { [weak self] in
+                guard let self = self else {return}
+                UIView.animate(withDuration: 0.5) {
+                    self.blackImageView.alpha = 0
+                }
+                self.spinner.isHidden = true
+                self.spinner.stopAnimating()
+            }
             
-//            spinner.stopAnimating()
-//            spinner.isHidden = true
-//            thumbnailImageView.isHidden = true
             
-            //後半の二つは、ChartVCのnavBarのjump機能の為につけた。
-//            let dict = ["playerObject": playerView, "chartCellIndex": chartCollectionCellIndex, "videoCellIndex": cellIndexNumber] as [String : Any]
-//            NotificationCenter.default.post(name: Notification.Name(rawValue:"videoAboutToPlayNotification"), object: nil, userInfo: dict)
-            
+        //後半の二つは、ChartVCのnavBarのjump機能の為につけた。
+        //            let dict = ["playerObject": playerView, "chartCellIndex": chartCollectionCellIndex, "videoCellIndex": cellIndexNumber] as [String : Any]
+        //            NotificationCenter.default.post(name: Notification.Name(rawValue:"videoAboutToPlayNotification"), object: nil, userInfo: dict)
+        
         case .paused:
             guard let trackID = currentTrackID else {return}
             let dic: [String: String] = ["trackID": trackID]
@@ -185,7 +229,6 @@ extension MainTabBarController: YTPlayerViewDelegate{
         }
     }
     
-    //    情報をパスされてローディングがスタートしてからサムネイルの準備終わるまでこの画面を表示する。
-    //    func playerViewPreferredInitialLoading(_ playerView: YTPlayerView) -> UIView? {
-    //    }
+    
+    
 }
