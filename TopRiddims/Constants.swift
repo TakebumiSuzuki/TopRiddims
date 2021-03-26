@@ -8,18 +8,18 @@
 import UIKit
 
 struct K{
-    static let floatingPlayerWidthMultiplier: CGFloat = 0.87
+    static let floatingPlayerWidthMultiplier: CGFloat = 0.5
     static let floatingPlayerTopBottomInsets: CGFloat = 3
     
     static let chartCellWidthMultiplier: CGFloat = 0.95 //view全体幅に対するchartCellの横幅
-    static let videoCoverWidthMultiplier: CGFloat = 0.47 //chartCell横幅に対するソングカバーの横幅
+    static let videoCoverWidthMultiplier: CGFloat = 0.3 //chartCell横幅に対するソングカバーの横幅
     static let videoCollectionViewWidthMultiplier: CGFloat = 0.8 //chartCell横幅に対するvideoCollectionViewの横幅
     
     
     static let chartCellHeaderHeight: CGFloat = 40
     
-    static let chartCellFooterHeight: CGFloat = 110
-    static let ChartCollectionFooterPlusPointSize: CGFloat = 50
+    static let chartCellFooterHeight: CGFloat = 90
+    static let ChartCollectionFooterPlusPointSize: CGFloat = 47
     
     static let videoWidthMultiplier: CGFloat = 0.9
     static let chartCellAdditionalHeight: CGFloat = 110

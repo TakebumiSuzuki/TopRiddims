@@ -12,25 +12,23 @@ class LikesVC: UIViewController{
     
     //MARK: - Initialization
     var allChartData = [(country: String, songs:[Song])]()
-    var scrapingManager: ScrapingManager?
     init(allChartData: [(country: String, songs:[Song])]) {
         super.init(nibName: nil, bundle: nil)
         self.allChartData = allChartData
     }
     required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
     
-    
     //MARK: - Properties
+    
     private var videoWidth: CGFloat{ return view.frame.width*K.chartCellWidthMultiplier*K.videoCoverWidthMultiplier}
-    private var videoHeight: CGFloat{ return videoWidth / 16 * 9 }
+    private var videoHeight: CGFloat{ return videoWidth/16*9 }
     
     private var pageNumbers: [Int] = {
         var array = [Int]()
-        for _ in 0...19{
-            array.append(0)
-        }
+        for _ in 0...19{ array.append(0) }
         return array
     }()
+    var scrapingManager: ScrapingManager? //ScrapingManagerはinjectionしない？
     var videoIDs = [String]()
     var songNames = [String]()
     var artistNames = [String]()
@@ -52,14 +50,14 @@ class LikesVC: UIViewController{
         cv.delegate = self
         cv.dataSource = self
         cv.register(ChartCollectionViewCell.self, forCellWithReuseIdentifier: ChartCollectionViewCell.identifier)
-        cv.register(ChartCollectionHeaderView.self,
-                                forSupplementaryViewOfKind: UICollectionView.elementKindSectionHeader,
-                                withReuseIdentifier: ChartCollectionHeaderView.identifier)
+//        cv.register(ChartCollectionHeaderView.self,
+//                                forSupplementaryViewOfKind: UICollectionView.elementKindSectionHeader,
+//                                withReuseIdentifier: ChartCollectionHeaderView.identifier)
         cv.register(ChartCollectionFooterView.self,
                                 forSupplementaryViewOfKind: UICollectionView.elementKindSectionFooter,
                                 withReuseIdentifier: ChartCollectionFooterView.identifier)
         let longPressGesture = UILongPressGestureRecognizer(target: self, action: #selector(cellLongPressed))
-        longPressGesture.minimumPressDuration = 1 //デフォルトは0.5だとの事
+        longPressGesture.minimumPressDuration = 0.7 //デフォルトは0.5だとの事
         cv.addGestureRecognizer(longPressGesture)
         return cv
     }()
@@ -99,8 +97,8 @@ class LikesVC: UIViewController{
     }
     
     private func setupNavBar(){
-        let navImageView = UIImageView(image:UIImage(named: "Top_Riddims")?.withTintColor(UIColor(named: "Black_Yellow")!))
-        navigationItem.titleView = navImageView
+        let navTitleImageView = UIImageView(image:UIImage(named: "Top_Riddims")?.withTintColor(UIColor(named: "Black_Yellow")!))
+        navigationItem.titleView = navTitleImageView
         
         let rightButton = UIBarButtonItem()
         rightButton.customView = dummyButton
@@ -122,8 +120,8 @@ class LikesVC: UIViewController{
     }
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
-        let videoHeight = view.frame.width*K.floatingPlayerWidthMultiplier/16*9
-        playerPlaceholderView.anchor(top: view.safeAreaLayoutGuide.topAnchor, left: view.leftAnchor, right: view.rightAnchor, height: videoHeight+K.floatingPlayerTopBottomInsets*2)
+        let floatingPlayerHeight = view.frame.width*K.floatingPlayerWidthMultiplier/16*9
+        playerPlaceholderView.anchor(top: view.safeAreaLayoutGuide.topAnchor, left: view.leftAnchor, right: view.rightAnchor, height: floatingPlayerHeight+K.floatingPlayerTopBottomInsets*2)
         chartCollectionView.anchor(top: playerPlaceholderView.bottomAnchor, left: view.leftAnchor, bottom: view.safeAreaLayoutGuide.bottomAnchor, right: view.rightAnchor)
     }
     
@@ -135,27 +133,27 @@ class LikesVC: UIViewController{
     //MARK: - Gesture Handling
     @objc private func cellLongPressed(_ gesture: UILongPressGestureRecognizer){
         if reloadingOnOff { return }
-        guard let targetIndexPath = chartCollectionView.indexPathForItem(at: gesture.location(in: chartCollectionView)) else{return}
-        guard let cell = chartCollectionView.cellForItem(at: targetIndexPath) else{return}
-        
+        //以下の作業全てメインスレッドで行われているよう
         switch gesture.state{
-        case .began:
-            cell.backgroundColor = .systemGray5
-           chartCollectionView.beginInteractiveMovementForItem(at: targetIndexPath)
-            print("began")
-        case .changed:
-            chartCollectionView.updateInteractiveMovementTargetPosition(gesture.location(in: chartCollectionView))
-        case .ended:
-            chartCollectionView.endInteractiveMovement()
-            cell.backgroundColor = .clear
-            print("ended")
-        case .cancelled:
-            chartCollectionView.cancelInteractiveMovement()
-            print("canceled")
-        default:
-            return
-        }
+            case .began:
+                guard let targetIndexPath = chartCollectionView.indexPathForItem(at: gesture.location(in: chartCollectionView)) else{return}
+//                guard let cell = chartCollectionView.cellForItem(at: targetIndexPath) else{return}
+//                cell.backgroundColor = .systemGray5
+                self.chartCollectionView.beginInteractiveMovementForItem(at: targetIndexPath)
+            case .changed:
+                self.chartCollectionView.updateInteractiveMovementTargetPosition(gesture.location(in: self.chartCollectionView))
+            case .ended:
+//                guard let targetIndexPath = chartCollectionView.indexPathForItem(at: gesture.location(in: chartCollectionView)) else{return}
+//                guard let cell = chartCollectionView.cellForItem(at: targetIndexPath) else{return}
+//                cell.backgroundColor = .clear
+                self.chartCollectionView.endInteractiveMovement()
+            case .cancelled:
+                self.chartCollectionView.cancelInteractiveMovement()
+            default:
+                return
+            }
     }
+    
     //MARK: - Handle Button Taps
     @objc private func reloadButtonTapped(){
         reloadingOnOff.toggle()
@@ -167,17 +165,23 @@ class LikesVC: UIViewController{
     }
     
     private func handleFetchingData(){
-        smallCircleImageView.rotate360Degrees(duration: 2)
-        smallPauseImageView.isHidden = false
-        
+        DispatchQueue.main.async {[weak self] in
+            guard let self = self else{return}
+            self.smallCircleImageView.rotate360Degrees(duration: 2)
+            self.smallPauseImageView.isHidden = false
+            for i in 0...self.allChartData.count{
+                guard let cell = self.chartCollectionView.cellForItem(at: IndexPath(item: i, section: 0)) as? ChartCollectionViewCell else{continue}
+                cell.loader.startAnimating()
+                cell.loader.isHidden = false
+            }
+        }
         scrapingManager = ScrapingManager(chartDataToFetch: allChartData, startingIndex: 0)
         scrapingManager?.delegate = self
         scrapingManager?.startLoadingWebPages()
     }
     
     private func handlePauseFetching(){
-        smallCircleImageView.stopRotation()
-        smallPauseImageView.isHidden = true
+        stopAllLoaders()
         
         //この行をすぐ下のnilの行より先に書く事により循環参照でtimerだけが残って処理を続けることを防ぐ
         if let timer = scrapingManager?.timer{
@@ -192,7 +196,6 @@ extension LikesVC: ScrapingManagerDelegate{
     //チャート情報をゲットできた国から順番にこのメソッドが呼ばれる
     func setCellWithSongsInfo(songs: [Song], countryIndexNumber: Int) {
         allChartData[countryIndexNumber].songs = songs //グローバル変数のallChartDataをアップデート
-        
         //以下は、アップデートするcellをつかみ、メインキューで表示させる
         let indexPath = IndexPath(row: countryIndexNumber, section: 0)
         guard let cellToLiveUpdate = chartCollectionView.cellForItem(at: indexPath) as? ChartCollectionViewCell else{
@@ -201,29 +204,46 @@ extension LikesVC: ScrapingManagerDelegate{
         }
         DispatchQueue.main.async {
             cellToLiveUpdate.songs = songs  //この時点でdidSetが起動し自動アップデートが行われる
+            cellToLiveUpdate.videoCollectionView.reloadData()
             let flash = CABasicAnimation(keyPath: "opacity")
-            flash.duration = 0.5
+            flash.duration = 0.3
             flash.fromValue = 1
             flash.toValue = 0.3
             flash.timingFunction = CAMediaTimingFunction(name: CAMediaTimingFunctionName.easeInEaseOut)
             flash.repeatCount = 1
             cellToLiveUpdate.layer.add(flash, forKey: nil)
+            cellToLiveUpdate.loader.stopAnimating()
+            cellToLiveUpdate.loader.isHidden = true
         }
+        
     }
     //以下の2つのうちどちらかが必ず呼ばれる。
     func fetchingDataAllDone(){
         scrapingManager = nil //これによりfetching関連で作ったインスタンスを消去
-        reloadingOnOff.toggle() //delegateで自動で呼ばれるのでtoggleをしておかないといけない
-        smallCircleImageView.stopRotation()
-        smallPauseImageView.isHidden = true
+        reloadingOnOff.toggle()
+        stopAllLoaders()
     }
     func timeOutNotice(){
         let alert = AlertService(vc: self)
         alert.showSimpleAlert(title: "Time Out Error!", message: "There seem to be internet connection probem. Please try updating later again.", style: .alert)
         scrapingManager = nil
-        reloadingOnOff.toggle()  //delegateで自動で呼ばれるのでtoggleをしておかないといけない
-        smallCircleImageView.stopRotation()
-        smallPauseImageView.isHidden = true
+        reloadingOnOff.toggle()
+        stopAllLoaders()
+    }
+    
+    func stopAllLoaders(){
+        DispatchQueue.main.async { [weak self] in
+            guard let self = self else {return}
+            self.smallCircleImageView.stopRotation()
+            self.smallPauseImageView.isHidden = true
+            
+            for i in 0...self.allChartData.count{
+                guard let cell = self.chartCollectionView.cellForItem(at: IndexPath(item: i, section: 0)) as? ChartCollectionViewCell else{continue}
+                cell.loader.stopAnimating()
+                cell.loader.isHidden = true
+            }
+            self.chartCollectionView.reloadData()
+        }
     }
 }
 
@@ -244,12 +264,21 @@ extension LikesVC: MapVCDelegate{
     func newCountrySelectionDone(selectedCountries: [String]) {
         dismiss(animated: true, completion: nil)
         allChartData = allChartData.filter{ selectedCountries.contains($0.country) }
-        DispatchQueue.main.async {
-            self.chartCollectionView.reloadData()
+        pageNumbers = {  //残された国たちのスクロールのページ位置(順位)は全てリセットして1位からとする。
+            var array = [Int]()
+            for _ in 0...19{ array.append(0) }
+            return array
+        }()
+        self.chartCollectionView.reloadData()
+        for i in 0..<allChartData.count{ //これらはアプリ立ち上げまもない時はcellがinitされ、loaderが起動してしまうので。
+            guard let cell = chartCollectionView.cellForItem(at: IndexPath(item: i, section: 0)) as? ChartCollectionViewCell else {continue}
+            cell.loader.stopRotation()
+            cell.loader.isHidden = true
         }
         var currentEntries = [String]()
         allChartData.forEach{ currentEntries.append($0.country) }
         let newEntries: [String] = selectedCountries.filter{ !currentEntries.contains($0) }
+        
         updateWithNewCountries(newEntries: newEntries)
     }
     
@@ -257,26 +286,33 @@ extension LikesVC: MapVCDelegate{
         //単純なString配列のnewEntriesを新しいデータ構造に変換し、allChartDataの末尾に加える
         if newEntries.isEmpty{ return }
         var newCountryData = [(country: String, songs:[Song])]()
-        newEntries.forEach{
+        
+        newEntries.forEach{  //sample1曲のみのチャートデータを新しい国ごとに作っている。
             let data = (country: $0, songs: [Song(trackID: "trackID", songName: "Getting songs now!", artistName: "Please wait for a moment...")])
             //songNameとartistnameを空にしたら、下のinsertItemsの段で、一番目の要素(jamaica)から挿入された。UIKitのバグかと。
+            
             newCountryData.append(data)
         }
+        
         let startingIndex = allChartData.count
+        
         allChartData.append(contentsOf: newCountryData)
+        //この地点ではメインキューで動いているよう。
         //新しく追加された国をUI即席アップデートでcollectionViewに加える。この時animationの為insertItemsメソッドを使う。
-        DispatchQueue.main.async {
+        DispatchQueue.main.async { [weak self] in
+            guard let self = self else {return}
             for i in 0..<newCountryData.count{
-                self.chartCollectionView.insertItems(at: [IndexPath(item: (startingIndex + i), section: 0)])
+                let indexPath = IndexPath(item: (startingIndex + i), section: 0)
+                self.chartCollectionView.insertItems(at: [indexPath])
+                //ここでinsert命令を出しても実際にdequeueされてcellインスタンスが作られるのは少し後になる。asyncなので。
             }
-            self.chartCollectionView.scrollToItem(at: IndexPath(row: self.allChartData.count-1, section: 0), at: .bottom, animated: true)
-            
             //実際のデータアップロード
+            self.chartCollectionView.scrollToItem(at: IndexPath(row: self.allChartData.count-1, section: 0), at: .bottom, animated: true)
             self.smallCircleImageView.rotate360Degrees(duration: 2)
             self.smallPauseImageView.isHidden = false
             self.reloadingOnOff.toggle()
         }
-        
+        //上のDispatchQueue.main.asyncの中身よりも先にこちらが走る。
         scrapingManager = ScrapingManager(chartDataToFetch: newCountryData, startingIndex: startingIndex)
         scrapingManager?.delegate = self
         scrapingManager?.startLoadingWebPages()
@@ -293,9 +329,12 @@ extension LikesVC: UICollectionViewDataSource{
         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: ChartCollectionViewCell.identifier, for: indexPath) as! ChartCollectionViewCell
         cell.chartCellIndexNumber = indexPath.row  //Jump機能の為
         cell.country = allChartData[indexPath.row].country
+        
+        cell.songs = allChartData[indexPath.row].songs  //ここでsongsに情報が代入された時点でdidSetでVideoカバーがアップデートされる
         cell.currentPageIndexNum = pageNumbers[indexPath.row]
-        cell.songs = allChartData[indexPath.row].songs  //ここでsongsに情報が代入された時点でdidSetでアップデートされる
+        //順番が大切。songsの後にこのcurrentPageIndexを入れないとsongNameなど作成中にエラーが生じる。
         cell.cellSelfWidth = view.frame.width*K.chartCellWidthMultiplier
+        cell.videoCollectionView.scrollToItem(at: pageNumbers[indexPath.row], animated: false)
         cell.delegate = self
         return cell
     }
@@ -313,7 +352,7 @@ extension LikesVC: UICollectionViewDataSource{
         }
     }
 }
-//MARK: - chartCollectionView Delegate
+//MARK: - chartCollectionView Delegate　ジェスチャー
 extension LikesVC: UICollectionViewDelegate{
     
     func collectionView(_ collectionView: UICollectionView, canMoveItemAt indexPath: IndexPath) -> Bool {
@@ -322,6 +361,10 @@ extension LikesVC: UICollectionViewDelegate{
     func collectionView(_ collectionView: UICollectionView, moveItemAt sourceIndexPath: IndexPath, to destinationIndexPath: IndexPath) {
         let item = allChartData.remove(at: sourceIndexPath.row)
         allChartData.insert(item, at: destinationIndexPath.row)
+        let videoPage = pageNumbers.remove(at: sourceIndexPath.row)
+        pageNumbers.insert(videoPage, at: destinationIndexPath.row)
+        print("destinationが呼ばれ、新ページ\(pageNumbers)")
+        chartCollectionView.reloadData()
     }
 }
 

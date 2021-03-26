@@ -13,14 +13,24 @@ class WebpageScraper{
     
     private var webView: WKWebView
     private var country: String
-        
     init(webView: MyWKWebView, country: String) {
         self.webView = webView
         self.country = country
     }
+    
     var videoIDs = [String]()
-    var songNames = [String]()
-    var artistNames = [String]()
+    var songNames = [String](){
+        didSet{
+            print("ソングネーム")
+            print(songNames)
+        }
+    }
+    var artistNames = [String](){
+        didSet{
+            print("アーティストネーム")
+            print(artistNames)
+        }
+    }
     
     deinit {
         print("Scraper is being Deinitialized")
@@ -41,12 +51,12 @@ class WebpageScraper{
         
         webView.evaluateJavaScript("document.body.innerHTML"){ [weak self] result, error in
             
-            guard let self = self else { print("DEBUG: self is nil at strtScraping handler!"); return }
+            guard let self = self else { print("DEBUG: self is nil at startScraping handler!"); return }
             guard let html = result as? String, error == nil else {
                 print("DEBUG: error occured converting JS to html \(error!.localizedDescription)"); return
             }
             
-            DispatchQueue.global(qos: .userInitiated).async {
+            DispatchQueue.global(qos: .userInteractive).async {
 //                print("DispatchQueueの中はメインスレッド?: \(Thread.isMainThread)")
                 do{
                     var ids = [String]()
@@ -57,6 +67,10 @@ class WebpageScraper{
                         ids.append(string)
                     }
                     self.videoIDs = ids.suffix(20)
+                    print(self.videoIDs.count)
+                    if self.videoIDs.count != 20 {
+                        print("ビデオの数が20以下なのでリターンします")
+                    }
                     
                     var songs = [String]()
                     let songNameElements: Elements = try doc.getElementsByClass("entity-title style-scope ytmc-entity-row")
@@ -66,7 +80,10 @@ class WebpageScraper{
                         songs.append(songName)
                     })
                     self.songNames = songs.suffix(20)
-                    
+                    print(self.videoIDs.count)
+                    if self.songNames.count != 20 {
+                        print("ビデオの数が20以下なのでリターンします")
+                    }
                     var artists = [String]()
                     let artistNameElements: Elements = try doc.getElementsByClass("entity-subtitle style-scope ytmc-entity-row")
                     //                print(try artistNameElements.text())

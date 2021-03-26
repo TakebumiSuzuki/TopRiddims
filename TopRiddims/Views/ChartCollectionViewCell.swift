@@ -6,8 +6,8 @@
 //
 
 import UIKit
-import WebKit
 import iCarousel
+import NVActivityIndicatorView
 
 protocol ChartCollectionViewCellDelegate: class{
     func rightArrowTapped(chartCellIndexNumber: Int)
@@ -26,27 +26,35 @@ class ChartCollectionViewCell: UICollectionViewCell {
     private var videoWidth: CGFloat{ return self.cellSelfWidth*K.videoCoverWidthMultiplier }
     private var videoHeight: CGFloat{ return videoWidth/16*9 }
     
-    
-    var songs = [Song](){
-        didSet{
-            setLabelInfo()
-            videoCollectionView.reloadData()
-        }
-    }
-    
     var chartCellIndexNumber: Int = 0  //自分自身のindexNumber
-    
-    //以下の二つのプロパティはdequeue時にallChartDataから分裂してそれぞれに代入される。
     var country: String!{
         didSet{
             countryLabel.text = country
         }
     }
-    var currentPageIndexNum: Int = 0 //いくつめのビデオが前面に出ているか
-    
-    
-
+    var songs = [Song](){
+        didSet{
+            videoCollectionView.reloadData()
+            
+            if songs.count == 20{
+                loader.stopAnimating()
+                loader.isHidden = true
+            }
+        }
+    }
+    var currentPageIndexNum: Int = 0{ //いくつめのビデオが前面に出ているか
+        didSet{
+            setLabelInfo()
+        }
+    }
     //MARK: - UI Components
+    
+    let loader: NVActivityIndicatorView = {
+        let loader = NVActivityIndicatorView(frame: CGRect(x: 0, y: 0, width: 40, height: 40))
+        loader.type = .ballScaleRippleMultiple
+        return loader
+    }()
+    
     private let countryLabel: UILabel = {
         let lb = UILabel()
         lb.font = UIFont.systemFont(ofSize: 22, weight: .regular)
@@ -135,17 +143,14 @@ class ChartCollectionViewCell: UICollectionViewCell {
     override init(frame: CGRect) {
         super.init(frame: frame)
         setupViews()
+        startLoader()
     }
     required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
     
     private func setupViews(){
-        self.backgroundColor = .systemGroupedBackground
+        self.backgroundColor = .systemBackground
         self.layer.cornerRadius = 2 //ジェスチャーで動かした時に形が綺麗に見えるように
         self.clipsToBounds = true
-        
-//        let offsetX = self.frame.width*CGFloat(pageNumber) //カローせるエフェクトは後で
-//        videoCollectionView.setContentOffset(CGPoint(x: offsetX, y: 0), animated: true)
-        
         self.addSubview(countryLabel)
         self.addSubview(videoCollectionView)
         self.addSubview(rightArrow)
@@ -155,8 +160,13 @@ class ChartCollectionViewCell: UICollectionViewCell {
         self.addSubview(artistNameLabel)
         self.addSubview(checkButton)
         self.addSubview(heartButton)
+        self.addSubview(loader)
     }
     
+    private func startLoader(){
+        loader.startAnimating()
+        loader.isHidden = false
+    }
     
     override func layoutSubviews() {
         super.layoutSubviews()
@@ -186,15 +196,17 @@ class ChartCollectionViewCell: UICollectionViewCell {
         checkButton.firstBaselineAnchor.constraint(equalTo: songNameLabel.firstBaselineAnchor).isActive = true
         heartButton.anchor(right: checkButton.leftAnchor, paddingRight: 6)
         heartButton.firstBaselineAnchor.constraint(equalTo: songNameLabel.firstBaselineAnchor).isActive = true
+        
+        loader.center(inView: self)
+        
     }
     
     
-    func setLabelInfo(){
-        numberLabel.text = String(currentPageIndexNum)
+    private func setLabelInfo(){
+        numberLabel.text = String(currentPageIndexNum+1) //順位なので1を足す。1位から始まるので。
         songNameLabel.text = songs[currentPageIndexNum].songName
         artistNameLabel.text = songs[currentPageIndexNum].artistName
     }
-    
     
     
     @objc func heartButtonPressed(){
@@ -235,27 +247,18 @@ extension ChartCollectionViewCell: iCarouselDelegate{
     
     @objc func leftArrowTapped(){
         delegate?.leftArrowTapped(chartCellIndexNumber: chartCellIndexNumber)
-        currentPageIndexNum -= 1
+        if currentPageIndexNum != 0{
+            currentPageIndexNum -= 1
+        }
         videoCollectionView.scrollToItem(at: currentPageIndexNum, duration: 0.4)
         
     }
     @objc func rightArrowTapped(){
         delegate?.rightArrowTapped(chartCellIndexNumber: chartCellIndexNumber)
-        currentPageIndexNum += 1
+        if currentPageIndexNum != 19{
+            currentPageIndexNum += 1
+        }
         videoCollectionView.scrollToItem(at: currentPageIndexNum, duration: 0.4)
     }
-    
-    
-//    func scrollViewWillEndDragging(_ scrollView: UIScrollView, withVelocity velocity: CGPoint, targetContentOffset: UnsafeMutablePointer<CGPoint>) {
-//        let bound = targetContentOffset.pointee
-//        delegate?.handleDragScrollInfo(self, xBoundPoint: bound.x)
-//    }
-//
-//    func collectionView(_ collectionView: UICollectionView, didEndDisplaying cell: UICollectionViewCell, forItemAt indexPath: IndexPath) {
-//        print("呼ばれる")
-//        guard let cell = collectionView.cellForItem(at: indexPath) as? VideoCollectionViewCell else{return}
-//        guard let playerView = cell.playerView else{return}
-//        print("vide 発見")
-//    }
 }
 

@@ -76,7 +76,7 @@ class ScrapingManager{
         //タイマーを起動
         startTimer {[weak self] (songs, indexNumber) in
             guard let self = self else { print("DEBUG: self is nil at Timer's completion handler!"); return }
-            
+            print("タイマー１秒後変換")
             let modifiedIndexNumber = indexNumber + self.startingIndex
             self.delegate?.setCellWithSongsInfo(songs: songs, countryIndexNumber: modifiedIndexNumber)
         }
@@ -87,7 +87,8 @@ class ScrapingManager{
     private func startTimer(completion: @escaping ([Song], Int) -> Void){
         
         timer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) {[weak self](timer) in
-            
+            print(Thread.isMainThread)
+            print("タイマー１秒後")
             //timerをScrapingManagerの変数として定義し、timer=というように書いた事によりweak selfがnilにならなくなった。理由は不明。
             guard let self = self else { print("DEBUG: self is nil at scheduleTimer's handler!"); return }
             self.timerCount += 1

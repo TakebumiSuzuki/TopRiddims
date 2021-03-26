@@ -18,7 +18,7 @@ class MainTabBarController: UITabBarController {
     lazy var videoPlayer: YTPlayerView = {
         let vp = YTPlayerView(frame: .zero)
         vp.delegate = self
-        vp.backgroundColor = .darkGray
+        vp.backgroundColor = UIColor.darkGray
         vp.layer.cornerRadius = 4
         vp.clipsToBounds = true
         return vp
