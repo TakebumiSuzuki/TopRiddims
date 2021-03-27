@@ -9,6 +9,7 @@ import UIKit
 import youtube_ios_player_helper
 import NVActivityIndicatorView
 import FirebaseAuth
+import FBSDKLoginKit
 
 
 class MainTabBarController: UITabBarController {

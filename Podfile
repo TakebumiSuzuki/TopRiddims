@@ -15,6 +15,9 @@ pod 'iCarousel'
 pod 'Firebase/Analytics'
 pod 'Firebase/Auth'
 pod 'Firebase/Firestore'
-
 pod 'FBSDKLoginKit'
+pod 'JGProgressHUD'
+
+
+
 end

@@ -13,6 +13,13 @@ class ResetPasswordVC: UIViewController {
     //MARK: - Properties
     private let imageAlpha: CGFloat = 0.9
     
+    var authService: AuthService!
+    init(authService: AuthService) {
+        super.init(nibName: nil, bundle: nil)
+        self.authService = authService
+    }
+    required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
+    
     //MARK: - UI Elements
     private let imageContainerView: UIView = {
         let view = UIView()
@@ -64,7 +71,7 @@ class ResetPasswordVC: UIViewController {
     
     
     private let emailTextField: CustomTextField = {
-        let tf = CustomTextField(placeholder: "Enter email, we'll send you reset password to you.")
+        let tf = CustomTextField(placeholder: "Enter email to reset password")
         tf.textContentType = .emailAddress
         tf.keyboardType = .emailAddress
         tf.autocapitalizationType = .none
@@ -171,16 +178,14 @@ class ResetPasswordVC: UIViewController {
     @objc func resetButtonTapped(){
         guard let email = emailTextField.text else{return}
         
-        Auth.auth().sendPasswordReset(withEmail: email) { [weak self] error in
-            guard let self = self else {return}
-            if let error = error{
+        authService.resetPassword(email: email) { (error) in
+            if let _ = error{
                 let alert = AlertService(vc: self)
-                alert.showSimpleAlert(title: "Error occured. Please try once again later.", message: "", style: .alert)
-                print("DEBUG: Error occured during resetting password:\(error.localizedDescription)")
-            }else{
-                let alert = AlertService(vc: self)
-                alert.showSimpleAlert(title: "Check out your email to reset password.", message: "", style: .alert)
+                alert.showSimpleAlert(title: "Error occured. Please try again later.", message: "", style: .alert)
+                return
             }
+            let alert = AlertService(vc: self)
+            alert.showSimpleAlert(title: "Check out your email to reset password.", message: "", style: .alert)
         }
     }
     

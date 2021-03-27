@@ -29,6 +29,8 @@
 		0C68F604260F5BAB005BC185 /* Extension + UIImageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0C68F603260F5BAB005BC185 /* Extension + UIImageView.swift */; };
 		0C68F60A260FA655005BC185 /* User.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0C68F609260FA655005BC185 /* User.swift */; };
 		0C68F60F260FACB8005BC185 /* AuthService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0C68F60E260FACB8005BC185 /* AuthService.swift */; };
+		0C68F613260FBDFE005BC185 /* FacebookLoginService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0C68F612260FBDFE005BC185 /* FacebookLoginService.swift */; };
+		0C68F616260FD9BD005BC185 /* FirestoreService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0C68F615260FD9BD005BC185 /* FirestoreService.swift */; };
 		0C8A313926020183003AF166 /* ChartCollectionHeaderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0C8A313826020183003AF166 /* ChartCollectionHeaderView.swift */; };
 		0C8A313D2602021E003AF166 /* ChartCollectionFooterView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0C8A313C2602021E003AF166 /* ChartCollectionFooterView.swift */; };
 		0C8A314526020DFC003AF166 /* WebpageScraper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0C8A314426020DFC003AF166 /* WebpageScraper.swift */; };
@@ -66,6 +68,8 @@
 		0C68F603260F5BAB005BC185 /* Extension + UIImageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Extension + UIImageView.swift"; sourceTree = "<group>"; };
 		0C68F609260FA655005BC185 /* User.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = User.swift; sourceTree = "<group>"; };
 		0C68F60E260FACB8005BC185 /* AuthService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthService.swift; sourceTree = "<group>"; };
+		0C68F612260FBDFE005BC185 /* FacebookLoginService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FacebookLoginService.swift; sourceTree = "<group>"; };
+		0C68F615260FD9BD005BC185 /* FirestoreService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FirestoreService.swift; sourceTree = "<group>"; };
 		0C8A313826020183003AF166 /* ChartCollectionHeaderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChartCollectionHeaderView.swift; sourceTree = "<group>"; };
 		0C8A313C2602021E003AF166 /* ChartCollectionFooterView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChartCollectionFooterView.swift; sourceTree = "<group>"; };
 		0C8A314426020DFC003AF166 /* WebpageScraper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebpageScraper.swift; sourceTree = "<group>"; };
@@ -164,6 +168,8 @@
 			isa = PBXGroup;
 			children = (
 				0C68F60E260FACB8005BC185 /* AuthService.swift */,
+				0C68F612260FBDFE005BC185 /* FacebookLoginService.swift */,
+				0C68F615260FD9BD005BC185 /* FirestoreService.swift */,
 			);
 			path = APIs;
 			sourceTree = "<group>";
@@ -325,6 +331,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				0C37570B260DB230007CC850 /* LoginVC.swift in Sources */,
+				0C68F616260FD9BD005BC185 /* FirestoreService.swift in Sources */,
 				0C37570E260DB260007CC850 /* ResetPasswordVC.swift in Sources */,
 				0C8A314826020E52003AF166 /* Song.swift in Sources */,
 				0C62B8CD25FE932C00A203B2 /* LikesVC.swift in Sources */,
@@ -348,6 +355,7 @@
 				0CB575682601C9E500DE22F9 /* Extension + UIView.swift in Sources */,
 				0CAC7E0D2605CCFE00582E3A /* AlertService.swift in Sources */,
 				0C62B8C525FE919F00A203B2 /* MainTabBarController.swift in Sources */,
+				0C68F613260FBDFE005BC185 /* FacebookLoginService.swift in Sources */,
 				0C62B8CA25FE930900A203B2 /* ChartVC.swift in Sources */,
 				0C3756E0260B7EC9007CC850 /* ChartCollectionViewCell.swift in Sources */,
 				0CB575642601C6CD00DE22F9 /* Constants.swift in Sources */,

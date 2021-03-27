@@ -9,12 +9,10 @@ import Firebase
 
 enum CustomAPIError: Error{
     case dataHandling
-    
+    case authResultIsNil
 }
 
 class AuthService{
-    
-    
     
     func createUser(name: String, email: String, password: String, completion: @escaping (Error?) -> Void){
         
@@ -24,14 +22,18 @@ class AuthService{
                 completion(error)
                 return
             }
-            guard let uid = authDataResult?.user.uid else{ completion(CustomAPIError.dataHandling); return}
+            guard let uid = authDataResult?.user.uid else{
+                completion(CustomAPIError.dataHandling)
+                return
+            }
             
             let data: [String: Any] = ["uid": uid,
                                        "name": name,
                                        "email":email,
+                                       "isNewUser": true,
                                        "registrationDate": Timestamp(),
-                                       "lastLogInDate": Timestamp()
-            ]
+                                       "lastLogInDate": Timestamp()]
+            
             K.FSCollectionUsers.document(uid).setData(data) { (error) in
                 if let error = error{
                     print("DEBUG: Failed to save userData in Firestore: \(error.localizedDescription)")
@@ -40,10 +42,55 @@ class AuthService{
                 completion(nil)
             }
         }
-        
-        
     }
     
+    
+    func logUserIn(email: String, password: String, completion: @escaping (Error?) -> Void){
+        
+        Auth.auth().signIn(withEmail: email, password: password) { (authDataResult, error) in
+            if let error = error{
+                print("DEBUG: Failed log user in at FirebaseAuth: \(error.localizedDescription)")
+                completion(error)
+                return
+            }
+            completion(nil)
+        }
+    }
+    
+    
+    //FacebookやTwitterを経由したログイン
+    func logUserInWithCredential(credential: AuthCredential, completion: @escaping (Result<AuthDataResult, Error>) -> Void){
+        
+        Auth.auth().signIn(with: credential) { (authResult, error) in
+            if let error = error {
+                print("DEBUG: FirebaseAuthへのログインに失敗しました:\(error.localizedDescription)")
+                completion(.failure(error))
+                return
+            }
+            //ログイン成功
+            guard let authResult = authResult else{
+                print("DEBUG: authResultがnilです!")
+                completion(.failure(CustomAPIError.authResultIsNil))
+                return
+            }
+            completion(.success(authResult))
+        }
+    }
+    
+    
+    
+    func resetPassword(email: String, completion: @escaping (Error?) -> Void){
+        
+        Auth.auth().sendPasswordReset(withEmail: email) { error in
+            if let error = error{
+                print("DEBUG: Error occured during FirebaseAuth resetting password:\(error.localizedDescription)")
+                completion(error)
+                return
+            }else{
+                completion(nil)
+            }
+        }
+    }
     
     
     

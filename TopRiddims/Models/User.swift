@@ -10,12 +10,14 @@ import Foundation
 class User{
     
     var uid: String
-    var name: String
-    var email: String
+    var name: String?
+    var email: String?
+    var isNewUser: Bool?
     var registrationDate: Date
     var lastLogInDate: Date
     
-    init(uid: String, name: String, email: String, registrationDate: Date, lastLogInDate: Date){
+    
+    init(uid: String, name: String?, email: String?, isNewUser: Bool?, registrationDate: Date, lastLogInDate: Date){
         self.uid = uid
         self.name = name
         self.email = email

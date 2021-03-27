@@ -13,6 +13,8 @@ class SignUpVC: UIViewController {
     //MARK: - Properties
     private let imageAlpha: CGFloat = 0.9
     
+    let authService = AuthService()
+    
     //MARK: - UI Elements
     private let imageContainerView: UIView = {
         let view = UIView()
@@ -177,7 +179,6 @@ class SignUpVC: UIViewController {
         
         //ここにバリデーション
         
-        let authService = AuthService()
         //ローダー入れる
         authService.createUser(name: name, email: email, password: password) { (error) in
             if let error = error{

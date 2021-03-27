@@ -14,7 +14,10 @@ class LoginVC: UIViewController{
     //MARK: - Properties
     private let imageAlpha: CGFloat = 0.9
     
-    var twitterProvider = OAuthProvider(providerID: "twitter.com")
+    let twitterProvider = OAuthProvider(providerID: "twitter.com")
+    let firestoreService = FirestoreService()
+    let authService = AuthService()
+    let facebookLoginService = FacebookLoginService()
     
     
     //MARK: - UI Elements
@@ -177,12 +180,6 @@ class LoginVC: UIViewController{
     override func viewDidLayoutSubviews() {
         imageContainerView.fillSuperview()
         
-//        let viewHeight = view.frame.height
-//        guard let originalWidth = backgroundImageView.image?.size.width else{return}
-//        guard let originalHeight = backgroundImageView.image?.size.height else{return}
-//        let modifiedWidth = viewHeight/originalHeight*originalWidth
-//        backgroundImageView.setDimensions(height: viewHeight, width: modifiedWidth)
-        
         //自分で作ったUIImageViewのextension。サイズのconstraintをつけると同時に、新しいwidthを戻り値として返す。
         let modifiedWidth = backgroundImageView.setImageViewSizeAndReturnModifiedWidth(view: view)
         
@@ -270,17 +267,18 @@ class LoginVC: UIViewController{
         
         //validation here
         
-        Auth.auth().signIn(withEmail: email, password: password) { (authResult, error) in
+        authService.logUserIn(email: email, password: password) { (error) in
             if let error = error{
-                print("FireAuthログインでエラーが起こりました: \(error.localizedDescription)")
+                let alert = AlertService(vc: self)
+                alert.showSimpleAlert(title: error.localizedDescription, message: "", style: .alert)
+                return
             }
-            let user = authResult?.user //これでユーザー情報がゲットできる
-            //成功
+            //ログイン成功。何もする必要ないのでは？
         }
     }
     
     @objc private func forgotPasswordTapped(){
-        let vc = ResetPasswordVC()
+        let vc = ResetPasswordVC(authService: AuthService())
         navigationController?.pushViewController(vc, animated: true)
         
     }
@@ -288,44 +286,37 @@ class LoginVC: UIViewController{
     
     //MARK: - Facebook Login
     @objc func fbButtonTapped() {
-        let loginManager = LoginManager()
-        let readPermissions: [Permission] = [ .publicProfile, .email]
-        loginManager.logIn(permissions: readPermissions, viewController: self, completion: { loginResult in
-            switch loginResult {
-            case .success:
-                self.signInFirebaseAfterFB()
-            case .failed(let error):
-                print("Facebookでの承認が失敗しました:\(error.localizedDescription)")
-            case .cancelled:
-                print("Facebookでの承認がキャンセルされたようです")
+        facebookLoginService.logUserInFacebook(permissions: [.publicProfile,.email], vc: self) { [weak self](error) in
+            guard let self = self else{return}
+            if let error = error{
+                let alert = AlertService(vc: self)
+                alert.showSimpleAlert(title: "Facebookでの承認が失敗しました:\(error.localizedDescription)", message: "", style: .alert)
+                return
             }
-        })
-    }
-    private func signInFirebaseAfterFB(){
-        guard let authenticationToken = AccessToken.current?.tokenString else {
-            print("Firebase側で、FBからのアクセストークンの取得に失敗しました。"); return
-        }
-        let credential = FacebookAuthProvider.credential(withAccessToken: authenticationToken)
-        Auth.auth().signIn(with: credential) { (authResult, error) in
-            if let error = error {
-                print("FirebaseAuthへのログインに失敗しました:\(error.localizedDescription)"); return
-            }
-            print("Succesfuly authenticated with Firebase")
-            self.dismiss(animated: true, completion: nil)
+            //FB側からのアクセストークンはこの時点でゲット済み
+            guard let authenticationToken = AccessToken.current?.tokenString else { return }
+            let credential = FacebookAuthProvider.credential(withAccessToken: authenticationToken)
+            self.signInFirebaseWithCredintial(credential: credential)
         }
     }
+    
     
     //MARK: - Twitter login
     @objc private func twitterButtonTapped(){
 //        twitterProvider.customParameters = [ "force_login": "true" ]  //ログアウト後のログインで確実にもう一度パスワードを入力させるための設定。
-        twitterProvider.getCredentialWith(nil) { credential, error in
-            if let error = error{ print("ログインエラーです \(error.localizedDescription)"); return }
-            if credential == nil{ print("credentialがnilです"); return }
-            print("ok?")
-            Auth.auth().signIn(with: credential!) { authResult, error in
-                if let error = error { print("twitter承認後のFBでのエラーです \(error.localizedDescription)"); return }
-//                print(authResult?.additionalUserInfo?.profile)
-                
+        twitterProvider.getCredentialWith(nil) { [weak self] credential, error in
+            guard let self = self else{return}
+            if let error = error{
+                print("DEBUG: ログインエラーです \(error.localizedDescription)")
+                let alert = AlertService(vc: self)
+                alert.showSimpleAlert(title: "Facebookでの承認が失敗しました:\(error.localizedDescription)", message: "", style: .alert)
+                return
+            }
+            guard let credential = credential else{print("DEBUG: credentialがnilです"); return}
+            
+            self.signInFirebaseWithCredintial(credential: credential)
+            
+                // print(authResult?.additionalUserInfo?.profile)
                 // User is signed in.
                 // IdP data available in authResult.additionalUserInfo.profile.
                 // Twitter OAuth access token can also be retrieved by:
@@ -334,7 +325,30 @@ class LoginVC: UIViewController{
                 // authResult.credential.idToken
                 // Twitter OAuth secret can be retrieved by calling:
                 // authResult.credential.secret
+        }
+    }
+    
+    //MARK: - FirebaseAuthへの、FB,TwitterからのCredentialによるログイン
+    private func signInFirebaseWithCredintial(credential: AuthCredential){
+        authService.logUserInWithCredential(credential: credential) { (result) in
+            switch result{
+            case .failure(let error):
+                let alert = AlertService(vc: self)
+                alert.showSimpleAlert(title: "ログインに失敗しました:\(error.localizedDescription)", message: "", style: .alert)
+            case .success(let authResult):
+                self.saveUserDataToFirestore(authResult: authResult)
             }
+        }
+    }
+        
+    func saveUserDataToFirestore(authResult: AuthDataResult){
+        firestoreService.saveUserInfoWithAuthResult(authResult: authResult) { (error) in
+            if let error = error{
+                let alert = AlertService(vc: self)
+                alert.showSimpleAlert(title: "ログインに失敗しました:\(error.localizedDescription)", message: "", style: .alert)
+                return
+            }
+            //セーブに成功。何もすることはない。
         }
     }
     
