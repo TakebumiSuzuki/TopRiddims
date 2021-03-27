@@ -12,4 +12,9 @@ pod 'SDWebImage', '~> 5.0'
 pod 'NVActivityIndicatorView'
 pod 'M13Checkbox'
 pod 'iCarousel'
+pod 'Firebase/Analytics'
+pod 'Firebase/Auth'
+pod 'Firebase/Firestore'
+
+pod 'FBSDKLoginKit'
 end

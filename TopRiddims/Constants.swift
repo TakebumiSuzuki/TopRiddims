@@ -8,6 +8,11 @@
 import UIKit
 
 struct K{
+    static let twitterAPIKey = "PfbsdsW74vWeHZRiicKFkzmVW"
+    static let twitterAPIKeySecret = "Oi8aF7YRWQvm5yLcQ6VA1Kn09RoDs6CQgqIZGGXRDqK6I6eryK"
+    
+    
+    
     static let floatingPlayerWidthMultiplier: CGFloat = 0.5
     static let floatingPlayerTopBottomInsets: CGFloat = 3
     

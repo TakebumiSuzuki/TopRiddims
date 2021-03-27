@@ -8,6 +8,7 @@
 import UIKit
 import youtube_ios_player_helper
 import NVActivityIndicatorView
+import FirebaseAuth
 
 
 class MainTabBarController: UITabBarController {
@@ -37,6 +38,8 @@ class MainTabBarController: UITabBarController {
         return spinner
     }()
     
+    var authListener: AuthStateDidChangeListenerHandle!
+    
     //MARK: - ViewLifeCycles
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -47,6 +50,37 @@ class MainTabBarController: UITabBarController {
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
         setupVideoView()
+    }
+    
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(true)
+        
+        authListener = Auth.auth().addStateDidChangeListener { [weak self](auth, user) in
+            guard let self = self else{return}
+            if auth.currentUser == nil{
+                let vc = LoginVC()
+                let nav = UINavigationController(rootViewController: vc)
+                nav.modalPresentationStyle = .fullScreen
+                self.present(nav, animated: false, completion: nil)
+                print("logged out")
+            }else{
+                print("logged in")
+                self.dismiss(animated: true, completion: nil)
+                self.selectedIndex = 0
+                print(auth.currentUser?.displayName)
+                print(auth.currentUser?.email)
+                print(auth.currentUser?.uid)
+                print(auth.currentUser?.providerID)
+                print(auth.currentUser?.providerData)
+                print(auth.currentUser?.metadata)
+                print(auth.currentUser?.photoURL)
+            }
+        }
+    }
+    
+    override func viewWillDisappear(_ animated: Bool) {
+        super.viewWillDisappear(true)
+//        Auth.auth().removeStateDidChangeListener(authListener)
     }
     
     private func setupVideoView(){
@@ -142,14 +176,14 @@ class MainTabBarController: UITabBarController {
         ]
         
         //実際はFireBaseからcountriesを事前にDLして格納した後chartVCを作る。
-        let chartVC = ChartVC()
+        let chartVC = ChartVC(allChartData: sampleData)
         //            ChartVC(allChartData: sampleData)
         let chartNav = generateNavController(rootVC: chartVC,
                                              title: "charts",
                                              selectedImage: UIImage(systemName: "bolt.fill", withConfiguration: configuration)!,
                                              unselectedImage: UIImage(systemName: "bolt", withConfiguration: configuration)!)
         
-        let likesVC = LikesVC(allChartData: sampleData)
+        let likesVC = LikesVC()
         
         let likesNav = generateNavController(rootVC: likesVC,
                                              title: "likes",
@@ -157,6 +191,7 @@ class MainTabBarController: UITabBarController {
                                              unselectedImage: UIImage(systemName: "suit.heart", withConfiguration: configuration)!)
         
         let settingVC = SettingVC()
+        
         let settingNav = generateNavController(rootVC: settingVC,
                                                title: "setting",
                                                selectedImage: UIImage(systemName: "person.fill", withConfiguration: configuration)!,
