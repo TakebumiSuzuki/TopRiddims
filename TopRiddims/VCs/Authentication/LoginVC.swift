@@ -11,17 +11,23 @@ import FBSDKLoginKit
 
 class LoginVC: UIViewController{
     
+    //MARK: - Properties
+    private let imageAlpha: CGFloat = 0.9
+    
     var twitterProvider = OAuthProvider(providerID: "twitter.com")
     
+    
+    //MARK: - UI Elements
     private let imageContainerView: UIView = {
         let view = UIView()
-        view.backgroundColor = .clear
+        view.backgroundColor = .systemBackground
         return view
     }()
-    private let backgroundImageView: UIImageView = {
+    private lazy var backgroundImageView: UIImageView = {
        let iv = UIImageView()
         let image = UIImage(named: "musician")
         iv.image = image
+        iv.alpha = imageAlpha
         iv.clipsToBounds = true
         iv.contentMode = .scaleAspectFill
         return iv
@@ -60,21 +66,23 @@ class LoginVC: UIViewController{
         return lb
     }()
     
-    private let emailTextField: CustomTextField = {
+    private lazy var emailTextField: CustomTextField = {
         let tf = CustomTextField(placeholder: "Enter email")
-        
+        tf.delegate = self
         return tf
     }()
     
-    private let passwordTextField: CustomTextField = {
+    private lazy var passwordTextField: CustomTextField = {
         let tf = CustomTextField(placeholder: "Enter password")
-        
+        tf.delegate = self
         return tf
     }()
     
     private lazy var forgotPasswordButton: UIButton = {
         let bn = UIButton(type: .system)
         bn.setTitle("Forgot password?", for: .normal)
+        bn.titleLabel?.font = UIFont.systemFont(ofSize: 16, weight: .medium)
+        bn.tintColor = .white
         bn.addTarget(self, action: #selector(forgotPasswordTapped), for: .touchUpInside)
         return bn
     }()
@@ -90,32 +98,34 @@ class LoginVC: UIViewController{
     
     private let connectLabel: UILabel = {
         let lb = UILabel()
-        lb.text = "or, connect with"
+        lb.text = "or connect with..."
+        lb.font = UIFont.systemFont(ofSize: 16, weight: .medium)
+        lb.textColor = .white
         return lb
     }()
     
-    private lazy var TwitterButton: UIButton = {
-        let bn = UIButton(type: .system)
+    
+    
+    private lazy var TwitterButton: CustomButton = {
+        let bn = CustomButton(type: .system)
+        bn.setUp(title: "")  //ここで一度テキスト用にセットアップしてからさらにしたでmodify
         bn.setImage(UIImage(named: "TwitterIcon"), for: .normal)
         bn.imageEdgeInsets = UIEdgeInsets(top: 8, left: 8, bottom: 8, right: 8)
         bn.imageView?.contentMode = .scaleAspectFit
-        bn.backgroundColor = .blue
+        bn.backgroundColor = UIColor(hexaRGBA: "00ACEE")
         bn.tintColor = .white
-        bn.layer.cornerRadius = 6
-        bn.clipsToBounds = true
         bn.addTarget(self, action: #selector(twitterButtonTapped), for: .touchUpInside)
         return bn
     }()
     
-    private lazy var FacebookButton: UIButton = {
-        let bn = UIButton(type: .system)
+    private lazy var FacebookButton: CustomButton = {
+        let bn = CustomButton(type: .system)
+        bn.setUp(title: "")  //ここで一度テキスト用にセットアップしてからさらにしたでmodify
         bn.setImage(UIImage(named: "FacebookIcon"), for: .normal)
         bn.imageEdgeInsets = UIEdgeInsets(top: 8, left: 8, bottom: 8, right: 8)
         bn.imageView?.contentMode = .scaleAspectFit
-        bn.backgroundColor = .blue
+        bn.backgroundColor = UIColor(hexaRGBA: "3B5998")
         bn.tintColor = .white
-        bn.layer.cornerRadius = 6
-        bn.clipsToBounds = true
         bn.addTarget(self, action: #selector(fbButtonTapped), for: .touchUpInside)
         return bn
     }()
@@ -127,87 +137,131 @@ class LoginVC: UIViewController{
         view.backgroundColor = .systemBackground
         setupNavBar()
         setupViews()
+        setupNotifications()
     }
     
     func setupNavBar(){
         navigationController?.navigationBar.tintColor = .label
         navigationItem.title = "Login"
-        let rightButton = UIBarButtonItem(title: "Sign Up", style: .plain, target: self, action: #selector(signUpButtonTapped))
+        let rightButton = UIBarButtonItem(title: "SignUp!", style: .done, target: self, action: #selector(signUpButtonTapped))
+        rightButton.setTitleTextAttributes([.foregroundColor: UIColor.white.withAlphaComponent(0.7), .font: UIFont.systemFont(ofSize: 16, weight: .regular)], for: .normal)
         navigationItem.rightBarButtonItem = rightButton
+        
+        let appearance = UINavigationBarAppearance()
+        appearance.configureWithDefaultBackground()
+        appearance.backgroundEffect = UIBlurEffect(style: .systemUltraThinMaterial)
+        appearance.titleTextAttributes = [.foregroundColor: UIColor.white.withAlphaComponent(0.7), .font: UIFont.systemFont(ofSize: 20, weight: .regular)]
+        
+        navigationItem.standardAppearance = appearance
+        
+        
     }
     
-//    override func viewWillAppear(_ animated: Bool) {
-//        super.viewWillAppear(true)
-//        navigationController?.navigationBar.isHidden = true
-//    }
-//    override func viewWillDisappear(_ animated: Bool) {
-//        super.viewWillDisappear(true)
-//        navigationController?.navigationBar.isHidden = false
-//    }
     
-    @objc func signUpButtonTapped(){
-        let vc = SignUpVC()
-        navigationController?.pushViewController(vc, animated: true)
-    }
-    
-    //MARK: - Constraint
     private func setupViews(){
         view.addSubview(imageContainerView)
         imageContainerView.addSubview(backgroundImageView)
-        imageContainerView.fillSuperview()
-        
-        let viewHeight = view.frame.height
-        guard let originalWidth = backgroundImageView.image?.size.width else{return}
-        guard let originalHeight = backgroundImageView.image?.size.height else{return}
-        let modifiedWidth = viewHeight/originalHeight*originalWidth
-        backgroundImageView.setDimensions(height: viewHeight, width: modifiedWidth)
-        imageContainerView.bounds.origin.x = (modifiedWidth-view.frame.width)/2
-        
-        
         view.addSubview(clearScrollingView)
-        clearScrollingView.fillSuperview()
         clearScrollingView.addSubview(clearPlaceholderView)
-        
-        clearPlaceholderView.anchor(left: clearScrollingView.leftAnchor, right: clearScrollingView.rightAnchor, paddingLeft: 20, paddingRight: 20)
-        
         clearPlaceholderView.addSubview(darkView)
         clearPlaceholderView.addSubview(welcomLabel)
         clearPlaceholderView.addSubview(emailTextField)
         clearPlaceholderView.addSubview(passwordTextField)
-        
-        welcomLabel.anchor(top: clearPlaceholderView.topAnchor, left: clearPlaceholderView.leftAnchor, right: clearPlaceholderView.rightAnchor, paddingTop: 20, paddingLeft: 20, paddingRight: 20)
-        
-        
-        emailTextField.anchor(top: welcomLabel.bottomAnchor, left: clearPlaceholderView.leftAnchor, right: clearPlaceholderView.rightAnchor, paddingTop: 10, paddingLeft: 20, paddingRight: 20, height: 35)
-        
-        passwordTextField.anchor(top: emailTextField.bottomAnchor, left: emailTextField.leftAnchor, right: emailTextField.rightAnchor, paddingTop: 10, height: 35)
-        
         clearPlaceholderView.addSubview(forgotPasswordButton)
-        forgotPasswordButton.anchor(top: passwordTextField.bottomAnchor, right: emailTextField.rightAnchor, paddingTop: 5, paddingRight: 0)
-        
         clearPlaceholderView.addSubview(loginButton)
-        loginButton.anchor(top: forgotPasswordButton.bottomAnchor, left: emailTextField.leftAnchor, right: emailTextField.rightAnchor, paddingTop: 10, height: 35)
-        
-        
         clearPlaceholderView.addSubview(connectLabel)
-        connectLabel.centerX(inView: clearPlaceholderView, topAnchor: loginButton.bottomAnchor, paddingTop: 10)
+    }
+    
+    //MARK: - Constraints
+    
+    override func viewDidLayoutSubviews() {
+        imageContainerView.fillSuperview()
         
-        FacebookButton.setDimensions(height: 35, width: view.frame.width*0.2)
-        TwitterButton.setDimensions(height: 35, width: view.frame.width*0.2)
+//        let viewHeight = view.frame.height
+//        guard let originalWidth = backgroundImageView.image?.size.width else{return}
+//        guard let originalHeight = backgroundImageView.image?.size.height else{return}
+//        let modifiedWidth = viewHeight/originalHeight*originalWidth
+//        backgroundImageView.setDimensions(height: viewHeight, width: modifiedWidth)
+        
+        //自分で作ったUIImageViewのextension。サイズのconstraintをつけると同時に、新しいwidthを戻り値として返す。
+        let modifiedWidth = backgroundImageView.setImageViewSizeAndReturnModifiedWidth(view: view)
+        
+        imageContainerView.bounds.origin.x = (modifiedWidth-view.frame.width)/2
+        
+        
+        
+        clearScrollingView.fillSuperview()
+        
+        
+        clearPlaceholderView.anchor(left: clearScrollingView.leftAnchor, right: clearScrollingView.rightAnchor, paddingLeft: K.placeholderLeftRightPadding, paddingRight: K.placeholderLeftRightPadding)
+        
+        
+        
+        welcomLabel.anchor(top: clearPlaceholderView.topAnchor, left: clearPlaceholderView.leftAnchor, right: clearPlaceholderView.rightAnchor, paddingTop: K.placeholderInsets, paddingLeft: K.placeholderInsets, paddingRight: K.placeholderInsets)
+        
+        
+        emailTextField.anchor(top: welcomLabel.bottomAnchor, left: welcomLabel.leftAnchor, right: welcomLabel.rightAnchor, paddingTop: K.verticalSpace)
+        
+        passwordTextField.anchor(top: emailTextField.bottomAnchor, left: emailTextField.leftAnchor, right: emailTextField.rightAnchor, paddingTop: K.verticalSpace)
+        
+        
+        forgotPasswordButton.anchor(top: passwordTextField.bottomAnchor, right: emailTextField.rightAnchor, paddingTop: 0, paddingRight: 0)
+        
+        
+        loginButton.anchor(top: forgotPasswordButton.bottomAnchor, left: emailTextField.leftAnchor, right: emailTextField.rightAnchor, paddingTop: 3)
+        
+        
+        
+        connectLabel.centerX(inView: clearPlaceholderView, topAnchor: loginButton.bottomAnchor, paddingTop: K.verticalSpace)
+        
+        FacebookButton.setWidth(view.frame.width*0.25)
+        TwitterButton.setWidth(view.frame.width*0.25)
         let stackView = UIStackView(arrangedSubviews: [FacebookButton, TwitterButton])
         stackView.axis = .horizontal
         stackView.distribution = .fillEqually
         stackView.spacing = 40
         clearPlaceholderView.addSubview(stackView)
-        stackView.centerX(inView: clearPlaceholderView, topAnchor: connectLabel.bottomAnchor, paddingTop: 10)
-        stackView.bottomAnchor.constraint(equalTo: clearPlaceholderView.bottomAnchor, constant: -10).isActive = true
+        stackView.centerX(inView: clearPlaceholderView, topAnchor: connectLabel.bottomAnchor, paddingTop: 5)
         
-        clearPlaceholderView.bottomAnchor.constraint(equalTo: clearScrollingView.bottomAnchor, constant: -50).isActive = true
+        clearPlaceholderView.bottomAnchor.constraint(equalTo: stackView.bottomAnchor, constant: K.placeholderInsets).isActive = true
+        clearPlaceholderView.bottomAnchor.constraint(equalTo: clearScrollingView.bottomAnchor, constant: -view.frame.width*K.placeholderBottomMultiplier).isActive = true
         
         darkView.fillSuperview()
     }
     
+    //MARK: - Notifications キーボード出し入れ
+    private func setupNotifications(){
+        NotificationCenter.default.addObserver(self, selector: #selector(willShowKeyboard), name: UIResponder.keyboardWillShowNotification, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(willHideKeyboard), name: UIResponder.keyboardWillHideNotification, object: nil)
+    }
     
+    @objc func willShowKeyboard(notification: NSNotification){
+        
+        let keyboardFrame = (notification.userInfo![UIResponder.keyboardFrameEndUserInfoKey] as AnyObject).cgRectValue
+        guard let keyboardMinY = keyboardFrame?.minY else {return}
+        
+        let loginButtonMaxY = loginButton.frame.maxY  //.frameはsuperView(この場合darkViewに対しての位置になるので次行が必要)
+        let clearPlaceholderMinY = clearPlaceholderView.frame.minY
+        let loginButtonMaxYPosition = loginButtonMaxY + clearPlaceholderMinY
+        if loginButtonMaxYPosition > keyboardMinY{
+            let distance = loginButtonMaxYPosition - keyboardMinY
+            self.clearScrollingView.bounds.origin.y = distance + 10
+        }
+    }
+    @objc private func willHideKeyboard(notification: NSNotification){
+        self.clearScrollingView.bounds.origin.y = 0
+    }
+    
+    override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
+        view.endEditing(true)
+    }
+    
+    
+    //MARK: - ButtonTap Handlings
+    @objc func signUpButtonTapped(){
+        let vc = SignUpVC()
+        navigationController?.pushViewController(vc, animated: true)
+    }
     
     //MARK: - Firebase Password Login
     @objc private func loginButtonTapped(){
@@ -229,31 +283,6 @@ class LoginVC: UIViewController{
         let vc = ResetPasswordVC()
         navigationController?.pushViewController(vc, animated: true)
         
-    }
-    
-    
-    
-    //MARK: - Twitter login
-    @objc private func twitterButtonTapped(){
-//        twitterProvider.customParameters = [ "force_login": "true" ]  //ログアウト後のログインで確実にもう一度パスワードを入力させるための設定。
-        twitterProvider.getCredentialWith(nil) { credential, error in
-            if let error = error{ print("ログインエラーです \(error.localizedDescription)"); return }
-            if credential == nil{ print("credentialがnilです"); return }
-            print("ok?")
-            Auth.auth().signIn(with: credential!) { authResult, error in
-                if let error = error { print("twitter承認後のFBでのエラーです \(error.localizedDescription)"); return }
-//                print(authResult?.additionalUserInfo?.profile)
-                
-                // User is signed in.
-                // IdP data available in authResult.additionalUserInfo.profile.
-                // Twitter OAuth access token can also be retrieved by:
-                // authResult.credential.accessToken
-                // Twitter OAuth ID token can be retrieved by calling:
-                // authResult.credential.idToken
-                // Twitter OAuth secret can be retrieved by calling:
-                // authResult.credential.secret
-            }
-        }
     }
     
     
@@ -285,56 +314,49 @@ class LoginVC: UIViewController{
             self.dismiss(animated: true, completion: nil)
         }
     }
+    
+    //MARK: - Twitter login
+    @objc private func twitterButtonTapped(){
+//        twitterProvider.customParameters = [ "force_login": "true" ]  //ログアウト後のログインで確実にもう一度パスワードを入力させるための設定。
+        twitterProvider.getCredentialWith(nil) { credential, error in
+            if let error = error{ print("ログインエラーです \(error.localizedDescription)"); return }
+            if credential == nil{ print("credentialがnilです"); return }
+            print("ok?")
+            Auth.auth().signIn(with: credential!) { authResult, error in
+                if let error = error { print("twitter承認後のFBでのエラーです \(error.localizedDescription)"); return }
+//                print(authResult?.additionalUserInfo?.profile)
+                
+                // User is signed in.
+                // IdP data available in authResult.additionalUserInfo.profile.
+                // Twitter OAuth access token can also be retrieved by:
+                // authResult.credential.accessToken
+                // Twitter OAuth ID token can be retrieved by calling:
+                // authResult.credential.idToken
+                // Twitter OAuth secret can be retrieved by calling:
+                // authResult.credential.secret
+            }
+        }
+    }
+    
+    
+
+}
+
+//MARK: - TextField Delegate
+extension LoginVC: UITextFieldDelegate{
+    func textFieldShouldReturn(_ textField: UITextField) -> Bool {
+        switch textField{
+        case emailTextField:
+            passwordTextField.becomeFirstResponder()
+        case passwordTextField:
+            textField.resignFirstResponder()
+        default:
+            break
+        }
+        return true
+    }
 }
 
 
 
-//MARK: - サブクラス。ボタン、テキストフィールド
-class CustomTextField: UITextField{
-    init(placeholder: String) {
-        super.init(frame: .zero)
-        
-        let spacer = UIView()
-        spacer.setDimensions(height: 50, width: 12)
-        leftView = spacer
-        leftViewMode = .always
-        
-        borderStyle = .none
-        textColor = .white
-        tintColor = .white
-        autocorrectionType = .no
-        keyboardAppearance = .dark
-        backgroundColor = UIColor(white: 1, alpha: 0.2)
-        layer.cornerRadius = 4
-        setHeight(50)
-        attributedPlaceholder = NSAttributedString(string: placeholder,
-                                                      attributes: [.foregroundColor: UIColor(white: 1, alpha: 0.7)])
-    }
-    
-    required init?(coder: NSCoder) {
-        fatalError("init(coder:) has not been implemented")
-    }
-    
-}
 
-class CustomButton: UIButton{
-    override init(frame: CGRect){
-        super.init(frame: frame)
-    }
-    
-    public func setUp(title: String){
-        setTitle(title, for: .normal)
-        setTitleColor(UIColor(white: 1, alpha: 0.67), for: .normal)
-        backgroundColor = #colorLiteral(red: 1, green: 0.135659839, blue: 0.8787164696, alpha: 1).withAlphaComponent(0.4)
-        layer.cornerRadius = 5
-        setHeight(50)
-        
-        titleLabel?.font = UIFont.boldSystemFont(ofSize: 20)  //initの中に入れるとworkしない理由は不明
-        isEnabled = false
-    }
-    
-    required init?(coder: NSCoder) {
-        fatalError("init(coder:) has not been implemented")
-    }
-    
-}

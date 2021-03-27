@@ -6,8 +6,20 @@
 //
 
 import UIKit
+import Firebase
 
 struct K{
+    
+    //MARK: - FirebaseAPIs
+    static let FSCollectionUsers = Firestore.firestore().collection("users")
+    
+    
+    //MARK: - Authentication Layout
+    static let verticalSpace: CGFloat = 13  //テキストフィールドやボタン間の距離
+    static let placeholderInsets: CGFloat = 25  //placeholderの内側、上下左右全部のインセット
+    static let placeholderLeftRightPadding: CGFloat = 20 //placeholderとview間の左右の距離
+    static let placeholderBottomMultiplier: CGFloat = 0.15 //placeholderとview間のbottomの距離の比率
+    
     static let twitterAPIKey = "PfbsdsW74vWeHZRiicKFkzmVW"
     static let twitterAPIKeySecret = "Oi8aF7YRWQvm5yLcQ6VA1Kn09RoDs6CQgqIZGGXRDqK6I6eryK"
     

@@ -10,15 +10,20 @@ import Firebase
 
 class ResetPasswordVC: UIViewController {
 
+    //MARK: - Properties
+    private let imageAlpha: CGFloat = 0.9
+    
+    //MARK: - UI Elements
     private let imageContainerView: UIView = {
         let view = UIView()
-        view.backgroundColor = .clear
+        view.backgroundColor = .systemBackground
         return view
     }()
-    private let backgroundImageView: UIImageView = {
+    private lazy var backgroundImageView: UIImageView = {
        let iv = UIImageView()
         let image = UIImage(named: "car")
         iv.image = image
+        iv.alpha = imageAlpha
         iv.clipsToBounds = true
         iv.contentMode = .scaleAspectFill
         iv.alpha = 0.8
@@ -42,7 +47,7 @@ class ResetPasswordVC: UIViewController {
         let view = UIView()
         view.layer.cornerRadius = 6
         view.clipsToBounds = true
-        view.backgroundColor = .black
+        view.backgroundColor = .systemBackground
         view.alpha = 0.5
         return view
     }()
@@ -59,7 +64,7 @@ class ResetPasswordVC: UIViewController {
     
     
     private let emailTextField: CustomTextField = {
-        let tf = CustomTextField(placeholder: "Email")
+        let tf = CustomTextField(placeholder: "Enter email, we'll send you reset password to you.")
         tf.textContentType = .emailAddress
         tf.keyboardType = .emailAddress
         tf.autocapitalizationType = .none
@@ -68,39 +73,32 @@ class ResetPasswordVC: UIViewController {
     }()
     
     private lazy var resetPasswordButton: CustomButton = {
-        let button = CustomButton(type: .system)
-        button.setUp(title: "Reset Password")
-        button.addTarget(self, action: #selector(resetButtonTapped), for: .touchUpInside)
-        return button
-    }()
-    
-    private lazy var backSymbolButton: UIButton = {
-        let bn = UIButton(type: .system)
-        let config = UIImage.SymbolConfiguration(pointSize: 14, weight: .regular, scale: .default)
-        let image = UIImage(systemName: "chevron.backward", withConfiguration: config)
-        bn.setImage(image, for: .normal)
-        bn.tintColor = .white
-        bn.addTarget(self, action: #selector(backButtonTapped), for: .touchUpInside)
+        let bn = CustomButton(type: .system)
+        bn.setUp(title: "Reset Password")
+        bn.addTarget(self, action: #selector(resetButtonTapped), for: .touchUpInside)
         return bn
     }()
     
-    private lazy var backTextButton: UIButton = {
-        let bn = UIButton(type: .system)
-        bn.tintColor = .white
-        bn.setTitle("Back To Login", for: .normal)
-        bn.titleLabel?.font = UIFont.systemFont(ofSize: 14, weight: .regular)
-        bn.addTarget(self, action: #selector(backButtonTapped), for: .touchUpInside)
-        return bn
-    }()
     
-    //MARK: - View Life Cycle
+    //MARK: - View Life Cycles
     override func viewDidLoad() {
         super.viewDidLoad()
         setupNavBar()
         setupViews()
+        setupNotifications()
     }
     private func setupNavBar(){
         navigationItem.title = "Reset Password"
+        navigationController?.navigationBar.tintColor = UIColor.white.withAlphaComponent(0.7) //一番左の戻るイメージ
+        
+        let appearance = UINavigationBarAppearance()
+        appearance.configureWithDefaultBackground()
+        appearance.backgroundEffect = UIBlurEffect(style: .systemUltraThinMaterial)
+        appearance.titleTextAttributes = [.foregroundColor: UIColor.white.withAlphaComponent(0.7), .font: UIFont.systemFont(ofSize: 20, weight: .regular)]
+        let backButtonAppearance = UIBarButtonItemAppearance()
+        backButtonAppearance.normal.titleTextAttributes = [.foregroundColor: UIColor.white.withAlphaComponent(0.7), .font: UIFont.systemFont(ofSize: 16, weight: .regular)]
+        appearance.backButtonAppearance = backButtonAppearance
+        navigationItem.standardAppearance = appearance
     }
     
     private func setupViews(){
@@ -115,50 +113,59 @@ class ResetPasswordVC: UIViewController {
         clearPlaceholderView.addSubview(resetPasswordLabel)
         clearPlaceholderView.addSubview(emailTextField)
         clearPlaceholderView.addSubview(resetPasswordButton)
-        clearPlaceholderView.addSubview(backSymbolButton)
-        clearPlaceholderView.addSubview(backTextButton)
-        
     }
     
-    
+    //MARK: - Constraints
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
         
-        let viewHeight = view.frame.height
-        guard let originalWidth = backgroundImageView.image?.size.width else{return}
-        guard let originalHeight = backgroundImageView.image?.size.height else{return}
-        let modifiedWidth = viewHeight/originalHeight*originalWidth
-        backgroundImageView.setDimensions(height: viewHeight, width: modifiedWidth)
+        let modifiedWidth = backgroundImageView.setImageViewSizeAndReturnModifiedWidth(view: view)
         imageContainerView.bounds.origin.x = (modifiedWidth-view.frame.width)/2
         
         clearScrollingView.fillSuperview()
         
-        clearPlaceholderView.anchor(left: clearScrollingView.leftAnchor, right: clearScrollingView.rightAnchor, paddingLeft: 20, paddingRight: 20)
+        clearPlaceholderView.anchor(left: clearScrollingView.leftAnchor, right: clearScrollingView.rightAnchor, paddingLeft: K.placeholderLeftRightPadding, paddingRight: K.placeholderLeftRightPadding)
 
+        resetPasswordLabel.anchor(top: clearPlaceholderView.topAnchor, left: clearPlaceholderView.leftAnchor, right: clearPlaceholderView.rightAnchor, paddingTop: K.placeholderInsets, paddingLeft: K.placeholderInsets, paddingRight: K.placeholderInsets)
         
-        resetPasswordLabel.centerX(inView: clearPlaceholderView, topAnchor: clearPlaceholderView.topAnchor, paddingTop: 10)
+        emailTextField.anchor(top: resetPasswordLabel.bottomAnchor, left: clearPlaceholderView.leftAnchor, right: clearPlaceholderView.rightAnchor, paddingTop: K.verticalSpace, paddingLeft: K.placeholderInsets, paddingRight: K.placeholderInsets)
+        resetPasswordButton.anchor(top: emailTextField.bottomAnchor, left: emailTextField.leftAnchor, right: emailTextField.rightAnchor, paddingTop: K.verticalSpace)
         
-        emailTextField.anchor(top: resetPasswordLabel.bottomAnchor, left: clearPlaceholderView.leftAnchor, right: clearPlaceholderView.rightAnchor, paddingLeft: 20, paddingRight: 20, height: 37)
-        resetPasswordButton.anchor(top: emailTextField.bottomAnchor, left: emailTextField.leftAnchor, right: emailTextField.rightAnchor, paddingTop: 10, height: 37)
+        clearPlaceholderView.bottomAnchor.constraint(equalTo: resetPasswordButton.bottomAnchor, constant: K.placeholderInsets).isActive = true
         
-        backSymbolButton.anchor(top: resetPasswordButton.bottomAnchor, left: emailTextField.leftAnchor, paddingTop: 10)
-        backTextButton.translatesAutoresizingMaskIntoConstraints = false
-        backTextButton.firstBaselineAnchor.constraint(equalTo: backSymbolButton.firstBaselineAnchor).isActive = true
-        backTextButton.leftAnchor.constraint(equalTo: backSymbolButton.rightAnchor, constant: 3).isActive = true
-       
-        clearPlaceholderView.bottomAnchor.constraint(equalTo: backSymbolButton.bottomAnchor, constant: 20).isActive = true
-        
-        clearPlaceholderView.bottomAnchor.constraint(equalTo: clearScrollingView.bottomAnchor, constant: -50).isActive = true
+        clearPlaceholderView.bottomAnchor.constraint(equalTo: clearScrollingView.bottomAnchor, constant: -view.frame.width*K.placeholderBottomMultiplier).isActive = true
         
         darkView.fillSuperview()
     }
     
-    override func viewWillAppear(_ animated: Bool) {
-        super.viewWillAppear(true)
-       
+    
+    
+    //MARK: - Notifications キーボード関連
+    private func setupNotifications(){
+        NotificationCenter.default.addObserver(self, selector: #selector(willShowKeyboard), name: UIResponder.keyboardWillShowNotification, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(willHideKeyboard), name: UIResponder.keyboardWillHideNotification, object: nil)
     }
     
+    @objc func willShowKeyboard(notification: NSNotification){
+        
+        let keyboardFrame = (notification.userInfo![UIResponder.keyboardFrameEndUserInfoKey] as AnyObject).cgRectValue
+        guard let keyboardMinY = keyboardFrame?.minY else {return}
+        
+        let resetPasswordButtonMaxY = resetPasswordButton.frame.maxY  //.frameはsuperView(この場合darkViewに対しての位置になるので次行が必要)
+        let clearPlaceholderMinY = clearPlaceholderView.frame.minY
+        let resetPasswordMaxYPosition = resetPasswordButtonMaxY + clearPlaceholderMinY
+        if resetPasswordMaxYPosition > keyboardMinY{
+            let distance = resetPasswordMaxYPosition - keyboardMinY
+            self.clearScrollingView.bounds.origin.y = distance + 10
+        }
+    }
+    @objc private func willHideKeyboard(notification: NSNotification){
+        self.clearScrollingView.bounds.origin.y = 0
+    }
     
+    override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
+        view.endEditing(true)
+    }
     
     //MARK: - Handling Button Taps
     @objc func resetButtonTapped(){
@@ -177,8 +184,5 @@ class ResetPasswordVC: UIViewController {
         }
     }
     
-    @objc func backButtonTapped(){
-        navigationController?.popViewController(animated: true)
-    }
-    
 }
+
