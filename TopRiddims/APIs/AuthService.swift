@@ -45,18 +45,24 @@ class AuthService{
     }
     
     
-    func logUserIn(email: String, password: String, completion: @escaping (Error?) -> Void){
+    func logUserIn(email: String, password: String, completion: @escaping (Result<AuthDataResult, Error>) -> Void){
         
         Auth.auth().signIn(withEmail: email, password: password) { (authDataResult, error) in
             if let error = error{
                 print("DEBUG: Failed log user in at FirebaseAuth: \(error.localizedDescription)")
-                completion(error)
+                completion(.failure(error))
                 return
             }
-            completion(nil)
+            guard let authDataResult = authDataResult else {
+                print("DEBUG: authDataResult is nil!")
+                completion(.failure(CustomAPIError.authResultIsNil))
+                return
+            }
+            completion(.success(authDataResult))
         }
     }
-    
+
+
     
     //FacebookやTwitterを経由したログイン
     func logUserInWithCredential(credential: AuthCredential, completion: @escaping (Result<AuthDataResult, Error>) -> Void){
@@ -96,29 +102,10 @@ class AuthService{
     
     
     
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
     func deleteUser(){
         
     }
     
     
-    
-    
-    
-    
-    
 }
+

@@ -7,6 +7,7 @@
 
 import UIKit
 import Firebase
+import JGProgressHUD
 
 class SignUpVC: UIViewController {
 
@@ -14,6 +15,13 @@ class SignUpVC: UIViewController {
     private let imageAlpha: CGFloat = 0.9
     
     let authService = AuthService()
+    let hud: JGProgressHUD = {
+        let hud = JGProgressHUD()
+        hud.textLabel.text = "Loading"
+        hud.style = JGProgressHUDStyle.dark
+        return hud
+    }()
+    
     
     //MARK: - UI Elements
     private let imageContainerView: UIView = {
@@ -179,15 +187,16 @@ class SignUpVC: UIViewController {
         
         //ここにバリデーション
         
-        //ローダー入れる
-        authService.createUser(name: name, email: email, password: password) { (error) in
+        hud.show(in: self.view)
+        authService.createUser(name: name, email: email, password: password) { [weak self](error) in
+            guard let self = self else{return}
+            self.hud.dismiss()
             if let error = error{
-                //ローダー解除
                 let alert = AlertService(vc: self)
                 alert.showSimpleAlert(title: error.localizedDescription, message: "", style: .alert)
                 return
             }
-            //ローダー解除
+            
             //サクセス。何もしなくて良いのでは？
         }
     }

@@ -11,6 +11,7 @@
 
 
 import UIKit
+import Firebase
 
 class ChartVC: UIViewController{
     
@@ -24,7 +25,7 @@ class ChartVC: UIViewController{
     required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
     
     //MARK: - Properties
-    
+    private let firestoreService = FirestoreService()
     private var videoWidth: CGFloat{ return view.frame.width*K.chartCellWidthMultiplier*K.videoCoverWidthMultiplier}
     private var videoHeight: CGFloat{ return videoWidth/16*9 }
     
@@ -230,6 +231,11 @@ extension ChartVC: ScrapingManagerDelegate{
         scrapingManager = nil //これによりfetching関連で作ったインスタンスを消去
         reloadingOnOff.toggle()
         stopAllLoaders()
+        //ここでuidをゲットする必要がある。このvc作成時にタブバーから注入すれば良い?
+        firestoreService.saveAllChartData(uid: uid, allChartData: allChartData) { (error) in
+            if let _ = error{return} //ユーザーに知らせる必要はない
+            //セーブ成功
+        }
     }
     func timeOutNotice(){
         let alert = AlertService(vc: self)

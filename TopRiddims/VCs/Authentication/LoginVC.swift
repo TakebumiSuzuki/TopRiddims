@@ -8,6 +8,7 @@
 import UIKit
 import Firebase
 import FBSDKLoginKit
+import JGProgressHUD
 
 class LoginVC: UIViewController{
     
@@ -18,7 +19,12 @@ class LoginVC: UIViewController{
     let firestoreService = FirestoreService()
     let authService = AuthService()
     let facebookLoginService = FacebookLoginService()
-    
+    let hud: JGProgressHUD = {
+        let hud = JGProgressHUD()
+        hud.textLabel.text = "Loading"
+        hud.style = JGProgressHUDStyle.dark
+        return hud
+    }()
     
     //MARK: - UI Elements
     private let imageContainerView: UIView = {
@@ -255,66 +261,82 @@ class LoginVC: UIViewController{
     
     
     //MARK: - ButtonTap Handlings
-    @objc func signUpButtonTapped(){
+    @objc private func signUpButtonTapped(){
         let vc = SignUpVC()
         navigationController?.pushViewController(vc, animated: true)
     }
+    
+    @objc private func forgotPasswordTapped(){
+        let vc = ResetPasswordVC()
+        navigationController?.pushViewController(vc, animated: true)
+    }
+    
     
     //MARK: - Firebase Password Login
     @objc private func loginButtonTapped(){
         guard let email = emailTextField.text else{return}
         guard let password = passwordTextField.text else{return}
         
-        //validation here
-        
-        authService.logUserIn(email: email, password: password) { (error) in
-            if let error = error{
+        hud.show(in: self.view)
+        authService.logUserIn(email: email, password: password) { [weak self] (result) in
+            guard let self = self else{ return }
+            switch result{
+            case .failure(let error):
+                self.hud.dismiss()
                 let alert = AlertService(vc: self)
                 alert.showSimpleAlert(title: error.localizedDescription, message: "", style: .alert)
-                return
+            case .success(let authResult):
+                self.updateLastLoginFirestore(authResult: authResult)
             }
-            //ログイン成功。何もする必要ないのでは？
+        }
+    }
+    //Authの中でログインに成功したのに引き続き、ここでlast login日時をFirestoreに記録。
+    private func updateLastLoginFirestore(authResult: AuthDataResult){
+        firestoreService.saveUserInfoWithAuthResult(authResult: authResult) { [weak self](error) in
+            guard let self = self else{ return }
+            self.hud.dismiss()
+            if let _ = error{  //小さな問題なので、alertを表示させるほどではないかと。。
+                print("failed to save last login info into Firestore"); return
+            }
+            //成功。特に何もする必要なし。
         }
     }
     
-    @objc private func forgotPasswordTapped(){
-        let vc = ResetPasswordVC(authService: AuthService())
-        navigationController?.pushViewController(vc, animated: true)
-        
-    }
     
     
     //MARK: - Facebook Login
     @objc func fbButtonTapped() {
+        hud.show(in: self.view)
         facebookLoginService.logUserInFacebook(permissions: [.publicProfile,.email], vc: self) { [weak self](error) in
             guard let self = self else{return}
             if let error = error{
+                self.hud.dismiss()
                 let alert = AlertService(vc: self)
                 alert.showSimpleAlert(title: "Facebookでの承認が失敗しました:\(error.localizedDescription)", message: "", style: .alert)
                 return
             }
             //FB側からのアクセストークンはこの時点でゲット済み
-            guard let authenticationToken = AccessToken.current?.tokenString else { return }
+            guard let authenticationToken = AccessToken.current?.tokenString else { self.hud.dismiss(); return }
             let credential = FacebookAuthProvider.credential(withAccessToken: authenticationToken)
-            self.signInFirebaseWithCredintial(credential: credential)
+            self.signInFireAuthWithCredintial(credential: credential)
         }
     }
     
     
     //MARK: - Twitter login
-    @objc private func twitterButtonTapped(){
+    @objc private func twitterButtonTapped(){  //twitterエラーになるのでloaderは入れない事に。。
 //        twitterProvider.customParameters = [ "force_login": "true" ]  //ログアウト後のログインで確実にもう一度パスワードを入力させるための設定。
         twitterProvider.getCredentialWith(nil) { [weak self] credential, error in
             guard let self = self else{return}
             if let error = error{
                 print("DEBUG: ログインエラーです \(error.localizedDescription)")
                 let alert = AlertService(vc: self)
-                alert.showSimpleAlert(title: "Facebookでの承認が失敗しました:\(error.localizedDescription)", message: "", style: .alert)
+                alert.showSimpleAlert(title: "Twitterでの承認が失敗しました:\(error.localizedDescription)", message: "", style: .alert)
                 return
             }
             guard let credential = credential else{print("DEBUG: credentialがnilです"); return}
             
-            self.signInFirebaseWithCredintial(credential: credential)
+            self.signInFireAuthWithCredintial(credential: credential)
             
                 // print(authResult?.additionalUserInfo?.profile)
                 // User is signed in.
@@ -328,11 +350,13 @@ class LoginVC: UIViewController{
         }
     }
     
-    //MARK: - FirebaseAuthへの、FB,TwitterからのCredentialによるログイン
-    private func signInFirebaseWithCredintial(credential: AuthCredential){
-        authService.logUserInWithCredential(credential: credential) { (result) in
+    //MARK: - FB,TwitterからのCredentialを受けて、ここでAuthへ。
+    private func signInFireAuthWithCredintial(credential: AuthCredential){
+        authService.logUserInWithCredential(credential: credential) { [weak self] (result) in
+            guard let self = self else { return }
             switch result{
             case .failure(let error):
+                self.hud.dismiss()
                 let alert = AlertService(vc: self)
                 alert.showSimpleAlert(title: "ログインに失敗しました:\(error.localizedDescription)", message: "", style: .alert)
             case .success(let authResult):
@@ -342,7 +366,9 @@ class LoginVC: UIViewController{
     }
         
     func saveUserDataToFirestore(authResult: AuthDataResult){
-        firestoreService.saveUserInfoWithAuthResult(authResult: authResult) { (error) in
+        firestoreService.saveUserInfoWithAuthResult(authResult: authResult) { [weak self] (error) in
+            guard let self = self else { return }
+            self.hud.dismiss()
             if let error = error{
                 let alert = AlertService(vc: self)
                 alert.showSimpleAlert(title: "ログインに失敗しました:\(error.localizedDescription)", message: "", style: .alert)

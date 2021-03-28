@@ -7,18 +7,20 @@
 
 import UIKit
 import Firebase
+import JGProgressHUD
 
 class ResetPasswordVC: UIViewController {
 
     //MARK: - Properties
     private let imageAlpha: CGFloat = 0.9
     
-    var authService: AuthService!
-    init(authService: AuthService) {
-        super.init(nibName: nil, bundle: nil)
-        self.authService = authService
-    }
-    required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
+    let authService = AuthService()
+    let hud: JGProgressHUD = {
+        let hud = JGProgressHUD()
+        hud.textLabel.text = "Loading"
+        hud.style = JGProgressHUDStyle.dark
+        return hud
+    }()
     
     //MARK: - UI Elements
     private let imageContainerView: UIView = {
@@ -178,14 +180,27 @@ class ResetPasswordVC: UIViewController {
     @objc func resetButtonTapped(){
         guard let email = emailTextField.text else{return}
         
-        authService.resetPassword(email: email) { (error) in
-            if let _ = error{
+        hud.show(in: self.view)
+        authService.resetPassword(email: email) { [weak self](error) in
+            guard let self = self else{return}
+            self.hud.dismiss()
+            if let error = error{
                 let alert = AlertService(vc: self)
-                alert.showSimpleAlert(title: "Error occured. Please try again later.", message: "", style: .alert)
+                alert.showSimpleAlert(title: "Error occured. Please try again later.\(error.localizedDescription)", message: "", style: .alert)
                 return
             }
-            let alert = AlertService(vc: self)
-            alert.showSimpleAlert(title: "Check out your email to reset password.", message: "", style: .alert)
+            //成功した場合
+            let alert = UIAlertController(title: "Ok! We sent you email. Please reset your password from there.",
+                                          message: "",
+                                          preferredStyle: .alert)
+            
+            let action = UIAlertAction(title: "ok", style: .default) { [weak self] (action) in
+                guard let self = self else {return}
+                self.dismiss(animated: true, completion: nil)
+                self.navigationController?.popViewController(animated: true)
+            }
+            alert.addAction(action)
+            self.present(alert, animated: true, completion: nil)
         }
     }
     

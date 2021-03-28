@@ -16,6 +16,9 @@ class MainTabBarController: UITabBarController {
     
     //MARK: - Properties
     var currentTrackID: String?
+    let firestoreService = FirestoreService()
+    var user: User?
+    var allChartData = [(country: String, songs:[Song])]()
     
     lazy var videoPlayer: YTPlayerView = {
         let vp = YTPlayerView(frame: .zero)
@@ -63,11 +66,15 @@ class MainTabBarController: UITabBarController {
                 let nav = UINavigationController(rootViewController: vc)
                 nav.modalPresentationStyle = .fullScreen
                 self.present(nav, animated: false, completion: nil)
-                print("logged out")
             }else{
-                print("logged in")
+                //ここでデータを全て初期化する必要ありuser/allCountryData
                 self.dismiss(animated: true, completion: nil)
                 self.selectedIndex = 0
+                
+                let uid = auth.currentUser!.uid
+                self.fetchUserDataWithUid(uid: uid)
+                self.fetchAllChartData(uid: uid)
+                
                 print(auth.currentUser?.displayName)
                 print(auth.currentUser?.email)
                 print(auth.currentUser?.uid)
@@ -78,6 +85,25 @@ class MainTabBarController: UITabBarController {
             }
         }
     }
+    
+    func fetchUserDataWithUid(uid: String){
+        firestoreService.fetchUserInfoWithUid(uid: uid) { (result) in
+            switch result{
+            case .failure(_):
+                let alert = AlertService(vc:self)
+                alert.showSimpleAlert(title: "Error occured. Please open the app once again later.", message: "", style: .alert)
+            case .success(let user):
+                self.user = user
+            }
+        }
+    }
+    
+    func fetchAllChartData(uid: String){
+        
+        
+    }
+    
+    
     
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(true)
