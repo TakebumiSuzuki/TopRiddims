@@ -179,7 +179,7 @@ class SignUpVC: UIViewController {
         view.endEditing(true)
     }
     
-    //MARK: - Button Tap Handlings
+    //MARK: - Button Tap Handlings　ユーザー登録
     @objc private func signUpButtonTapped(){
         guard let name = nameTextField.text else{return}
         guard let email = emailTextField.text else{return}
@@ -196,7 +196,6 @@ class SignUpVC: UIViewController {
                 alert.showSimpleAlert(title: error.localizedDescription, message: "", style: .alert)
                 return
             }
-            
             //サクセス。何もしなくて良いのでは？
         }
     }

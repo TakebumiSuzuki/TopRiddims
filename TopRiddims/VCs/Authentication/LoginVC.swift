@@ -272,7 +272,7 @@ class LoginVC: UIViewController{
     }
     
     
-    //MARK: - Firebase Password Login
+    //MARK: - Firebase 通常のLogin
     @objc private func loginButtonTapped(){
         guard let email = emailTextField.text else{return}
         guard let password = passwordTextField.text else{return}

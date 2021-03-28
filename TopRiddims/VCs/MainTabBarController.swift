@@ -9,18 +9,26 @@ import UIKit
 import youtube_ios_player_helper
 import NVActivityIndicatorView
 import Firebase
-import FBSDKLoginKit
+//import FBSDKLoginKit
 
 
 class MainTabBarController: UITabBarController {
     
     //MARK: - Properties
-    var currentTrackID: String?
-    let firestoreService = FirestoreService()
-    var uid: String?
-    var user: User?
-    var allChartData = [(country: String, songs:[Song], updated: Timestamp)]()
     
+    var authListener: AuthStateDidChangeListenerHandle!
+    let firestoreService = FirestoreService()
+    var uid: String?  //まずこれをゲットして、
+    var user: User?{//Userに代入。この中にはallChartDataも完全に含まれる。
+        didSet{
+            print("userに新しい値がセットされました")
+        }
+    }
+    var allChartData = [(country: String, songs:[Song], updated: Timestamp)]()  //初期値はまっさらな空
+    
+    var currentTrackID: String?  //プレイヤー用
+    
+    //MARK: - UI Components
     lazy var videoPlayer: YTPlayerView = {
         let vp = YTPlayerView(frame: .zero)
         vp.delegate = self
@@ -43,17 +51,11 @@ class MainTabBarController: UITabBarController {
         return spinner
     }()
     
-    var authListener: AuthStateDidChangeListenerHandle!
+    
     
     //MARK: - ViewLifeCycles
     override func viewDidLoad() {
         super.viewDidLoad()
-        setupObservers()
-    }
-    
-    override func viewDidLayoutSubviews() {
-        super.viewDidLayoutSubviews()
-        
     }
     
     override func viewWillAppear(_ animated: Bool) {
@@ -61,39 +63,89 @@ class MainTabBarController: UITabBarController {
         
         authListener = Auth.auth().addStateDidChangeListener { [weak self](auth, user) in
             guard let self = self else{return}
-            if auth.currentUser == nil{
+            
+            guard let uid = auth.currentUser?.uid else{
+                //未ログインの場合
                 let vc = LoginVC()
                 let nav = UINavigationController(rootViewController: vc)
                 nav.modalPresentationStyle = .fullScreen
                 self.present(nav, animated: false, completion: nil)
-            }else{
-                //ここでデータを全て初期化する必要ありuser/allCountryData
-                self.dismiss(animated: true, completion: nil)
-                self.selectedIndex = 0
-                
-                self.uid = auth.currentUser?.uid
-                guard let uid = self.uid else{return}
-                
-                self.firestoreService.fetchUserInfoWithUid(uid: uid) { (result) in
-                    switch result{
-                    case .failure(_):
-                        let alert = AlertService(vc:self)
-                        alert.showSimpleAlert(title: "Error occured. Please open the app once again later.", message: "", style: .alert)
-                    case .success(let user):
-                        self.user = user
-                        self.configureTabs()
-                        self.setupVideoView()
-                    }
+                return
+            }
+            
+            //ここでデータを全て初期化する必要ありuser/allCountryData。ここで一旦各Tabのビューコントローラを呼ぶべきか。。
+            self.uid = uid
+            self.dismiss(animated: true, completion: nil)
+            self.selectedIndex = 0
+            
+            self.firestoreService.fetchUserInfoWithUid(uid: uid) { (result) in
+                switch result{
+                case .failure(_):  //ここが起動時の唯一のエラーキャッチポイント。
+                    let alert = AlertService(vc:self)
+                    alert.showSimpleAlert(title: "Login status error.Please try reopen the app. Sorry!!", message: "", style: .alert)
+                case .success(let user):
+                    self.user = user
+                    user.uid = uid  //一応念のため、Authからの直のuidをuserのuidに入れておく。
+                    self.configureTabs()  //ユーザーの情報を完全にゲットしてから各タブを作る。
+                    self.setupVideoView()
+                    self.setupObservers()
                 }
             }
         }
     }
     
+    override func viewDidLayoutSubviews() {
+        super.viewDidLayoutSubviews()
+    }
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(true)
+        print("View willDisappearがいつ呼ばれるか。このTabBarVCでは呼ばれることはない!?")
 //        Auth.auth().removeStateDidChangeListener(authListener)
     }
     
+    
+    //MARK: - 各タブ設定
+    private func configureTabs(){
+        guard let user = self.user else {return}
+        
+        //        tabBar.itemPositioning = .centered //itemの配置の仕方。必要ないかも。
+        tabBar.tintColor = UIColor(named: "Black_Yellow")
+        let configuration = UIImage.SymbolConfiguration(weight: .thin)
+        
+        
+        let chartVC = ChartVC(user: user)
+        let chartNav = generateNavController(rootVC: chartVC,
+                                             title: "charts",
+                                             selectedImage: UIImage(systemName: "bolt.fill", withConfiguration: configuration)!,
+                                             unselectedImage: UIImage(systemName: "bolt", withConfiguration: configuration)!)
+        
+        let likesVC = LikesVC()
+        let likesNav = generateNavController(rootVC: likesVC,
+                                             title: "likes",
+                                             selectedImage: UIImage(systemName: "suit.heart.fill", withConfiguration: configuration)!,
+                                             unselectedImage: UIImage(systemName: "suit.heart", withConfiguration: configuration)!)
+        
+        let settingVC = SettingVC(user: user)
+        let settingNav = generateNavController(rootVC: settingVC,
+                                               title: "setting",
+                                               selectedImage: UIImage(systemName: "person.fill", withConfiguration: configuration)!,
+                                               unselectedImage: UIImage(systemName: "person", withConfiguration: configuration)!)
+        
+        self.viewControllers = [chartNav, likesNav, settingNav]
+    }
+    
+    
+    private func generateNavController(rootVC: UIViewController, title: String, selectedImage: UIImage, unselectedImage: UIImage) -> UINavigationController{
+        rootVC.tabBarItem.title = title
+        rootVC.tabBarItem.selectedImage = selectedImage
+        rootVC.tabBarItem.image = unselectedImage
+        let nav = UINavigationController(rootViewController: rootVC)
+        nav.navigationBar.tintColor = UIColor(named: "Black_Yellow")!
+        return nav
+    }
+    
+    
+    //MARK: - Video Player設定
     private func setupVideoView(){
         view.addSubview(videoPlayer)
         view.addSubview(blackImageView)
@@ -118,12 +170,15 @@ class MainTabBarController: UITabBarController {
         spinner.setDimensions(height: 40, width: 40)
     }
     
+    //MARK: - Video再生コントロール
     private func setupObservers(){
         NotificationCenter.default.addObserver(self, selector: #selector(playVideo), name: Notification.Name(rawValue:"videoPlayOrder"), object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(pauseVideo), name: Notification.Name(rawValue:"videoPauseOrder"), object: nil)
     }
+    
     @objc func playVideo(notification: NSNotification){
         let info = notification.userInfo
+        
         guard let trackID = info?["trackID"] as? String else {return}
         if currentTrackID == trackID{
             videoPlayer.playVideo()
@@ -155,46 +210,6 @@ class MainTabBarController: UITabBarController {
         videoPlayer.pauseVideo()
     }
     
-    
-    //MARK: - 各タブ設定
-    private func configureTabs(){
-        
-        //        tabBar.itemPositioning = .centered //itemの配置の仕方。必要ないかも。
-        tabBar.tintColor = UIColor(named: "Black_Yellow")
-        let configuration = UIImage.SymbolConfiguration(weight: .thin)
-        
-        
-        //実際はFireBaseからcountriesを事前にDLして格納した後chartVCを作る。ここのuidアンラップ後で修正
-        let chartVC = ChartVC(allChartData: user!.allChartData , uid: "GNiDYSWPAIgzPZzItUvVx0IvOzw2")
-        let chartNav = generateNavController(rootVC: chartVC,
-                                             title: "charts",
-                                             selectedImage: UIImage(systemName: "bolt.fill", withConfiguration: configuration)!,
-                                             unselectedImage: UIImage(systemName: "bolt", withConfiguration: configuration)!)
-        
-        let likesVC = LikesVC()
-        let likesNav = generateNavController(rootVC: likesVC,
-                                             title: "likes",
-                                             selectedImage: UIImage(systemName: "suit.heart.fill", withConfiguration: configuration)!,
-                                             unselectedImage: UIImage(systemName: "suit.heart", withConfiguration: configuration)!)
-        
-        let settingVC = SettingVC()
-        let settingNav = generateNavController(rootVC: settingVC,
-                                               title: "setting",
-                                               selectedImage: UIImage(systemName: "person.fill", withConfiguration: configuration)!,
-                                               unselectedImage: UIImage(systemName: "person", withConfiguration: configuration)!)
-        
-        
-        self.viewControllers = [chartNav, likesNav, settingNav]
-    }
-    
-    private func generateNavController(rootVC: UIViewController, title: String, selectedImage: UIImage, unselectedImage: UIImage) -> UINavigationController{
-        rootVC.tabBarItem.title = title
-        rootVC.tabBarItem.selectedImage = selectedImage
-        rootVC.tabBarItem.image = unselectedImage
-        let nav = UINavigationController(rootViewController: rootVC)
-        nav.navigationBar.tintColor = UIColor(named: "Black_Yellow")!
-        return nav
-    }
 }
 
 
@@ -249,7 +264,5 @@ extension MainTabBarController: YTPlayerViewDelegate{
             print("-----default")
         }
     }
-    
-    
     
 }

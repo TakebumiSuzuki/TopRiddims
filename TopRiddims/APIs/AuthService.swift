@@ -14,6 +14,7 @@ enum CustomAPIError: Error{
 
 class AuthService{
     
+    //新規登録。allChartDataは未タッチだが、これはUserをMainTabBarで作る時に、空の物が生成される。
     func createUser(name: String, email: String, password: String, completion: @escaping (Error?) -> Void){
         
         Auth.auth().createUser(withEmail: email, password: password) { (authDataResult, error) in
@@ -44,7 +45,7 @@ class AuthService{
         }
     }
     
-    
+    //通常のemal/passwordによるログイン
     func logUserIn(email: String, password: String, completion: @escaping (Result<AuthDataResult, Error>) -> Void){
         
         Auth.auth().signIn(withEmail: email, password: password) { (authDataResult, error) in

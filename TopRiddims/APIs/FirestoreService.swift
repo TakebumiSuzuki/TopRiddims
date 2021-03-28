@@ -15,6 +15,7 @@ enum CustomFirestoreError: Error{
 
 class FirestoreService{
     
+    //毎回ログインした時にもlastLoginを更新する為に呼ばれる。既存のallChartDataにはタッチしない。
     func saveUserInfoWithAuthResult(authResult: AuthDataResult, completion: @escaping (Error?) -> Void){
         
         let uid = authResult.user.uid
@@ -37,7 +38,7 @@ class FirestoreService{
                     "isNewUser": isNewUser,
                     "lastLogInDate": Timestamp()]
         }
-        K.FSCollectionUsers.document("uid").setData(data, merge: true) { (error) in
+        K.FSCollectionUsers.document(uid).setData(data, merge: true) { (error) in
             if let error = error{
                 print("DEBUG: Error occured saving user data to Firestore: \(error.localizedDescription)")
                 completion(error)
@@ -47,7 +48,7 @@ class FirestoreService{
         }
     }
     
-    
+    //MainTabbarのリスナーからログインした時に呼ばれる。
     func fetchUserInfoWithUid(uid: String, completion: @escaping (Result<User, Error>) -> Void){
         
         K.FSCollectionUsers.document(uid).getDocument { (snapshot, error) in
@@ -66,33 +67,11 @@ class FirestoreService{
                 completion(.failure(CustomFirestoreError.dataIsNil))
                 return
             }
-            let user = User.createUser(data: data)
+            let user = User.createUser(data: data)  //この中ではエラーは発生しない。データ不足部分があれば、そこは空欄として作られる。
             completion(.success(user))
         }
     }
     
-//    func fetchAllChartData(uid: String, completion: @escaping (Result<[(country: String, songs:[Song])], Error>) -> Void){
-//        
-//        K.FSCollectionUsers.document(uid).collection("chartData").getDocuments { (snapshot, error) in
-//            if let error = error{
-//                print("DEBUG: Error occured fetching chart from Firestore: \(error.localizedDescription)")
-//                completion(.failure(error))
-//                return
-//            }
-//            guard let snapshot = snapshot else{
-//                print("DEBUG: snapshot is nil!")
-//                completion(.failure(CustomFirestoreError.snapshotIsNil))
-//                return
-//            }
-//            let documents = snapshot.documents
-//            for doc in documents{
-//                let country = doc["country"] as? String ?? ""
-//                print(country)
-//                //                let songs = doc["songs"] as? [String] ?? [Song(trackID: "", songName: "", artistName: "")]
-//                //                for song in songs{
-//            }
-//        }
-//    }
     
     func saveAllChartData(uid: String, allChartData: [(country: String, songs:[Song], updated: Timestamp)], completion: @escaping (Error?) -> Void){
         
@@ -116,9 +95,15 @@ class FirestoreService{
             
             allChartRawData.append([eachCountryData.country : countryData])
         }
-        print(allChartRawData)
-        K.FSCollectionUsers.document(uid).setData(["allChartRawData": allChartRawData])
         
+        K.FSCollectionUsers.document(uid).setData(["allChartRawData": allChartRawData], mergeFields: ["allChartRawData"]) { (error) in
+            if let error = error{
+                print("DEBUG: Error occured mergeField-saving allChartRawData in Firestore: \(error.localizedDescription)")
+                completion(error)
+            }
+            completion(nil)
+        }
+
     }
     
     

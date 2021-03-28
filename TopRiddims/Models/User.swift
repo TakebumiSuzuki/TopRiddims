@@ -28,12 +28,11 @@ class User{
         self.isNewUser = isNewUser
         self.registrationDate = registrationDate
         self.lastLogInDate = lastLogInDate
-        
         self.allChartData = allChartData
     }
     
     
-    
+    //ポイントは、allChartData変数。Firestore上に記録するフォーマットと、アプ上で扱うフォーマットが違うので変換が必要。
     static func createUser(data: [String : Any]) -> User{
         let uid = data["uid"] as? String ?? ""
         let name = data["name"] as? String ?? ""
@@ -42,15 +41,21 @@ class User{
         let registrationDate = data["registrationDate"] as? Timestamp ?? Timestamp()
         let lastLogInDate = data["lastLogInDate"] as? Timestamp ?? Timestamp()
         
-        let allChartRawData = data["allChartRawData"] as? [[String : [String : Any]]] ?? [[String : Any]]()
+        //このRawDataとは、FirestoreからDLしたそのままのデータ。
+        let allChartRawData = data["allChartRawData"] as? [[String : [String : Any]]] ?? [[String : [String : Any]]]()
         
+        //ここで空のallChartDataを作る。初めてログインした時は、この空の値がそのまま適用される。
         var allChartData = [(country: String, songs:[Song], updated: Timestamp)]()
+        
         for eachChartRawData in allChartRawData{
-            var songsDataForEachCountry = [Song]()
             
-            let countryNameKeys = Array(eachChartRawData.keys) as [String]
+            //ここで国名をStringでゲット
+            let countryNameKeys = Array(eachChartRawData.keys) as [String] //ここの文法詳細不明
             let countryNameString = countryNameKeys[0]
-            let songsAndUpdatedDicValues = Array(eachChartRawData.values) as! [[String : Any]]
+            
+            //ここでsongs:[Song]をゲット
+            var songsDataForEachCountry = [Song]()  //空の容器を作る
+            let songsAndUpdatedDicValues = Array(eachChartRawData.values) as [[String : Any]]
             let songsAndUpdatedDic = songsAndUpdatedDicValues[0]
             if let songs = songsAndUpdatedDic["songs"] as? [[String : String]]{
                 for eachSong in songs{
@@ -61,6 +66,8 @@ class User{
                     songsDataForEachCountry.append(song)
                 }
             }
+            
+            //ここでupdatedの時間をゲット
             let updatedTimestamp = songsAndUpdatedDic["updated"] as? Timestamp ?? Timestamp()
             
             let countryChartData: (country: String, songs:[Song], updated: Timestamp) =
@@ -69,24 +76,6 @@ class User{
         }
         
         return User(uid: uid, name: name, email: email, isNewUser: isNewUser, registrationDate: registrationDate, lastLogInDate: lastLogInDate, allChartData: allChartData)
-        
-        
-        
-        
-        
-//        for eachChartRawData in allChartRawData{
-//            let countryName = [String](eachChartRawData.keys)
-//            let songsAndUpdatedDic = eachChartRawData.values
-//            let songs = songsAndUpdatedDic[0] as? [String : Any] ?? [String : String]()
-//            let updated = songsAndUpdatedDic["updated"] as? Timestamp ?? Timestamp()
-//            print(songs)
-//            print(updated)
-////        }
-//        print("表示しました")
-//
-//        let user = User(uid: uid, name: name, email: email, isNewUser: isNewUser, registrationDate: registrationDate, lastLogInDate: lastLogInDate, allChartData: [(country: String, songs:[Song], updated: Timestamp)]())
-//
-//        return user
     }
     
 }

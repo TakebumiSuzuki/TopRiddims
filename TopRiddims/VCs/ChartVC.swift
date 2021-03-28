@@ -17,12 +17,14 @@ class ChartVC: UIViewController{
     
     
     //MARK: - Initialization
-    var allChartData = [(country: String, songs:[Song], updated: Timestamp)]()
-    var uid: String = ""
-    init(allChartData: [(country: String, songs:[Song], updated: Timestamp)], uid: String) {
+    
+    var user: User!
+    var uid: String{
+        return user.uid
+    }
+    init(user: User) {
         super.init(nibName: nil, bundle: nil)
-        self.allChartData = allChartData
-        self.uid = uid
+        self.user = user
     }
     required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
     
@@ -99,9 +101,7 @@ class ChartVC: UIViewController{
     //MARK: - View Life Cycles
     override func viewDidLoad() {
         super.viewDidLoad()
-        
-        
-        
+        print(uid)
         setupNavBar()
         setupViews()
 //        setupNotifications()//ジャンプボタンはとりあえずオフに
@@ -180,13 +180,13 @@ class ChartVC: UIViewController{
             guard let self = self else{return}
             self.smallCircleImageView.rotate360Degrees(duration: 2)
             self.smallPauseImageView.isHidden = false
-            for i in 0...self.allChartData.count{
+            for i in 0...self.user.allChartData.count{
                 guard let cell = self.chartCollectionView.cellForItem(at: IndexPath(item: i, section: 0)) as? ChartCollectionViewCell else{continue}
                 cell.loader.startAnimating()
                 cell.loader.isHidden = false
             }
         }
-        scrapingManager = ScrapingManager(chartDataToFetch: allChartData, startingIndex: 0)
+        scrapingManager = ScrapingManager(chartDataToFetch: user.allChartData, startingIndex: 0)
         scrapingManager?.delegate = self
         scrapingManager?.startLoadingWebPages()
     }
@@ -206,8 +206,8 @@ class ChartVC: UIViewController{
 extension ChartVC: ScrapingManagerDelegate{
     //チャート情報をゲットできた国から順番にこのメソッドが呼ばれる
     func setCellWithSongsInfo(songs: [Song], countryIndexNumber: Int) {
-        allChartData[countryIndexNumber].songs = songs //グローバル変数のallChartDataをアップデート
-        allChartData[countryIndexNumber].updated = Timestamp()
+        user.allChartData[countryIndexNumber].songs = songs //グローバル変数のallChartDataをアップデート
+        user.allChartData[countryIndexNumber].updated = Timestamp()
         //以下は、アップデートするcellをつかみ、メインキューで表示させる
         let indexPath = IndexPath(row: countryIndexNumber, section: 0)
         guard let cellToLiveUpdate = chartCollectionView.cellForItem(at: indexPath) as? ChartCollectionViewCell else{
@@ -235,12 +235,10 @@ extension ChartVC: ScrapingManagerDelegate{
         reloadingOnOff.toggle()
         stopAllLoaders()
         //ここでuidをゲットする必要がある。このvc作成時にタブバーから注入すれば良い?
-        print("uidは空?")
-        print(uid)
-        firestoreService.saveAllChartData(uid: self.uid, allChartData: allChartData) { (error) in
-            
+        firestoreService.saveAllChartData(uid: self.uid, allChartData: user.allChartData) { (error) in
+            //ここでエラーになった場合でも成功した場合でも特にユーザーに伝える必要はないかと。このまま何もせずにok
         }
-        }
+    }
     
     func timeOutNotice(){
         let alert = AlertService(vc: self)
@@ -256,7 +254,7 @@ extension ChartVC: ScrapingManagerDelegate{
             self.smallCircleImageView.stopRotation()
             self.smallPauseImageView.isHidden = true
             
-            for i in 0...self.allChartData.count{
+            for i in 0...self.user.allChartData.count{
                 guard let cell = self.chartCollectionView.cellForItem(at: IndexPath(item: i, section: 0)) as? ChartCollectionViewCell else{continue}
                 cell.loader.stopAnimating()
                 cell.loader.isHidden = true
@@ -270,7 +268,7 @@ extension ChartVC: ScrapingManagerDelegate{
 extension ChartVC: ChartCollectionFooterViewDelegate{
     
     func footerPlusButtonPressed(){
-        let mapVC = MapVC(allChartData: allChartData)
+        let mapVC = MapVC(allChartData: user.allChartData)
         mapVC.delegate = self
         let nav = UINavigationController(rootViewController: mapVC)
         present(nav, animated: true, completion: nil)
@@ -282,28 +280,34 @@ extension ChartVC: MapVCDelegate{
     
     func newCountrySelectionDone(selectedCountries: [String]) {
         dismiss(animated: true, completion: nil)
-        allChartData = allChartData.filter{ selectedCountries.contains($0.country) }
+        user.allChartData = user.allChartData.filter{ selectedCountries.contains($0.country) }
         pageNumbers = {  //残された国たちのスクロールのページ位置(順位)は全てリセットして1位からとする。
             var array = [Int]()
             for _ in 0...19{ array.append(0) }
             return array
         }()
-        self.chartCollectionView.reloadData()
-        for i in 0..<allChartData.count{ //これらはアプリ立ち上げまもない時はcellがinitされ、loaderが起動してしまうので。
+        self.chartCollectionView.reloadData() //残された国のみで一度リロード
+        for i in 0..<user.allChartData.count{ //これらはアプリ立ち上げまもない時はcellがinitされ、loaderが起動してしまうので。
             guard let cell = chartCollectionView.cellForItem(at: IndexPath(item: i, section: 0)) as? ChartCollectionViewCell else {continue}
             cell.loader.stopRotation()
             cell.loader.isHidden = true
         }
         var currentEntries = [String]()
-        allChartData.forEach{ currentEntries.append($0.country) }
+        user.allChartData.forEach{ currentEntries.append($0.country) }
         let newEntries: [String] = selectedCountries.filter{ !currentEntries.contains($0) }
         
         updateWithNewCountries(newEntries: newEntries)
     }
     
     private func updateWithNewCountries(newEntries: [String]){
+        //newEntriesが空の時、つまり国が減るだけの場合、Firestoreに保存してリターン。
+        if newEntries.isEmpty{
+            firestoreService.saveAllChartData(uid: self.uid, allChartData: user.allChartData) { (error) in
+                //ここでエラーになった場合でも成功した場合でも特にユーザーに伝える必要はないかと。このまま何もせずにok
+            }
+            return
+        }
         //単純なString配列のnewEntriesを新しいデータ構造に変換し、allChartDataの末尾に加える
-        if newEntries.isEmpty{ return }
         var newCountryData = [(country: String, songs:[Song], updated: Timestamp)]()
         
         newEntries.forEach{  //sample1曲のみのチャートデータを新しい国ごとに作っている。
@@ -313,9 +317,9 @@ extension ChartVC: MapVCDelegate{
             newCountryData.append(data)
         }
         
-        let startingIndex = allChartData.count
+        let startingIndex = user.allChartData.count
         
-        allChartData.append(contentsOf: newCountryData)
+        user.allChartData.append(contentsOf: newCountryData)
         //この地点ではメインキューで動いているよう。
         //新しく追加された国をUI即席アップデートでcollectionViewに加える。この時animationの為insertItemsメソッドを使う。
         DispatchQueue.main.async { [weak self] in
@@ -326,7 +330,7 @@ extension ChartVC: MapVCDelegate{
                 //ここでinsert命令を出しても実際にdequeueされてcellインスタンスが作られるのは少し後になる。asyncなので。
             }
             //実際のデータアップロード
-            self.chartCollectionView.scrollToItem(at: IndexPath(row: self.allChartData.count-1, section: 0), at: .bottom, animated: true)
+            self.chartCollectionView.scrollToItem(at: IndexPath(row: self.user.allChartData.count-1, section: 0), at: .bottom, animated: true)
             self.smallCircleImageView.rotate360Degrees(duration: 2)
             self.smallPauseImageView.isHidden = false
             self.reloadingOnOff.toggle()
@@ -342,14 +346,14 @@ extension ChartVC: MapVCDelegate{
 extension ChartVC: UICollectionViewDataSource{
 
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        return allChartData.count
+        return user.allChartData.count
     }
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: ChartCollectionViewCell.identifier, for: indexPath) as! ChartCollectionViewCell
         cell.chartCellIndexNumber = indexPath.row  //Jump機能の為
-        cell.country = allChartData[indexPath.row].country
+        cell.country = user.allChartData[indexPath.row].country
         
-        cell.songs = allChartData[indexPath.row].songs  //ここでsongsに情報が代入された時点でdidSetでVideoカバーがアップデートされる
+        cell.songs = user.allChartData[indexPath.row].songs  //ここでsongsに情報が代入された時点でdidSetでVideoカバーがアップデートされる
         cell.currentPageIndexNum = pageNumbers[indexPath.row]
         //順番が大切。songsの後にこのcurrentPageIndexを入れないとsongNameなど作成中にエラーが生じる。
         cell.cellSelfWidth = view.frame.width*K.chartCellWidthMultiplier
@@ -378,12 +382,16 @@ extension ChartVC: UICollectionViewDelegate{
         true
     }
     func collectionView(_ collectionView: UICollectionView, moveItemAt sourceIndexPath: IndexPath, to destinationIndexPath: IndexPath) {
-        let item = allChartData.remove(at: sourceIndexPath.row)
-        allChartData.insert(item, at: destinationIndexPath.row)
+        let item = user.allChartData.remove(at: sourceIndexPath.row)
+        user.allChartData.insert(item, at: destinationIndexPath.row)
         let videoPage = pageNumbers.remove(at: sourceIndexPath.row)
         pageNumbers.insert(videoPage, at: destinationIndexPath.row)
         print("destinationが呼ばれ、新ページ\(pageNumbers)")
         chartCollectionView.reloadData()
+        firestoreService.saveAllChartData(uid: self.uid, allChartData: user.allChartData) { (error) in
+            //ここでエラーになった場合でも成功した場合でも特にユーザーに伝える必要はないかと。このまま何もせずにok
+        }
+        
     }
 }
 
