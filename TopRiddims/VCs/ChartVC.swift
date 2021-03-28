@@ -8,7 +8,7 @@
 //Select Product => Scheme => Edit Scheme or use shortcut : CMD + <
 //Select the Run option from left side.
 //On Environment Variables section, add the variable OS_ACTIVITY_MODE = disable
-
+//デリートした時と、ジェスチャーで順番変えた時。
 
 import UIKit
 import Firebase
@@ -17,10 +17,12 @@ class ChartVC: UIViewController{
     
     
     //MARK: - Initialization
-    var allChartData = [(country: String, songs:[Song])]()
-    init(allChartData: [(country: String, songs:[Song])]) {
+    var allChartData = [(country: String, songs:[Song], updated: Timestamp)]()
+    var uid: String = ""
+    init(allChartData: [(country: String, songs:[Song], updated: Timestamp)], uid: String) {
         super.init(nibName: nil, bundle: nil)
         self.allChartData = allChartData
+        self.uid = uid
     }
     required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
     
@@ -205,6 +207,7 @@ extension ChartVC: ScrapingManagerDelegate{
     //チャート情報をゲットできた国から順番にこのメソッドが呼ばれる
     func setCellWithSongsInfo(songs: [Song], countryIndexNumber: Int) {
         allChartData[countryIndexNumber].songs = songs //グローバル変数のallChartDataをアップデート
+        allChartData[countryIndexNumber].updated = Timestamp()
         //以下は、アップデートするcellをつかみ、メインキューで表示させる
         let indexPath = IndexPath(row: countryIndexNumber, section: 0)
         guard let cellToLiveUpdate = chartCollectionView.cellForItem(at: indexPath) as? ChartCollectionViewCell else{
@@ -232,11 +235,13 @@ extension ChartVC: ScrapingManagerDelegate{
         reloadingOnOff.toggle()
         stopAllLoaders()
         //ここでuidをゲットする必要がある。このvc作成時にタブバーから注入すれば良い?
-        firestoreService.saveAllChartData(uid: uid, allChartData: allChartData) { (error) in
-            if let _ = error{return} //ユーザーに知らせる必要はない
-            //セーブ成功
+        print("uidは空?")
+        print(uid)
+        firestoreService.saveAllChartData(uid: self.uid, allChartData: allChartData) { (error) in
+            
         }
-    }
+        }
+    
     func timeOutNotice(){
         let alert = AlertService(vc: self)
         alert.showSimpleAlert(title: "Time Out Error!", message: "There seem to be internet connection probem. Please try updating later again.", style: .alert)
@@ -299,10 +304,10 @@ extension ChartVC: MapVCDelegate{
     private func updateWithNewCountries(newEntries: [String]){
         //単純なString配列のnewEntriesを新しいデータ構造に変換し、allChartDataの末尾に加える
         if newEntries.isEmpty{ return }
-        var newCountryData = [(country: String, songs:[Song])]()
+        var newCountryData = [(country: String, songs:[Song], updated: Timestamp)]()
         
         newEntries.forEach{  //sample1曲のみのチャートデータを新しい国ごとに作っている。
-            let data = (country: $0, songs: [Song(trackID: "trackID", songName: "Getting songs now!", artistName: "Please wait for a moment...")])
+            let data = (country: $0, songs: [Song(trackID: "trackID", songName: "Getting songs now!", artistName: "Please wait for a moment...")], updated: Timestamp())
             //songNameとartistnameを空にしたら、下のinsertItemsの段で、一番目の要素(jamaica)から挿入された。UIKitのバグかと。
             
             newCountryData.append(data)

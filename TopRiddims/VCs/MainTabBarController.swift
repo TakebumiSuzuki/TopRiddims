@@ -8,7 +8,7 @@
 import UIKit
 import youtube_ios_player_helper
 import NVActivityIndicatorView
-import FirebaseAuth
+import Firebase
 import FBSDKLoginKit
 
 
@@ -17,8 +17,9 @@ class MainTabBarController: UITabBarController {
     //MARK: - Properties
     var currentTrackID: String?
     let firestoreService = FirestoreService()
+    var uid: String?
     var user: User?
-    var allChartData = [(country: String, songs:[Song])]()
+    var allChartData = [(country: String, songs:[Song], updated: Timestamp)]()
     
     lazy var videoPlayer: YTPlayerView = {
         let vp = YTPlayerView(frame: .zero)
@@ -47,13 +48,12 @@ class MainTabBarController: UITabBarController {
     //MARK: - ViewLifeCycles
     override func viewDidLoad() {
         super.viewDidLoad()
-        configureTabs()
         setupObservers()
     }
     
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
-        setupVideoView()
+        
     }
     
     override func viewWillAppear(_ animated: Bool) {
@@ -71,39 +71,23 @@ class MainTabBarController: UITabBarController {
                 self.dismiss(animated: true, completion: nil)
                 self.selectedIndex = 0
                 
-                let uid = auth.currentUser!.uid
-                self.fetchUserDataWithUid(uid: uid)
-                self.fetchAllChartData(uid: uid)
+                self.uid = auth.currentUser?.uid
+                guard let uid = self.uid else{return}
                 
-                print(auth.currentUser?.displayName)
-                print(auth.currentUser?.email)
-                print(auth.currentUser?.uid)
-                print(auth.currentUser?.providerID)
-                print(auth.currentUser?.providerData)
-                print(auth.currentUser?.metadata)
-                print(auth.currentUser?.photoURL)
+                self.firestoreService.fetchUserInfoWithUid(uid: uid) { (result) in
+                    switch result{
+                    case .failure(_):
+                        let alert = AlertService(vc:self)
+                        alert.showSimpleAlert(title: "Error occured. Please open the app once again later.", message: "", style: .alert)
+                    case .success(let user):
+                        self.user = user
+                        self.configureTabs()
+                        self.setupVideoView()
+                    }
+                }
             }
         }
     }
-    
-    func fetchUserDataWithUid(uid: String){
-        firestoreService.fetchUserInfoWithUid(uid: uid) { (result) in
-            switch result{
-            case .failure(_):
-                let alert = AlertService(vc:self)
-                alert.showSimpleAlert(title: "Error occured. Please open the app once again later.", message: "", style: .alert)
-            case .success(let user):
-                self.user = user
-            }
-        }
-    }
-    
-    func fetchAllChartData(uid: String){
-        
-        
-    }
-    
-    
     
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(true)
@@ -180,45 +164,20 @@ class MainTabBarController: UITabBarController {
         let configuration = UIImage.SymbolConfiguration(weight: .thin)
         
         
-        let sampleData = [(country: "Jamaica",
-                           songs: [
-                            Song(trackID: "JtestTrack", songName: "JtestTrack", artistName: "JtestTrack"),
-                            Song(trackID: "testTrack2", songName: "testTrack2", artistName: "testTrack")
-                           ]),
-                          (country: "Haiti",
-                           songs: [
-                            Song(trackID: "testTrack", songName: "testTrack", artistName: "testTrack"),
-                            Song(trackID: "testTrack2", songName: "testTrack2", artistName: "testTrack")
-                           ]),
-                          (country: "Trinidad & Tobago",
-                           songs: [
-                            Song(trackID: "testTrack", songName: "testTrack", artistName: "testTrack"),
-                            Song(trackID: "testTrack2", songName: "testTrack2", artistName: "testTrack")
-                           ]),
-                          (country: "Barbados",
-                           songs: [
-                            Song(trackID: "testTrack", songName: "testTrack", artistName: "testTrack"),
-                            Song(trackID: "testTrack2", songName: "testTrack2", artistName: "testTrack")
-                           ])
-        ]
-        
-        //実際はFireBaseからcountriesを事前にDLして格納した後chartVCを作る。
-        let chartVC = ChartVC(allChartData: sampleData)
-        //            ChartVC(allChartData: sampleData)
+        //実際はFireBaseからcountriesを事前にDLして格納した後chartVCを作る。ここのuidアンラップ後で修正
+        let chartVC = ChartVC(allChartData: user!.allChartData , uid: "GNiDYSWPAIgzPZzItUvVx0IvOzw2")
         let chartNav = generateNavController(rootVC: chartVC,
                                              title: "charts",
                                              selectedImage: UIImage(systemName: "bolt.fill", withConfiguration: configuration)!,
                                              unselectedImage: UIImage(systemName: "bolt", withConfiguration: configuration)!)
         
         let likesVC = LikesVC()
-        
         let likesNav = generateNavController(rootVC: likesVC,
                                              title: "likes",
                                              selectedImage: UIImage(systemName: "suit.heart.fill", withConfiguration: configuration)!,
                                              unselectedImage: UIImage(systemName: "suit.heart", withConfiguration: configuration)!)
         
         let settingVC = SettingVC()
-        
         let settingNav = generateNavController(rootVC: settingVC,
                                                title: "setting",
                                                selectedImage: UIImage(systemName: "person.fill", withConfiguration: configuration)!,

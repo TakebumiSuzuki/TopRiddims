@@ -47,6 +47,7 @@ class FirestoreService{
         }
     }
     
+    
     func fetchUserInfoWithUid(uid: String, completion: @escaping (Result<User, Error>) -> Void){
         
         K.FSCollectionUsers.document(uid).getDocument { (snapshot, error) in
@@ -70,35 +71,53 @@ class FirestoreService{
         }
     }
     
-    func fetchAllChartData(uid: String, completion: @escaping (Result<[(country: String, songs:[Song])], Error>) -> Void){
-        
-        K.FSCollectionUsers.document(uid).collection("chartData").getDocuments { (snapshot, error) in
-            if let error = error{
-                print("DEBUG: Error occured fetching chart from Firestore: \(error.localizedDescription)")
-                completion(.failure(error))
-                return
-            }
-            guard let snapshot = snapshot else{
-                print("DEBUG: snapshot is nil!")
-                completion(.failure(CustomFirestoreError.snapshotIsNil))
-                return
-            }
-            let documents = snapshot.documents
-            for doc in documents{
-                let country = doc["country"] as? String ?? ""
-                print(country)
-                //                let songs = doc["songs"] as? [String] ?? [Song(trackID: "", songName: "", artistName: "")]
-                //                for song in songs{
-            }
-        }
-    }
+//    func fetchAllChartData(uid: String, completion: @escaping (Result<[(country: String, songs:[Song])], Error>) -> Void){
+//        
+//        K.FSCollectionUsers.document(uid).collection("chartData").getDocuments { (snapshot, error) in
+//            if let error = error{
+//                print("DEBUG: Error occured fetching chart from Firestore: \(error.localizedDescription)")
+//                completion(.failure(error))
+//                return
+//            }
+//            guard let snapshot = snapshot else{
+//                print("DEBUG: snapshot is nil!")
+//                completion(.failure(CustomFirestoreError.snapshotIsNil))
+//                return
+//            }
+//            let documents = snapshot.documents
+//            for doc in documents{
+//                let country = doc["country"] as? String ?? ""
+//                print(country)
+//                //                let songs = doc["songs"] as? [String] ?? [Song(trackID: "", songName: "", artistName: "")]
+//                //                for song in songs{
+//            }
+//        }
+//    }
     
-    func saveAllChartData(uid: String, allChartData: [(country: String, songs:[Song])], completion: @escaping (Error?) -> Void){
+    func saveAllChartData(uid: String, allChartData: [(country: String, songs:[Song], updated: Timestamp)], completion: @escaping (Error?) -> Void){
         
-        
-        
-        //注意は単発で国を付け加えたケースもあるのでsetではダメ。元の国データが全て消えてしまうので。
-        K.FSCollectionUsers.document(uid).collection("chartData").document("data").setData(<#T##documentData: [String : Any]##[String : Any]#>, completion: <#T##((Error?) -> Void)?##((Error?) -> Void)?##(Error?) -> Void#>)
+        var allChartRawData = [[String : Any]]()
+        for eachCountryData in allChartData{
+            let songs = eachCountryData.songs
+            var songsRawData = [[String : String]]()
+            for song in songs{
+                let songRawData: [String : String] = [
+                    "trackID": song.trackID,
+                    "songName": song.songName,
+                    "artistName": song.artistName
+                ]
+                songsRawData.append(songRawData)
+            }
+            
+            let countryData = [
+                "songs": songsRawData,
+                "updated": Timestamp()
+            ] as [String : Any]
+            
+            allChartRawData.append([eachCountryData.country : countryData])
+        }
+        print(allChartRawData)
+        K.FSCollectionUsers.document(uid).setData(["allChartRawData": allChartRawData])
         
     }
     

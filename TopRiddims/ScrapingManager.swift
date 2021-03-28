@@ -7,6 +7,7 @@
 
 import Foundation
 import WebKit
+import Firebase
 
 protocol ScrapingManagerDelegate: class{
     func setCellWithSongsInfo(songs: [Song], countryIndexNumber: Int)
@@ -17,8 +18,8 @@ protocol ScrapingManagerDelegate: class{
 class ScrapingManager{
     
     let startingIndex: Int
-    let chartDataToFetch: [(country: String, songs:[Song])]
-    init(chartDataToFetch: [(country: String, songs:[Song])], startingIndex: Int) {
+    let chartDataToFetch: [(country: String, songs: [Song], updated: Timestamp)]
+    init(chartDataToFetch: [(country: String, songs: [Song], updated: Timestamp)], startingIndex: Int) {
         self.chartDataToFetch = chartDataToFetch
         self.startingIndex = startingIndex
     }
@@ -87,8 +88,7 @@ class ScrapingManager{
     private func startTimer(completion: @escaping ([Song], Int) -> Void){
         
         timer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) {[weak self](timer) in
-            print(Thread.isMainThread)
-            print("タイマー１秒後")
+            
             //timerをScrapingManagerの変数として定義し、timer=というように書いた事によりweak selfがnilにならなくなった。理由は不明。
             guard let self = self else { print("DEBUG: self is nil at scheduleTimer's handler!"); return }
             self.timerCount += 1

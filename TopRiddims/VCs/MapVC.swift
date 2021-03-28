@@ -7,6 +7,7 @@
 
 import UIKit
 import M13Checkbox
+import Firebase
 
 protocol MapVCDelegate: class{
     func newCountrySelectionDone(selectedCountries: [String])
@@ -15,12 +16,12 @@ protocol MapVCDelegate: class{
 class MapVC: UIViewController{
     
     weak var delegate: MapVCDelegate?
-    var allChartData: [(country: String, songs:[Song])]!
+    var allChartData: [(country: String, songs:[Song], updated: Timestamp)]!
     
     var allCheckButtons = [MapCheckBox]()
     var selectedCountries = [String]()
     
-    init(allChartData: [(country: String, songs:[Song])]) {
+    init(allChartData: [(country: String, songs:[Song], updated: Timestamp)]) {
         super.init(nibName: nil, bundle: nil)
         self.allChartData = allChartData
     }
