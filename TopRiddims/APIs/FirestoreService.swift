@@ -106,7 +106,33 @@ class FirestoreService{
 
     }
     
+    func addOrDeleteLikedTrackID(uid: String, trackID: String, likedOrUnliked: Bool){
+        if likedOrUnliked{
+            K.FSCollectionUsers.document(uid).collection("tracks").document("liked").setData([trackID: Timestamp()], merge: true) { (error) in
+                print("Likedエラーはあるかな\(error?.localizedDescription)")
+            }
+        }else{
+            K.FSCollectionUsers.document(uid).collection("tracks").document("liked").updateData([trackID: FieldValue.delete()]) { (error) in
+                print("unLikedエラーはあるかな\(error?.localizedDescription)")
+            }
+        }
+        
+        
+    }
     
+    
+    func addOrDeleteCheckedTrackID(uid: String, trackID: String, checkedOrUnchecked: Bool){
+        if checkedOrUnchecked{
+            K.FSCollectionUsers.document(uid).collection("tracks").document("checked").setData([trackID: Timestamp()], merge: true) { (error) in
+                print("checkedエラーはあるかな\(error?.localizedDescription)")
+            }
+        }else{
+            K.FSCollectionUsers.document(uid).collection("tracks").document("checked").updateData([trackID : FieldValue.delete()]) { (error) in
+                print("uncheckedエラーはあるかな\(error?.localizedDescription)")
+                
+            }
+        }
+    }
 }
 
 

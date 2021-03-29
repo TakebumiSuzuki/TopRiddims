@@ -30,6 +30,24 @@ class AlertService{
         alert.addAction(action)
         vc.present(alert, animated: true, completion: nil)
     }
+    
+    func showAlertWithCancelation(title: String, message: String, style: UIAlertController.Style, completion: @escaping () -> Void){
+        
+        let alert = UIAlertController(title: title, message: message, preferredStyle: style)
+        
+        let action1 = UIAlertAction(title: "ok", style: .default) { (action) in
+            completion()
+        }
+        let action2 = UIAlertAction(title: "cancel", style: .cancel, handler: nil)
+        
+        alert.addAction(action1)
+        alert.addAction(action2)
+        
+        vc.present(alert, animated: true, completion: nil)
+    }
+    
+    
+    
 }
 
 

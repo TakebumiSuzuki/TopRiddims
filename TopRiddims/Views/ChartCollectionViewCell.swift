@@ -10,6 +10,8 @@ import iCarousel
 import NVActivityIndicatorView
 
 protocol ChartCollectionViewCellDelegate: class{
+    func heartButtonTapped(chartCellIndexNumber: Int, currentPageIndexNum: Int, buttonState: Bool)
+    func checkButtonTapped(chartCellIndexNumber: Int, currentPageIndexNum: Int, buttonState: Bool)
     func rightArrowTapped(chartCellIndexNumber: Int)
     func leftArrowTapped(chartCellIndexNumber: Int)
     func handleDragScrollInfo(chartCellIndexNumber: Int, newCurrentPageIndex: Int)
@@ -25,6 +27,14 @@ class ChartCollectionViewCell: UICollectionViewCell {
     var cellSelfWidth: CGFloat = 0
     private var videoWidth: CGFloat{ return self.cellSelfWidth*K.videoCoverWidthMultiplier }
     private var videoHeight: CGFloat{ return videoWidth/16*9 }
+    
+    private var heartButtonOnOff: Bool = false{
+        didSet{ heartButton.tintColor = heartButtonOnOff ? #colorLiteral(red: 0.8549019694, green: 0.250980407, blue: 0.4784313738, alpha: 1) : #colorLiteral(red: 0.8039215803, green: 0.8039215803, blue: 0.8039215803, alpha: 1) }
+    }
+    
+    private var checkButtonOnOff: Bool = false{
+        didSet{ checkButton.tintColor = checkButtonOnOff ? #colorLiteral(red: 0.2745098174, green: 0.4862745106, blue: 0.1411764771, alpha: 1) : #colorLiteral(red: 0.8039215803, green: 0.8039215803, blue: 0.8039215803, alpha: 1) }
+    }
     
     var chartCellIndexNumber: Int = 0  //自分自身のindexNumber
     var country: String!{
@@ -103,7 +113,6 @@ class ChartCollectionViewCell: UICollectionViewCell {
         let image = UIImage(systemName: "checkmark.circle.fill", withConfiguration: config)
         bn.setImage(image, for: .normal)
         bn.contentMode = .scaleAspectFit
-        bn.tintColor = #colorLiteral(red: 0.2745098174, green: 0.4862745106, blue: 0.1411764771, alpha: 1)
         bn.addTarget(self, action: #selector(checkButtonPressed), for: .touchUpInside)
         return bn
     }()
@@ -114,7 +123,6 @@ class ChartCollectionViewCell: UICollectionViewCell {
         let image = UIImage(systemName: "suit.heart.fill", withConfiguration: config)
         bn.setImage(image, for: .normal)
         bn.contentMode = .scaleAspectFit
-        bn.tintColor = #colorLiteral(red: 0.8549019694, green: 0.250980407, blue: 0.4784313738, alpha: 1)
         bn.addTarget(self, action: #selector(heartButtonPressed), for: .touchUpInside)
         return bn
     }()
@@ -206,14 +214,18 @@ class ChartCollectionViewCell: UICollectionViewCell {
         numberLabel.text = String(currentPageIndexNum+1) //順位なので1を足す。1位から始まるので。
         songNameLabel.text = songs[currentPageIndexNum].songName
         artistNameLabel.text = songs[currentPageIndexNum].artistName
+        heartButtonOnOff = songs[currentPageIndexNum].liked
+        checkButtonOnOff = songs[currentPageIndexNum].checked
     }
     
     
     @objc func heartButtonPressed(){
-        print("Heart")
+        heartButtonOnOff.toggle()
+        delegate?.heartButtonTapped(chartCellIndexNumber: chartCellIndexNumber, currentPageIndexNum: currentPageIndexNum, buttonState: heartButtonOnOff)
     }
     @objc func checkButtonPressed(){
-        print("Check")
+        checkButtonOnOff.toggle()
+        delegate?.checkButtonTapped(chartCellIndexNumber: chartCellIndexNumber,currentPageIndexNum: currentPageIndexNum, buttonState: checkButtonOnOff)
     }
 }
 

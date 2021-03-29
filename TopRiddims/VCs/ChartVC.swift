@@ -20,7 +20,9 @@ class ChartVC: UIViewController{
     
     var user: User!
     var uid: String{
-        return user.uid
+        guard let currentUserId = Auth.auth().currentUser?.uid else {
+            print("DEBUG: Error! uid is nil right now. Returning empty string for uid.."); return ""}
+        return currentUserId
     }
     init(user: User) {
         super.init(nibName: nil, bundle: nil)
@@ -422,6 +424,19 @@ extension ChartVC: UICollectionViewDelegateFlowLayout{
 }
 //MARK: - CellDelegate
 extension ChartVC: ChartCollectionViewCellDelegate{
+    func heartButtonTapped(chartCellIndexNumber: Int, currentPageIndexNum: Int, buttonState: Bool) {
+        user.allChartData[chartCellIndexNumber].songs[currentPageIndexNum].liked = buttonState
+        let trackID = user.allChartData[chartCellIndexNumber].songs[currentPageIndexNum].trackID
+        firestoreService.addOrDeleteLikedTrackID(uid: self.uid, trackID: trackID, likedOrUnliked: buttonState)
+    }
+    
+    func checkButtonTapped(chartCellIndexNumber: Int, currentPageIndexNum: Int, buttonState: Bool) {
+        user.allChartData[chartCellIndexNumber].songs[currentPageIndexNum].checked = buttonState
+        let trackID = user.allChartData[chartCellIndexNumber].songs[currentPageIndexNum].trackID
+        firestoreService.addOrDeleteCheckedTrackID(uid: self.uid, trackID: trackID, checkedOrUnchecked: buttonState)
+    }
+    
+    
     func handleDragScrollInfo(chartCellIndexNumber: Int, newCurrentPageIndex: Int) {
         pageNumbers[chartCellIndexNumber] = newCurrentPageIndex
         print(pageNumbers)

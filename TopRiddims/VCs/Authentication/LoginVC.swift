@@ -9,12 +9,15 @@ import UIKit
 import Firebase
 import FBSDKLoginKit
 import JGProgressHUD
+import RxSwift
+import RxCocoa
 
 class LoginVC: UIViewController{
     
     //MARK: - Properties
     private let imageAlpha: CGFloat = 0.9
     
+    let disposeBag = DisposeBag()
     let twitterProvider = OAuthProvider(providerID: "twitter.com")
     let firestoreService = FirestoreService()
     let authService = AuthService()
@@ -77,13 +80,13 @@ class LoginVC: UIViewController{
     
     private lazy var emailTextField: CustomTextField = {
         let tf = CustomTextField(placeholder: "Enter email")
-        tf.delegate = self
+//        tf.delegate = self
         return tf
     }()
     
     private lazy var passwordTextField: CustomTextField = {
         let tf = CustomTextField(placeholder: "Enter password")
-        tf.delegate = self
+//        tf.delegate = self
         return tf
     }()
     
@@ -147,9 +150,29 @@ class LoginVC: UIViewController{
         setupNavBar()
         setupViews()
         setupNotifications()
+        setupObservers()
     }
     
-    func setupNavBar(){
+    private func setupObservers(){
+        let emalFieldObservable = emailTextField.rx.text.orEmpty.asObservable()
+        let passwordFieldObservable = passwordTextField.rx.text.orEmpty.asObservable()
+        let textFieldsObservable: Observable<Bool> = Observable.combineLatest(emalFieldObservable, passwordFieldObservable){ (email, password) -> Bool in
+            return (email.count > 0 && password.count > 0)
+        }
+        textFieldsObservable.bind(to: loginButton.rx.isEnabled).disposed(by: disposeBag)
+        textFieldsObservable.map{$0 ? 1 : 0.5}.bind(to: loginButton.rx.alpha).disposed(by: disposeBag)
+        
+        emailTextField.rx.controlEvent(.editingDidEndOnExit).subscribe { [weak self](_) in
+            guard let self = self else {return}
+            self.passwordTextField.becomeFirstResponder()
+        }.disposed(by: disposeBag)
+        passwordTextField.rx.controlEvent(.editingDidEndOnExit).subscribe { [weak self](_) in
+            guard let self = self else {return}
+            self.passwordTextField.resignFirstResponder()
+        }.disposed(by: disposeBag)
+    }
+    
+    private func setupNavBar(){
         navigationController?.navigationBar.tintColor = .label
         navigationItem.title = "Login"
         let rightButton = UIBarButtonItem(title: "SignUp!", style: .done, target: self, action: #selector(signUpButtonTapped))
@@ -162,8 +185,6 @@ class LoginVC: UIViewController{
         appearance.titleTextAttributes = [.foregroundColor: UIColor.white.withAlphaComponent(0.7), .font: UIFont.systemFont(ofSize: 20, weight: .regular)]
         
         navigationItem.standardAppearance = appearance
-        
-        
     }
     
     
@@ -378,25 +399,7 @@ class LoginVC: UIViewController{
         }
     }
     
-    
-
 }
-
-//MARK: - TextField Delegate
-extension LoginVC: UITextFieldDelegate{
-    func textFieldShouldReturn(_ textField: UITextField) -> Bool {
-        switch textField{
-        case emailTextField:
-            passwordTextField.becomeFirstResponder()
-        case passwordTextField:
-            textField.resignFirstResponder()
-        default:
-            break
-        }
-        return true
-    }
-}
-
 
 
 

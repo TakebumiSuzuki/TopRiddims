@@ -17,6 +17,8 @@ pod 'Firebase/Auth'
 pod 'Firebase/Firestore'
 pod 'FBSDKLoginKit'
 pod 'JGProgressHUD'
+pod 'RxSwift'
+pod 'RxCocoa'
 
 
 

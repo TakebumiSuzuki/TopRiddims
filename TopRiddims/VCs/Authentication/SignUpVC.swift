@@ -8,12 +8,15 @@
 import UIKit
 import Firebase
 import JGProgressHUD
+import RxSwift
+import RxCocoa
 
 class SignUpVC: UIViewController {
 
     //MARK: - Properties
     private let imageAlpha: CGFloat = 0.9
     
+    let disposeBag = DisposeBag()
     let authService = AuthService()
     let hud: JGProgressHUD = {
         let hud = JGProgressHUD()
@@ -64,13 +67,13 @@ class SignUpVC: UIViewController {
     
     private lazy var nameTextField: CustomTextField = {
         let tf = CustomTextField(placeholder: "Enter name")
-        tf.delegate = self
+//        tf.delegate = self
         return tf
     }()
     
     private lazy var emailTextField: CustomTextField = {
         let tf = CustomTextField(placeholder: "Enter email")
-        tf.delegate = self
+//        tf.delegate = self
         return tf
     }()
     
@@ -78,7 +81,7 @@ class SignUpVC: UIViewController {
         let tf = CustomTextField(placeholder: "Enter password")
         tf.isSecureTextEntry = true
         
-        tf.delegate = self
+//        tf.delegate = self
         return tf
     }()
     
@@ -96,7 +99,35 @@ class SignUpVC: UIViewController {
         setupNav()
         setupViews()
         setupNotifications()
+        setupObservers()
     }
+    
+    private func setupObservers(){
+        let nameFieldObservable = nameTextField.rx.text.orEmpty.asObservable()
+        let emalFieldObservable = emailTextField.rx.text.orEmpty.asObservable()
+        let passwordFieldObservable = passwordTextField.rx.text.orEmpty.asObservable()
+        let textFieldsObservable: Observable<Bool> = Observable.combineLatest(nameFieldObservable, emalFieldObservable, passwordFieldObservable){
+            (name, email, password) -> Bool in
+            return (name.count > 0 && email.count > 0 && password.count > 0)
+        }
+        textFieldsObservable.bind(to: signUpButton.rx.isEnabled).disposed(by: disposeBag)
+        textFieldsObservable.map{$0 ? 1 : 0.5}.bind(to: signUpButton.rx.alpha).disposed(by: disposeBag)
+        
+        nameTextField.rx.controlEvent(.editingDidEndOnExit).subscribe { [weak self](_) in
+            guard let self = self else {return}
+            self.emailTextField.becomeFirstResponder()
+        }.disposed(by: disposeBag)
+        emailTextField.rx.controlEvent(.editingDidEndOnExit).subscribe { [weak self](_) in
+            guard let self = self else {return}
+            self.passwordTextField.becomeFirstResponder()
+        }.disposed(by: disposeBag)
+        passwordTextField.rx.controlEvent(.editingDidEndOnExit).subscribe { [weak self](_) in
+            guard let self = self else {return}
+            self.passwordTextField.resignFirstResponder()
+        }.disposed(by: disposeBag)
+        
+    }
+    
     
     private func setupNav(){
         navigationItem.title = "Sign Up"
@@ -202,21 +233,21 @@ class SignUpVC: UIViewController {
     
 }
 
-
-//MARK: - TextField Delegate
-extension SignUpVC: UITextFieldDelegate{
-    func textFieldShouldReturn(_ textField: UITextField) -> Bool {
-        switch textField{
-        case nameTextField:
-            emailTextField.becomeFirstResponder()
-        case emailTextField:
-            passwordTextField.becomeFirstResponder()
-        case passwordTextField:
-            textField.resignFirstResponder()
-        default:
-            break
-        }
-        return true
-    }
-}
+//
+////MARK: - TextField Delegate
+//extension SignUpVC: UITextFieldDelegate{
+//    func textFieldShouldReturn(_ textField: UITextField) -> Bool {
+//        switch textField{
+//        case nameTextField:
+//            emailTextField.becomeFirstResponder()
+//        case emailTextField:
+//            passwordTextField.becomeFirstResponder()
+//        case passwordTextField:
+//            textField.resignFirstResponder()
+//        default:
+//            break
+//        }
+//        return true
+//    }
+//}
 

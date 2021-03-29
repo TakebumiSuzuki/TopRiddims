@@ -26,7 +26,7 @@ struct K{
     
     
     static let floatingPlayerWidthMultiplier: CGFloat = 0.5
-    static let floatingPlayerTopBottomInsets: CGFloat = 3
+    static let floatingPlayerTopBottomInsets: CGFloat = 10
     
     static let chartCellWidthMultiplier: CGFloat = 0.95 //view全体幅に対するchartCellの横幅
     static let videoCoverWidthMultiplier: CGFloat = 0.3 //chartCell横幅に対するソングカバーの横幅
