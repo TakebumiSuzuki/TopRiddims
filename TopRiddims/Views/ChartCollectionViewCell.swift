@@ -29,11 +29,33 @@ class ChartCollectionViewCell: UICollectionViewCell {
     private var videoHeight: CGFloat{ return videoWidth/16*9 }
     
     private var heartButtonOnOff: Bool = false{
-        didSet{ heartButton.tintColor = heartButtonOnOff ? #colorLiteral(red: 0.8549019694, green: 0.250980407, blue: 0.4784313738, alpha: 1) : #colorLiteral(red: 0.8039215803, green: 0.8039215803, blue: 0.8039215803, alpha: 1) }
+        didSet{
+            let config = UIImage.SymbolConfiguration(pointSize: 18, weight: .thin, scale: .medium)
+            if heartButtonOnOff{
+                let image = UIImage(systemName: "suit.heart.fill", withConfiguration: config)
+                heartButton.setImage(image, for: .normal)
+                heartButton.tintColor = #colorLiteral(red: 0.8549019694, green: 0.250980407, blue: 0.4784313738, alpha: 1)
+            }else{
+                let image = UIImage(systemName: "suit.heart", withConfiguration: config)
+                heartButton.setImage(image, for: .normal)
+                heartButton.tintColor = #colorLiteral(red: 0.8039215803, green: 0.8039215803, blue: 0.8039215803, alpha: 1)
+            }
+        }
     }
     
     private var checkButtonOnOff: Bool = false{
-        didSet{ checkButton.tintColor = checkButtonOnOff ? #colorLiteral(red: 0.2745098174, green: 0.4862745106, blue: 0.1411764771, alpha: 1) : #colorLiteral(red: 0.8039215803, green: 0.8039215803, blue: 0.8039215803, alpha: 1) }
+        didSet{
+            let config = UIImage.SymbolConfiguration(pointSize: 18, weight: .thin, scale: .medium)
+            if checkButtonOnOff{
+                let image = UIImage(systemName: "checkmark.circle.fill", withConfiguration: config)
+                checkButton.setImage(image, for: .normal)
+                checkButton.tintColor = #colorLiteral(red: 0.4666666687, green: 0.7647058964, blue: 0.2666666806, alpha: 1)
+            }else{
+                let image = UIImage(systemName: "checkmark.circle", withConfiguration: config)
+                checkButton.setImage(image, for: .normal)
+                checkButton.tintColor = #colorLiteral(red: 0.8039215803, green: 0.8039215803, blue: 0.8039215803, alpha: 1)
+            }
+        }
     }
     
     var chartCellIndexNumber: Int = 0  //自分自身のindexNumber
@@ -110,7 +132,7 @@ class ChartCollectionViewCell: UICollectionViewCell {
     private lazy var checkButton: UIButton = {
         let bn = UIButton(type: .system)
         let config = UIImage.SymbolConfiguration(pointSize: 18, weight: .thin, scale: .medium)
-        let image = UIImage(systemName: "checkmark.circle.fill", withConfiguration: config)
+        let image = UIImage(systemName: "checkmark.circle", withConfiguration: config)
         bn.setImage(image, for: .normal)
         bn.contentMode = .scaleAspectFit
         bn.addTarget(self, action: #selector(checkButtonPressed), for: .touchUpInside)
@@ -120,7 +142,7 @@ class ChartCollectionViewCell: UICollectionViewCell {
     private lazy var heartButton: UIButton = {
         let bn = UIButton(type: .system)
         let config = UIImage.SymbolConfiguration(pointSize: 18, weight: .thin, scale: .medium)
-        let image = UIImage(systemName: "suit.heart.fill", withConfiguration: config)
+        let image = UIImage(systemName: "suit.heart", withConfiguration: config)
         bn.setImage(image, for: .normal)
         bn.contentMode = .scaleAspectFit
         bn.addTarget(self, action: #selector(heartButtonPressed), for: .touchUpInside)
@@ -198,7 +220,9 @@ class ChartCollectionViewCell: UICollectionViewCell {
         numberLabel.leftAnchor.constraint(equalTo: videoCollectionView.leftAnchor, constant: adjustment/2).isActive = true
         
         songNameLabel.centerX(inView: self, topAnchor: videoCollectionView.bottomAnchor, paddingTop: 3)
+        songNameLabel.setContentCompressionResistancePriority(UILayoutPriority.init(100), for: .horizontal)
         artistNameLabel.centerX(inView: self, topAnchor: songNameLabel.bottomAnchor, paddingTop: 0)
+        artistNameLabel.setContentCompressionResistancePriority(UILayoutPriority.init(100), for: .horizontal)
 
         checkButton.anchor(right: videoCollectionView.rightAnchor, paddingRight: 4)
         checkButton.firstBaselineAnchor.constraint(equalTo: songNameLabel.firstBaselineAnchor).isActive = true

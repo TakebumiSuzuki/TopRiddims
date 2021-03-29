@@ -12,12 +12,7 @@ import Firebase
 import RxSwift
 import RxCocoa
 
-extension Observable {
-    func flipflop(initialValue: Bool) -> Observable<Bool>{
-        scan(initialValue) { current, _ in !current }
-            .startWith(initialValue)
-    }
-}
+
 
 class SettingVC: UIViewController {
     
@@ -53,7 +48,6 @@ class SettingVC: UIViewController {
     private let playerPlaceholderView: UIVisualEffectView = {
         let blurEffect = UIBlurEffect(style: .systemUltraThinMaterial)
         let bv = UIVisualEffectView(effect: blurEffect)
-        bv.layer.cornerRadius = 8
         bv.clipsToBounds = true
         return bv
     }()
@@ -72,10 +66,7 @@ class SettingVC: UIViewController {
         lb.textColor = UIColor.label
         
         let date = user.registrationDate.dateValue()
-        let df = DateFormatter()
-        df.timeStyle = .none
-        df.dateStyle = .short
-        let dateString = df.string(from: date)
+        let dateString = CustomDateFormatter.formatter.string(from: date)
         lb.text = "Joined on \(dateString)"
         
         return lb
@@ -116,7 +107,7 @@ class SettingVC: UIViewController {
     }
     
     private func setupNavBar(){
-        navigationItem.title = "Account Setting"
+        navigationItem.title = "Account"
         
         let logoutButton = UIBarButtonItem(title: "Logout", style: .plain, target: self, action: #selector(logoutButtonPressed))
         navigationItem.rightBarButtonItem = logoutButton

@@ -49,10 +49,12 @@ class ChartVC: UIViewController{
     
     //MARK: - UI Components
     
-    let playerPlaceholderView: UIView = {
-        let view = UIView()
-        view.backgroundColor = UIColor.lightGray.withAlphaComponent(0.7)
-        return view
+
+    private let playerPlaceholderView: UIVisualEffectView = {
+        let blurEffect = UIBlurEffect(style: .systemUltraThinMaterial)
+        let bv = UIVisualEffectView(effect: blurEffect)
+        bv.clipsToBounds = true
+        return bv
     }()
     private lazy var chartCollectionView: UICollectionView = {
         let layout = UICollectionViewFlowLayout()
@@ -110,8 +112,9 @@ class ChartVC: UIViewController{
     }
     
     private func setupNavBar(){
-        let navTitleImageView = UIImageView(image:UIImage(named: "Top_Riddims")?.withTintColor(UIColor(named: "Black_Yellow")!))
-        navigationItem.titleView = navTitleImageView
+//        let navTitleImageView = UIImageView(image:UIImage(named: "Top_Riddims")?.withTintColor(UIColor(named: "Black_Yellow")!))
+//        navigationItem.titleView = navTitleImageView
+        navigationItem.title = "Charts"
         
         let rightButton = UIBarButtonItem()
         rightButton.customView = dummyButton
@@ -426,14 +429,14 @@ extension ChartVC: UICollectionViewDelegateFlowLayout{
 extension ChartVC: ChartCollectionViewCellDelegate{
     func heartButtonTapped(chartCellIndexNumber: Int, currentPageIndexNum: Int, buttonState: Bool) {
         user.allChartData[chartCellIndexNumber].songs[currentPageIndexNum].liked = buttonState
-        let trackID = user.allChartData[chartCellIndexNumber].songs[currentPageIndexNum].trackID
-        firestoreService.addOrDeleteLikedTrackID(uid: self.uid, trackID: trackID, likedOrUnliked: buttonState)
+        let song = user.allChartData[chartCellIndexNumber].songs[currentPageIndexNum]
+        firestoreService.addOrDeleteLikedTrackID(uid: self.uid, song: song, likedOrUnliked: buttonState)
     }
     
     func checkButtonTapped(chartCellIndexNumber: Int, currentPageIndexNum: Int, buttonState: Bool) {
         user.allChartData[chartCellIndexNumber].songs[currentPageIndexNum].checked = buttonState
-        let trackID = user.allChartData[chartCellIndexNumber].songs[currentPageIndexNum].trackID
-        firestoreService.addOrDeleteCheckedTrackID(uid: self.uid, trackID: trackID, checkedOrUnchecked: buttonState)
+        let song = user.allChartData[chartCellIndexNumber].songs[currentPageIndexNum]
+        firestoreService.addOrDeleteCheckedTrackID(uid: self.uid, song: song, checkedOrUnchecked: buttonState)
     }
     
     

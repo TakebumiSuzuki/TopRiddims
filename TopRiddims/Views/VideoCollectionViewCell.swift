@@ -55,7 +55,7 @@ class VideoCollectionViewCell: UIView{
     private lazy var thumbnailImageView: UIImageView = {
         let iv = UIImageView()
         iv.contentMode = .scaleAspectFill
-        iv.layer.cornerRadius = 5
+        iv.layer.cornerRadius = 2
         iv.clipsToBounds = true
         iv.backgroundColor = .separator
         return iv

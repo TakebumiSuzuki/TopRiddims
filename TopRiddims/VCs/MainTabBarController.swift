@@ -25,15 +25,15 @@ class MainTabBarController: UITabBarController {
         }
     }
     var allChartData = [(country: String, songs:[Song], updated: Timestamp)]()  //初期値はまっさらな空
-    
+    var likedSongs = [Song]()
     var currentTrackID: String?  //プレイヤー用
     
     //MARK: - UI Components
     lazy var videoPlayer: YTPlayerView = {
         let vp = YTPlayerView(frame: .zero)
         vp.delegate = self
-        vp.backgroundColor = UIColor.darkGray
-        vp.layer.cornerRadius = 4
+        vp.backgroundColor = UIColor.systemFill
+        vp.layer.cornerRadius = 3
         vp.clipsToBounds = true
         return vp
     }()
@@ -56,6 +56,7 @@ class MainTabBarController: UITabBarController {
     //MARK: - ViewLifeCycles
     override func viewDidLoad() {
         super.viewDidLoad()
+        
     }
     
     override func viewWillAppear(_ animated: Bool) {
@@ -80,15 +81,25 @@ class MainTabBarController: UITabBarController {
             
             self.firestoreService.fetchUserInfoWithUid(uid: uid) { (result) in
                 switch result{
-                case .failure(_):  //ここが起動時の唯一のエラーキャッチポイント。
+                case .failure(_):
                     let alert = AlertService(vc:self)
                     alert.showSimpleAlert(title: "Login status error.Please try reopen the app. Sorry!!", message: "", style: .alert)
+                    
                 case .success(let user):
-                    self.user = user
-                    user.uid = uid  //一応念のため、Authからの直のuidをuserのuidに入れておく。
-                    self.configureTabs()  //ユーザーの情報を完全にゲットしてから各タブを作る。
-                    self.setupVideoView()
-                    self.setupObservers()
+                    self.firestoreService.fetchLikedSongs(uid: uid) { (result) in
+                        switch result{
+                        case .failure(_):
+                            let alert = AlertService(vc:self)
+                            alert.showSimpleAlert(title: "Song Database error.Please try reopen the app. Sorry!!", message: "", style: .alert)
+                        case .success(let likedSongs):
+                            self.user = user
+                            self.likedSongs = likedSongs
+                            user.uid = uid  //一応念のため、Authからの直のuidをuserのuidに入れておく。
+                            self.configureTabs()  //ユーザーの情報を完全にゲットしてから各タブを作る。
+                            self.setupVideoView()
+                            self.setupObservers()
+                        }
+                    }
                 }
             }
         }
@@ -119,7 +130,7 @@ class MainTabBarController: UITabBarController {
                                              selectedImage: UIImage(systemName: "bolt.fill", withConfiguration: configuration)!,
                                              unselectedImage: UIImage(systemName: "bolt", withConfiguration: configuration)!)
         
-        let likesVC = LikesVC()
+        let likesVC = LikesVC(user: user, likedSongs: self.likedSongs)
         let likesNav = generateNavController(rootVC: likesVC,
                                              title: "likes",
                                              selectedImage: UIImage(systemName: "suit.heart.fill", withConfiguration: configuration)!,

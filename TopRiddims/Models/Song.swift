@@ -7,6 +7,7 @@
 
 import Foundation
 import MobileCoreServices
+import Firebase
 
 class Song{
     
@@ -18,7 +19,9 @@ class Song{
         return "https://i.ytimg.com/vi/\(trackID)/hqdefault.jpg"
     }
     var liked: Bool = false
+    var likedStateUpdateDate: Timestamp = Timestamp()
     var checked: Bool = false
+    var checkedStateUpdateDate: Timestamp = Timestamp()  //こちらのcheckedした日は使わないかもしれないがとりあえず。
     var showPlayButton: Bool = true
     
     init(trackID: String, songName: String, artistName: String) {

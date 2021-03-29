@@ -31,6 +31,8 @@
 		0C68F60F260FACB8005BC185 /* AuthService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0C68F60E260FACB8005BC185 /* AuthService.swift */; };
 		0C68F613260FBDFE005BC185 /* FacebookLoginService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0C68F612260FBDFE005BC185 /* FacebookLoginService.swift */; };
 		0C68F616260FD9BD005BC185 /* FirestoreService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0C68F615260FD9BD005BC185 /* FirestoreService.swift */; };
+		0C68F65C261264A9005BC185 /* LikesTableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0C68F65B261264A9005BC185 /* LikesTableViewCell.swift */; };
+		0C68F65F261274FF005BC185 /* DateFormattingService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0C68F65E261274FF005BC185 /* DateFormattingService.swift */; };
 		0C8A313926020183003AF166 /* ChartCollectionHeaderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0C8A313826020183003AF166 /* ChartCollectionHeaderView.swift */; };
 		0C8A313D2602021E003AF166 /* ChartCollectionFooterView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0C8A313C2602021E003AF166 /* ChartCollectionFooterView.swift */; };
 		0C8A314526020DFC003AF166 /* WebpageScraper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0C8A314426020DFC003AF166 /* WebpageScraper.swift */; };
@@ -70,6 +72,8 @@
 		0C68F60E260FACB8005BC185 /* AuthService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthService.swift; sourceTree = "<group>"; };
 		0C68F612260FBDFE005BC185 /* FacebookLoginService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FacebookLoginService.swift; sourceTree = "<group>"; };
 		0C68F615260FD9BD005BC185 /* FirestoreService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FirestoreService.swift; sourceTree = "<group>"; };
+		0C68F65B261264A9005BC185 /* LikesTableViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LikesTableViewCell.swift; sourceTree = "<group>"; };
+		0C68F65E261274FF005BC185 /* DateFormattingService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DateFormattingService.swift; sourceTree = "<group>"; };
 		0C8A313826020183003AF166 /* ChartCollectionHeaderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChartCollectionHeaderView.swift; sourceTree = "<group>"; };
 		0C8A313C2602021E003AF166 /* ChartCollectionFooterView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChartCollectionFooterView.swift; sourceTree = "<group>"; };
 		0C8A314426020DFC003AF166 /* WebpageScraper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebpageScraper.swift; sourceTree = "<group>"; };
@@ -145,6 +149,7 @@
 				0C62B8D225FF8E5D00A203B2 /* Extension + UIColor.swift */,
 				0CB575672601C9E500DE22F9 /* Extension + UIView.swift */,
 				0C68F603260F5BAB005BC185 /* Extension + UIImageView.swift */,
+				0C68F65E261274FF005BC185 /* DateFormattingService.swift */,
 				0CAC7E0C2605CCFE00582E3A /* AlertService.swift */,
 				0CB575632601C6CD00DE22F9 /* Constants.swift */,
 				0C62B8B625FE8F7600A203B2 /* Assets.xcassets */,
@@ -194,6 +199,7 @@
 				0C8A313C2602021E003AF166 /* ChartCollectionFooterView.swift */,
 				0C3756DF260B7EC9007CC850 /* ChartCollectionViewCell.swift */,
 				0C3756E4260B85AA007CC850 /* VideoCollectionViewCell.swift */,
+				0C68F65B261264A9005BC185 /* LikesTableViewCell.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -330,8 +336,10 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				0C68F65F261274FF005BC185 /* DateFormattingService.swift in Sources */,
 				0C37570B260DB230007CC850 /* LoginVC.swift in Sources */,
 				0C68F616260FD9BD005BC185 /* FirestoreService.swift in Sources */,
+				0C68F65C261264A9005BC185 /* LikesTableViewCell.swift in Sources */,
 				0C37570E260DB260007CC850 /* ResetPasswordVC.swift in Sources */,
 				0C8A314826020E52003AF166 /* Song.swift in Sources */,
 				0C62B8CD25FE932C00A203B2 /* LikesVC.swift in Sources */,

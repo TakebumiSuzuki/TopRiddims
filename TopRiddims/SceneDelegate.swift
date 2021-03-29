@@ -18,6 +18,16 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         window = UIWindow(windowScene: windowScene)
         window?.rootViewController = MainTabBarController()
         window?.makeKeyAndVisible()
+        
+        
+        
+        // ① ナビゲーションバーの背景色
+//        UINavigationBar.appearance().barTintColor = UIColor.label
+        // ② ナビゲーションバーのタイトルの色
+        UINavigationBar.appearance().titleTextAttributes = [.foregroundColor: UIColor.label.withAlphaComponent(0.7),
+                                                            .font: UIFont.systemFont(ofSize: 28, weight: .light)]
+        // ③ ナビゲーションバー上のアイテムの色
+        UINavigationBar.appearance().tintColor = .red
     }
 
     

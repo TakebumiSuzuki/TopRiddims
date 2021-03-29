@@ -106,33 +106,71 @@ class FirestoreService{
 
     }
     
-    func addOrDeleteLikedTrackID(uid: String, trackID: String, likedOrUnliked: Bool){
-        if likedOrUnliked{
-            K.FSCollectionUsers.document(uid).collection("tracks").document("liked").setData([trackID: Timestamp()], merge: true) { (error) in
-                print("Likedエラーはあるかな\(error?.localizedDescription)")
+    //MARK: - ハートまたはチェックの書き込み。ChartVCとLikesVCの両方から使われる。
+    func addOrDeleteLikedTrackID(uid: String, song: Song, likedOrUnliked: Bool){
+        
+        let trackData: [String : Any] = ["trackID": song.trackID, "artistName": song.artistName, "songName": song.songName, "liked": likedOrUnliked, "likedStateUpdateDate": Timestamp()]
+        
+        K.FSCollectionUsers.document(uid).collection("tracks").document(song.trackID).setData(trackData, merge: true) { (error) in
+            if let error = error {  //特にユーザーにエラーを表示する必要ないかと。。よってcompletionもなし。
+                print("DEBUG: Error saving like or unlike date to Firestore: \(error.localizedDescription)")
+                return
             }
-        }else{
-            K.FSCollectionUsers.document(uid).collection("tracks").document("liked").updateData([trackID: FieldValue.delete()]) { (error) in
-                print("unLikedエラーはあるかな\(error?.localizedDescription)")
-            }
+            //保存成功。特にやることなし
         }
-        
-        
     }
     
     
-    func addOrDeleteCheckedTrackID(uid: String, trackID: String, checkedOrUnchecked: Bool){
-        if checkedOrUnchecked{
-            K.FSCollectionUsers.document(uid).collection("tracks").document("checked").setData([trackID: Timestamp()], merge: true) { (error) in
-                print("checkedエラーはあるかな\(error?.localizedDescription)")
+    func addOrDeleteCheckedTrackID(uid: String, song: Song, checkedOrUnchecked: Bool){
+        
+        let trackData: [String : Any] = ["trackID": song.trackID, "artistName": song.artistName, "songName": song.songName, "checkd": checkedOrUnchecked, "checkdStateUpdateDate": Timestamp()]
+        
+        K.FSCollectionUsers.document(uid).collection("tracks").document(song.trackID).setData(trackData, merge: true) { (error) in
+            if let error = error {  //特にユーザーにエラーを表示する必要ないかと。。よってcompletionもなし。
+                print("DEBUG: Error saving check or uncheck date to Firestore: \(error.localizedDescription)")
+                return
             }
-        }else{
-            K.FSCollectionUsers.document(uid).collection("tracks").document("checked").updateData([trackID : FieldValue.delete()]) { (error) in
-                print("uncheckedエラーはあるかな\(error?.localizedDescription)")
+            //保存成功。特にやることなし
+        }
+    }
+    
+    
+    
+    func fetchLikedSongs(uid: String, completion: @escaping (Result<[Song], Error>) -> Void){
+        K.FSCollectionUsers.document(uid).collection("tracks").whereField("liked", isEqualTo: true).order(by: "likedStateUpdateDate").limit(to: 3).getDocuments { (snapshot, error) in
+            
+            if let error = error{
+                print("DEBUG: Error occured fetching liked tracks from Firestore: \(error.localizedDescription)")
+                completion(.failure(error))
+                return
+            }
+            guard let snapshot = snapshot else{
+                print("DEBUG: snapshot is Nil!")
+                completion(.failure(CustomFirestoreError.snapshotIsNil))
+                return
+            }
+            let documents = snapshot.documents
+            var likedSongs = [Song]()
+            documents.forEach {
+                let trackID = $0["trackID"] as? String ?? ""
+                let songName = $0["songName"] as? String ?? ""
+                let artistName = $0["artistName"] as? String ?? ""
+                let likedStateUpdateDate = $0["likedStateUpdateDate"] as? Timestamp ?? Timestamp()
+                let checked = $0["checked"] as? Bool ?? false
                 
+                let song = Song(trackID: trackID, songName: songName, artistName: artistName)
+                song.liked = true
+                song.likedStateUpdateDate = likedStateUpdateDate
+                song.checked = checked
+                likedSongs.append(song)
             }
+            completion(.success(likedSongs))
         }
     }
+    
+    
+    
 }
+
 
 
