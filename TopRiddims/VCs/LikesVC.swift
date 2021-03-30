@@ -107,6 +107,11 @@ class LikesVC: UIViewController{
         
     }
     
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(true)
+        tableView.reloadData()
+    }
+    
     
     
 }
@@ -143,16 +148,47 @@ extension LikesVC: UITableViewDelegate{
 }
 
 extension LikesVC: LikesTableViewCellDelegate{
+    //このページでlikeボタン、checkボタンが押された時に実行されるのは、
+    //0.UIの即時アップデート→これはLikesTableViewCell側で対応
+    //1.likedSongs配列のアップデート→dequeueによる不一致を防ぐ為
+    //2.User.allChartDatの中で、同一曲を発見しアップデート(そして、ChartViewにタブが移行するとviewWillAppearでreloadData()される)
+    //3.Firestore内のtracksコレクションの中に登録された曲の"liked", "checked"フィールドのmerge set。
+    //4.Firestore内のuserコレクションの中のallChartRawDataをアップデート
+    
+    
     func heartButtonTapped(cell: LikesTableViewCell, buttonState: Bool) {
         guard let indexPath = tableView.indexPath(for: cell) else{return}
         likedSongs[indexPath.row].liked = buttonState
+        
+        let trackID = likedSongs[indexPath.row].trackID
+        let synchronizer = TrackLikedCheckedSynchronizer()
+        synchronizer.likedSynchronize(allChartData: user.allChartData, trackID: trackID, newLikedStatus: buttonState)
+        
         firestoreService.addOrDeleteLikedTrackID(uid: self.uid, song: likedSongs[indexPath.row], likedOrUnliked: buttonState)
+        
+        //最後の引数updateNeedToBeUpdatedは国ごとのチャートデータ(20曲セット)がいつアップデートされたかを表す"updated"フィールド書き込むかどうか。
+        //ここのようにliked/checked関係のボタンアップデートでは関係ないので書き込まない=falseにする。
+        firestoreService.saveAllChartData(uid: self.uid, allChartData: user.allChartData, updateNeedToBeUpdated: false) { (error) in
+            //特にエラーハンドリングの必要ないかと。
+        }
+        
     }
     
     func checkButtonTapped(cell: LikesTableViewCell, buttonState: Bool) {
         guard let indexPath = tableView.indexPath(for: cell) else{return}
         likedSongs[indexPath.row].checked = buttonState
+        
+        let trackID = likedSongs[indexPath.row].trackID
+        let synchronizer = TrackLikedCheckedSynchronizer()
+        synchronizer.checkedSynchronize(allChartData: user.allChartData, trackID: trackID, newCheckedStatus: buttonState)
+        
         firestoreService.addOrDeleteCheckedTrackID(uid: self.uid, song: likedSongs[indexPath.row], checkedOrUnchecked: buttonState)
+        
+        //最後の引数updateNeedToBeUpdatedは国ごとのチャートデータ(20曲セット)がいつアップデートされたかを表す"updated"フィールド書き込むかどうか。
+        //ここのようにliked/checked関係のボタンアップデートでは関係ないので書き込まない=falseにする。
+        firestoreService.saveAllChartData(uid: self.uid, allChartData: user.allChartData, updateNeedToBeUpdated: false) { (error) in
+            //特にエラーハンドリングの必要ないかと。
+        }
     }
     
     

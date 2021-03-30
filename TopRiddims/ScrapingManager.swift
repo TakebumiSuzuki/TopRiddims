@@ -105,7 +105,7 @@ class ScrapingManager{
                 if scraper.videoIDs.count == 20 && scraper.songNames.count == 20 && scraper.artistNames.count == 20 {
                     var songs = [Song]()
                     for n in 0..<20{
-                        let song = Song(trackID: scraper.videoIDs[n], songName: scraper.songNames[n], artistName: scraper.artistNames[n])
+                        let song = Song(trackID: scraper.videoIDs[n], songName: scraper.songNames[n], artistName: scraper.artistNames[n], liked: false, checked: false)
                         songs.append(song)
                     }
                     print("----FINISHED FETCHING \(i)/\(self.chartDataToFetch.count)")

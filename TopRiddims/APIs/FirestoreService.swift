@@ -73,29 +73,34 @@ class FirestoreService{
     }
     
     
-    func saveAllChartData(uid: String, allChartData: [(country: String, songs:[Song], updated: Timestamp)], completion: @escaping (Error?) -> Void){
+    func saveAllChartData(uid: String, allChartData: [(country: String, songs:[Song], updated: Timestamp)], updateNeedToBeUpdated: Bool, completion: @escaping (Error?) -> Void){
         
         var allChartRawData = [[String : Any]]()
         for eachCountryData in allChartData{
             let songs = eachCountryData.songs
-            var songsRawData = [[String : String]]()
+            var songsRawData = [[String : Any]]()
             for song in songs{
-                let songRawData: [String : String] = [
+                let songRawData: [String : Any] = [
                     "trackID": song.trackID,
                     "songName": song.songName,
-                    "artistName": song.artistName
+                    "artistName": song.artistName,
+                    "liked": song.liked,
+                    "checked": song.checked
                 ]
                 songsRawData.append(songRawData)
             }
             
-            let countryData = [
-                "songs": songsRawData,
-                "updated": Timestamp()
-            ] as [String : Any]
+            var countryData = [String : Any]()
+            if updateNeedToBeUpdated{
+                countryData = ["songs": songsRawData, "updated": Timestamp()] as [String : Any]
+            }else{
+                countryData = ["songs": songsRawData] as [String : Any]
+            }
             
             allChartRawData.append([eachCountryData.country : countryData])
         }
         
+        //ここでハマったのはsetDataに続くargumentのカッコ内で"allChartRawData"を２箇所で書かないといけない事
         K.FSCollectionUsers.document(uid).setData(["allChartRawData": allChartRawData], mergeFields: ["allChartRawData"]) { (error) in
             if let error = error{
                 print("DEBUG: Error occured mergeField-saving allChartRawData in Firestore: \(error.localizedDescription)")
@@ -137,7 +142,7 @@ class FirestoreService{
     
     
     func fetchLikedSongs(uid: String, completion: @escaping (Result<[Song], Error>) -> Void){
-        K.FSCollectionUsers.document(uid).collection("tracks").whereField("liked", isEqualTo: true).order(by: "likedStateUpdateDate").limit(to: 10).getDocuments { (snapshot, error) in
+        K.FSCollectionUsers.document(uid).collection("tracks").whereField("liked", isEqualTo: true).order(by: "likedStateUpdateDate", descending: true).limit(to: 10).getDocuments { (snapshot, error) in
             
             if let error = error{
                 print("DEBUG: Error occured fetching liked tracks from Firestore: \(error.localizedDescription)")
@@ -158,10 +163,9 @@ class FirestoreService{
                 let likedStateUpdateDate = $0["likedStateUpdateDate"] as? Timestamp ?? Timestamp()
                 let checked = $0["checked"] as? Bool ?? false
                 
-                let song = Song(trackID: trackID, songName: songName, artistName: artistName)
-                song.liked = true
+                let song = Song(trackID: trackID, songName: songName, artistName: artistName, liked: true, checked: checked)
                 song.likedStateUpdateDate = likedStateUpdateDate
-                song.checked = checked
+                
                 likedSongs.append(song)
             }
             completion(.success(likedSongs))

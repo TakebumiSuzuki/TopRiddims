@@ -44,7 +44,7 @@ class User{
         //このRawDataとは、FirestoreからDLしたそのままのデータ。
         let allChartRawData = data["allChartRawData"] as? [[String : [String : Any]]] ?? [[String : [String : Any]]]()
         
-        //ここで空のallChartDataを作る。初めてログインした時は、この空の値がそのまま適用される。
+        //ここで空のallChartDataオブジェクトを作る。初めてログインした時は、この空の値がそのまま適用される。
         var allChartData = [(country: String, songs:[Song], updated: Timestamp)]()
         
         for eachChartRawData in allChartRawData{
@@ -56,13 +56,15 @@ class User{
             //ここでsongs:[Song]をゲット
             var songsDataForEachCountry = [Song]()  //空の容器を作る
             let songsAndUpdatedDicValues = Array(eachChartRawData.values) as [[String : Any]]
-            let songsAndUpdatedDic = songsAndUpdatedDicValues[0]
-            if let songs = songsAndUpdatedDic["songs"] as? [[String : String]]{
+            let songsAndUpdatedDic = songsAndUpdatedDicValues[0]  //これが[songs:  , updated:  ]の事
+            if let songs = songsAndUpdatedDic["songs"] as? [[String : Any]]{  //これが曲情報の順位順配列、つまり[曲]
                 for eachSong in songs{
-                    let artistName = eachSong["artistName"] ?? ""
-                    let songName = eachSong["songName"] ?? ""
-                    let trackID = eachSong["trackID"] ?? ""
-                    let song = Song(trackID: trackID, songName: songName, artistName: artistName)
+                    let artistName = eachSong["artistName"] as? String ?? ""
+                    let songName = eachSong["songName"] as? String ?? ""
+                    let trackID = eachSong["trackID"] as? String ?? ""
+                    let liked = eachSong["liked"] as? Bool ?? false
+                    let checked = eachSong["checked"] as? Bool ?? false
+                    let song = Song(trackID: trackID, songName: songName, artistName: artistName, liked: liked, checked: checked)
                     songsDataForEachCountry.append(song)
                 }
             }

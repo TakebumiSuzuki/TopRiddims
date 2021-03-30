@@ -24,10 +24,12 @@ class Song{
     var checkedStateUpdateDate: Timestamp = Timestamp()  //こちらのcheckedした日は使わないかもしれないがとりあえず。
     var showPlayButton: Bool = true
     
-    init(trackID: String, songName: String, artistName: String) {
+    init(trackID: String, songName: String, artistName: String, liked: Bool, checked: Bool) {
         self.trackID = trackID
         self.songName = songName
         self.artistName = artistName
+        self.liked = liked
+        self.checked = checked
     }
     
 //    static var writableTypeIdentifiersForItemProvider: [String] {

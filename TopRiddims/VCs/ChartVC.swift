@@ -141,6 +141,12 @@ class ChartVC: UIViewController{
         chartCollectionView.anchor(top: playerPlaceholderView.bottomAnchor, left: view.leftAnchor, bottom: view.safeAreaLayoutGuide.bottomAnchor, right: view.rightAnchor)
     }
     
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(true)
+        print("reloading data")
+        chartCollectionView.reloadData()
+    }
+    
     //MARK: - Notification FirstResponder
     //ジャンプボタンはとりあえずオフに
     
@@ -239,8 +245,7 @@ extension ChartVC: ScrapingManagerDelegate{
         scrapingManager = nil //これによりfetching関連で作ったインスタンスを消去
         reloadingOnOff.toggle()
         stopAllLoaders()
-        //ここでuidをゲットする必要がある。このvc作成時にタブバーから注入すれば良い?
-        firestoreService.saveAllChartData(uid: self.uid, allChartData: user.allChartData) { (error) in
+        firestoreService.saveAllChartData(uid: self.uid, allChartData: user.allChartData, updateNeedToBeUpdated: true) { (error) in
             //ここでエラーになった場合でも成功した場合でも特にユーザーに伝える必要はないかと。このまま何もせずにok
         }
     }
@@ -307,7 +312,9 @@ extension ChartVC: MapVCDelegate{
     private func updateWithNewCountries(newEntries: [String]){
         //newEntriesが空の時、つまり国が減るだけの場合、Firestoreに保存してリターン。
         if newEntries.isEmpty{
-            firestoreService.saveAllChartData(uid: self.uid, allChartData: user.allChartData) { (error) in
+            //最後の引数updateNeedToBeUpdatedは国ごとのチャートデータ(20曲セット)がいつアップデートされたかを表す"updated"フィールド書き込むかどうか。
+            //ここのように国を減らすだけの場合には新しい情報をゲットしていないのでfalseに。
+            firestoreService.saveAllChartData(uid: self.uid, allChartData: user.allChartData, updateNeedToBeUpdated: false) { (error) in
                 //ここでエラーになった場合でも成功した場合でも特にユーザーに伝える必要はないかと。このまま何もせずにok
             }
             return
@@ -316,7 +323,7 @@ extension ChartVC: MapVCDelegate{
         var newCountryData = [(country: String, songs:[Song], updated: Timestamp)]()
         
         newEntries.forEach{  //sample1曲のみのチャートデータを新しい国ごとに作っている。
-            let data = (country: $0, songs: [Song(trackID: "trackID", songName: "Getting songs now!", artistName: "Please wait for a moment...")], updated: Timestamp())
+            let data = (country: $0, songs: [Song(trackID: "trackID", songName: "Getting songs now!", artistName: "Please wait for a moment...", liked: false, checked: false)], updated: Timestamp())
             //songNameとartistnameを空にしたら、下のinsertItemsの段で、一番目の要素(jamaica)から挿入された。UIKitのバグかと。
             
             newCountryData.append(data)
@@ -391,9 +398,10 @@ extension ChartVC: UICollectionViewDelegate{
         user.allChartData.insert(item, at: destinationIndexPath.row)
         let videoPage = pageNumbers.remove(at: sourceIndexPath.row)
         pageNumbers.insert(videoPage, at: destinationIndexPath.row)
-        print("destinationが呼ばれ、新ページ\(pageNumbers)")
         chartCollectionView.reloadData()
-        firestoreService.saveAllChartData(uid: self.uid, allChartData: user.allChartData) { (error) in
+        //最後の引数updateNeedToBeUpdatedは国ごとのチャートデータ(20曲セット)がいつアップデートされたかを表す"updated"フィールド書き込むかどうか。
+        //ここでは単にデータの列を入れ替えているだけで新しいデータをゲットするわけではないので書き込まない=falseにする。
+        firestoreService.saveAllChartData(uid: self.uid, allChartData: user.allChartData, updateNeedToBeUpdated: false) { (error) in
             //ここでエラーになった場合でも成功した場合でも特にユーザーに伝える必要はないかと。このまま何もせずにok
         }
         
@@ -429,14 +437,40 @@ extension ChartVC: UICollectionViewDelegateFlowLayout{
 extension ChartVC: ChartCollectionViewCellDelegate{
     func heartButtonTapped(chartCellIndexNumber: Int, currentPageIndexNum: Int, buttonState: Bool) {
         user.allChartData[chartCellIndexNumber].songs[currentPageIndexNum].liked = buttonState
+        
+        let trackID = user.allChartData[chartCellIndexNumber].songs[currentPageIndexNum].trackID
+        let synchronizer = TrackLikedCheckedSynchronizer()
+        synchronizer.likedSynchronize(allChartData: user.allChartData, trackID: trackID, newLikedStatus: buttonState)
+        chartCollectionView.reloadData()
+        
+        //以下はエラーハンドリング必要ないかと
         let song = user.allChartData[chartCellIndexNumber].songs[currentPageIndexNum]
         firestoreService.addOrDeleteLikedTrackID(uid: self.uid, song: song, likedOrUnliked: buttonState)
+        
+        //最後の引数updateNeedToBeUpdatedは国ごとのチャートデータ(20曲セット)がいつアップデートされたかを表す"updated"フィールド書き込むかどうか。
+        //ここのようにliked/checked関係のボタンアップデートでは関係ないので書き込まない=falseにする。
+        firestoreService.saveAllChartData(uid: self.uid, allChartData: user.allChartData, updateNeedToBeUpdated: false) { (error) in
+            //ここでエラーになった場合でも成功した場合でも特にユーザーに伝える必要はないかと。このまま何もせずにok
+        }
     }
     
     func checkButtonTapped(chartCellIndexNumber: Int, currentPageIndexNum: Int, buttonState: Bool) {
         user.allChartData[chartCellIndexNumber].songs[currentPageIndexNum].checked = buttonState
+        
+        let trackID = user.allChartData[chartCellIndexNumber].songs[currentPageIndexNum].trackID
+        let synchronizer = TrackLikedCheckedSynchronizer()
+        synchronizer.checkedSynchronize(allChartData: user.allChartData, trackID: trackID, newCheckedStatus: buttonState)
+        chartCollectionView.reloadData()
+        
+        //以下はエラーハンドリング必要ないかと
         let song = user.allChartData[chartCellIndexNumber].songs[currentPageIndexNum]
         firestoreService.addOrDeleteCheckedTrackID(uid: self.uid, song: song, checkedOrUnchecked: buttonState)
+        
+        //最後の引数updateNeedToBeUpdatedは国ごとのチャートデータ(20曲セット)がいつアップデートされたかを表す"updated"フィールド書き込むかどうか。
+        //ここのようにliked/checked関係のボタンアップデートでは関係ないので書き込まない=falseにする。
+        firestoreService.saveAllChartData(uid: self.uid, allChartData: user.allChartData, updateNeedToBeUpdated: false) { (error) in
+            //ここでエラーになった場合でも成功した場合でも特にユーザーに伝える必要はないかと。このまま何もせずにok
+        }
     }
     
     
