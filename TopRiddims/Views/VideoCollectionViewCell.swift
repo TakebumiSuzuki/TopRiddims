@@ -22,12 +22,10 @@ class VideoCollectionViewCell: UIView{
                     self.playButton.isHidden = false
                     self.pauseButton.isHidden = true
                     self.spinner.isHidden = true
-                    self.spinner.isHidden = true
                     self.spinner.stopAnimating()
                     self.song.showPlayButton = true
                 }else{
                     self.playButton.isHidden = true
-                    self.spinner.isHidden = false
                     self.spinner.isHidden = false
                     self.spinner.startAnimating()
                 }

@@ -38,6 +38,13 @@ class MainTabBarController: UITabBarController {
         return vp
     }()
     
+    private lazy var scaleChangeButton: UIButton = {
+        let bn = UIButton(type: .system)
+        bn.setImage(UIImage(systemName: "arrow.up.and.down.square"), for: .normal)
+        bn.addTarget(self, action: #selector(scaleChangeButtonTapped), for: .touchUpInside)
+        return bn
+    }()
+    
     private let blackImageView: UIImageView = {
         let iv = UIImageView()
         iv.image = UIImage(named: "BlackScreen")
@@ -151,6 +158,7 @@ class MainTabBarController: UITabBarController {
     //MARK: - Video Player設定
     private func setupVideoView(){
         view.addSubview(videoPlayer)
+        view.addSubview(scaleChangeButton)
         view.addSubview(blackImageView)
         view.addSubview(spinner)
         view.bringSubviewToFront(videoPlayer)
@@ -165,6 +173,9 @@ class MainTabBarController: UITabBarController {
         let playerWidth = view.frame.width * K.floatingPlayerWidthMultiplier
         videoPlayer.centerX(inView: view, topAnchor: view.safeAreaLayoutGuide.topAnchor, paddingTop: nav.navigationBar.frame.maxY + K.floatingPlayerTopBottomInsets)
         videoPlayer.setDimensions(height: playerWidth/16*9, width: playerWidth)
+        
+        scaleChangeButton.anchor(top: videoPlayer.topAnchor, left: videoPlayer.rightAnchor,paddingTop: 10, paddingLeft: 20, width: 20, height: 20)
+        
         
         blackImageView.centerX(inView: view, topAnchor: view.safeAreaLayoutGuide.topAnchor, paddingTop: nav.navigationBar.frame.maxY + K.floatingPlayerTopBottomInsets)
         blackImageView.setDimensions(height: playerWidth/16*9, width: playerWidth)
@@ -212,6 +223,20 @@ class MainTabBarController: UITabBarController {
         //        guard let trackID = info?["trackID"] as? String else {return}
         videoPlayer.pauseVideo()
     }
+    
+    @objc func scaleChangeButtonTapped(){
+        print("called")
+//        guard let nav = self.viewControllers![1] as? UINavigationController else{return}
+//        let playerWidth = view.frame.width * K.floatingPlayerWidthMultiplier
+//        videoPlayer.setNeedsLayout()
+//        videoPlayer.centerX(inView: view, topAnchor: view.safeAreaLayoutGuide.topAnchor, paddingTop: nav.navigationBar.frame.maxY + K.floatingPlayerTopBottomInsets)
+//        videoPlayer.setDimensions(height: playerWidth/16*9*2, width: playerWidth)
+//
+        
+    }
+    
+    
+    
     
 }
 
