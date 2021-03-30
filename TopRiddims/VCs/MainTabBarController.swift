@@ -226,13 +226,18 @@ class MainTabBarController: UITabBarController {
     
     @objc func scaleChangeButtonTapped(){
         print("called")
-//        guard let nav = self.viewControllers![1] as? UINavigationController else{return}
-//        let playerWidth = view.frame.width * K.floatingPlayerWidthMultiplier
-//        videoPlayer.setNeedsLayout()
-//        videoPlayer.centerX(inView: view, topAnchor: view.safeAreaLayoutGuide.topAnchor, paddingTop: nav.navigationBar.frame.maxY + K.floatingPlayerTopBottomInsets)
-//        videoPlayer.setDimensions(height: playerWidth/16*9*2, width: playerWidth)
-//
         
+        videoPlayer.load(withPlaylistId: currentTrackID!, playerVars: ["playsinline": 0,
+                                                               "controls" : 1,
+                                                               "autohide" : 1,
+                                                               "showinfo" : 1,  //これを0にすると音量と全画面ボタンが上部になってしまう
+                                                               "rel": 1,
+                                                               "fs" : 0,
+                                                               "modestbranding": 1,
+                                                               "autoplay": 0,
+                                                               "disablekb": 1,
+                                                               "iv_load_policy": 3])
+       
     }
     
     
@@ -246,6 +251,7 @@ extension MainTabBarController: YTPlayerViewDelegate{
     
     func playerViewDidBecomeReady(_ playerView: YTPlayerView) {
         playerView.playVideo()
+        
     }
     
     func playerView(_ playerView: YTPlayerView, didChangeTo state: YTPlayerState) {
@@ -256,12 +262,14 @@ extension MainTabBarController: YTPlayerViewDelegate{
             print("Video is Ended")
             guard let trackID = currentTrackID else {return}
             let dic: [String: String] = ["trackID": trackID]
-            NotificationCenter.default.post(name: Notification.Name(rawValue:"NowPausing"), object: nil, userInfo: dic)
+            NotificationCenter.default.post(name: Notification.Name(rawValue:"someCellPaused"), object: nil, userInfo: dic)
         case .playing:
+            
             print("Video is Playing")
+            
             guard let trackID = currentTrackID else {return}
             let dic: [String: String] = ["trackID": trackID]
-            NotificationCenter.default.post(name: Notification.Name(rawValue:"NowPlaying"), object: nil, userInfo: dic)
+            NotificationCenter.default.post(name: Notification.Name(rawValue:"someCellPlaying"), object: nil, userInfo: dic)
             DispatchQueue.main.async { [weak self] in
                 guard let self = self else {return}
                 UIView.animate(withDuration: 0.5) {
@@ -279,11 +287,14 @@ extension MainTabBarController: YTPlayerViewDelegate{
         case .paused:
             guard let trackID = currentTrackID else {return}
             let dic: [String: String] = ["trackID": trackID]
-            NotificationCenter.default.post(name: Notification.Name(rawValue:"NowPausing"), object: nil, userInfo: dic)
+            NotificationCenter.default.post(name: Notification.Name(rawValue:"someCellPaused"), object: nil, userInfo: dic)
             
             print("Video is Paused")
         case .buffering:
             print("Video is Buffering")
+            guard let trackID = currentTrackID else {return}
+            let dic: [String: String] = ["trackID": trackID]
+            NotificationCenter.default.post(name: Notification.Name(rawValue:"someCellLoading"), object: nil, userInfo: dic)
         case .cued:
             return
         case .unknown:

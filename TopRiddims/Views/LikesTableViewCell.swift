@@ -13,6 +13,7 @@ import NVActivityIndicatorView
 protocol LikesTableViewCellDelegate: class{
     func heartButtonTapped(cell: LikesTableViewCell, buttonState: Bool)
     func checkButtonTapped(cell: LikesTableViewCell, buttonState: Bool)
+    func changeVideoPlayState(cell: LikesTableViewCell, playState: Song.PlayState)
     
 }
 
@@ -24,25 +25,28 @@ class LikesTableViewCell: UITableViewCell {
     var song: Song!{
         didSet{
             configureCell()
+            videoPlayState = song.videoPlayState
         }
     }
     
-    
-    var showPlayButton: Bool = true{
+    var videoPlayState: Song.PlayState = .paused{
         didSet{
-            DispatchQueue.main.async { [weak self] in
-                guard let self = self else{return}
-                if self.showPlayButton{
-                    self.playButton.isHidden = false
-                    self.pauseButton.isHidden = true
-                    self.spinner.isHidden = true
-                    self.spinner.stopAnimating()
-                    self.song.showPlayButton = true
-                }else{
-                    self.playButton.isHidden = true
-                    self.spinner.isHidden = false
-                    self.spinner.startAnimating()
-                }
+            switch videoPlayState{
+            case .loading:  //◯の状態。つまりスピナーが回っている
+                self.playButton.isHidden = true
+                self.pauseButton.isHidden = true
+                self.spinner.isHidden = false
+                self.spinner.startAnimating()
+            case .playing:  //||の状態
+                self.playButton.isHidden = true
+                self.pauseButton.isHidden = false
+                self.spinner.isHidden = true
+                self.spinner.stopAnimating()
+            case .paused: //△が表示されている状態
+                self.playButton.isHidden = false
+                self.pauseButton.isHidden = true
+                self.spinner.isHidden = true
+                self.spinner.stopAnimating()
             }
         }
     }
@@ -76,8 +80,6 @@ class LikesTableViewCell: UITableViewCell {
             }
         }
     }
-    
-    
     
     let thumbnailImageView: UIImageView = {
         let iv = UIImageView()
@@ -131,18 +133,12 @@ class LikesTableViewCell: UITableViewCell {
 
     private lazy var heartButton: UIButton = {
         let bn = UIButton(type: .system)
-//        let config = UIImage.SymbolConfiguration(pointSize: 20, weight: .thin, scale: .medium)
-//        let image = UIImage(systemName: "suit.heart", withConfiguration: config)
-//        bn.setImage(image, for: .normal)
         bn.contentMode = .scaleAspectFit
         bn.addTarget(self, action: #selector(heartButtonPressed), for: .touchUpInside)
         return bn
     }()
     private lazy var checkButton: UIButton = {
         let bn = UIButton(type: .system)
-//        let config = UIImage.SymbolConfiguration(pointSize: 20, weight: .thin, scale: .medium)
-//        let image = UIImage(systemName: "checkmark.circle", withConfiguration: config)
-//        bn.setImage(image, for: .normal)
         bn.contentMode = .scaleAspectFit
         bn.addTarget(self, action: #selector(checkButtonPressed), for: .touchUpInside)
         return bn
@@ -210,50 +206,51 @@ class LikesTableViewCell: UITableViewCell {
         setupObservers()
     }
 
-    
-    
     override func setSelected(_ selected: Bool, animated: Bool) {
         super.setSelected(selected, animated: animated)
-
     }
     
+    //MARK: - Handling VideoPlayState //Modelの更新はLikesVCで行う事に注意
     private func setupObservers(){
-        NotificationCenter.default.addObserver(self, selector: #selector(someSongPlayingNow), name: Notification.Name(rawValue:"NowPlaying"), object: nil)
-        NotificationCenter.default.addObserver(self, selector: #selector(someSongPausedNow), name: Notification.Name(rawValue:"NowPausing"), object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(someCellLoading), name: Notification.Name(rawValue:"someCellLoading"), object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(someCellPlaying), name: Notification.Name(rawValue:"someCellPlaying"), object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(someCellPaused), name: Notification.Name(rawValue:"someCellPaused"), object: nil)
     }
-    @objc private func someSongPlayingNow(notification: NSNotification){
+    
+    @objc private func someCellLoading(notification: NSNotification){
         guard let userInfo = notification.userInfo else{return}
         guard let playingTrackID = userInfo["trackID"] as? String else{return}
-        if playingTrackID == song.trackID{
-            print("started playback")
-            DispatchQueue.main.async {[weak self] in
-                guard let self = self else {return}
-                self.spinner.stopAnimating()
-                self.spinner.isHidden = true
-                self.pauseButton.isHidden = false
-                self.song.showPlayButton = false            }
-        }else{
-            showPlayButton = true
+        if playingTrackID == song.trackID{  //自分がloading状態にならないといけない◯
+            videoPlayState = .loading
+        }else{  //自分はpaused状態に
+            videoPlayState = .paused
         }
     }
-    @objc private func someSongPausedNow(notification: NSNotification){
-        showPlayButton = true
+    @objc private func someCellPlaying(notification: NSNotification){
+        guard let userInfo = notification.userInfo else{return}
+        guard let playingTrackID = userInfo["trackID"] as? String else{return}
+        if playingTrackID == song.trackID{  //自分がplaying状態にならないといけない△
+            videoPlayState = .playing
+        }else{  //自分はpaused状態に
+            videoPlayState = .paused
+        }
+    }
+    @objc private func someCellPaused(notification: NSNotification){
+        videoPlayState = .paused
     }
     
     @objc private func playButtonPressed(){ //カスタムのプレイボタンが押された時
-        showPlayButton = false
-        
         let dict: [String: Any] = ["trackID": song.trackID]
         NotificationCenter.default.post(name: Notification.Name(rawValue:"videoPlayOrder"), object: nil, userInfo: dict)
     }
     
     @objc private func pauseButtonPressed(){
-        showPlayButton = true
-        
         let dict: [String: Any] = ["trackID": song.trackID]
         NotificationCenter.default.post(name: Notification.Name(rawValue:"videoPauseOrder"), object: nil, userInfo: dict)
     }
     
+    
+    //MARK: - Heart&Check button handling
     @objc private func heartButtonPressed(){
         heartButtonOnOff.toggle()
         delegate?.heartButtonTapped(cell: self, buttonState: heartButtonOnOff)

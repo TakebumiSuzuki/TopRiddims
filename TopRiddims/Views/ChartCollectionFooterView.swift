@@ -32,7 +32,7 @@ class ChartCollectionFooterView: UICollectionReusableView{
     override init(frame: CGRect) {
         super.init(frame: frame)
         
-        backgroundColor = .systemBackground
+        backgroundColor = .secondarySystemBackground
         self.addSubview(plusButton)
         
         plusButton.centerX(inView: self, topAnchor: self.topAnchor, paddingTop: 17)

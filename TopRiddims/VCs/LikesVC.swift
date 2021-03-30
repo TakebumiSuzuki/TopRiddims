@@ -65,6 +65,43 @@ class LikesVC: UIViewController{
         
         navigationItem.title = "Likes"
         setupViews()
+        setupObservers()
+    }
+    
+    private func setupObservers(){
+        NotificationCenter.default.addObserver(self, selector: #selector(someCellLoading), name: Notification.Name(rawValue:"someCellLoading"), object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(someCellPlaying), name: Notification.Name(rawValue:"someCellPlaying"), object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(someCellPaused), name: Notification.Name(rawValue:"someCellPaused"), object: nil)
+    }
+    
+    @objc private func someCellLoading(notification: NSNotification){
+        guard let userInfo = notification.userInfo else{return}
+        guard let playingTrackID = userInfo["trackID"] as? String else{return}
+        for i in 0..<likedSongs.count{
+            if likedSongs[i].trackID == playingTrackID{
+                likedSongs[i].videoPlayState = .loading
+            }else{
+                likedSongs[i].videoPlayState = .paused
+            }
+       }
+    }
+    
+    @objc private func someCellPlaying(notification: NSNotification){
+        guard let userInfo = notification.userInfo else{return}
+        guard let playingTrackID = userInfo["trackID"] as? String else{return}
+        for i in 0..<likedSongs.count{
+            if likedSongs[i].trackID == playingTrackID{
+                likedSongs[i].videoPlayState = .playing
+            }else{
+                likedSongs[i].videoPlayState = .paused
+            }
+       }
+    }
+    
+    @objc private func someCellPaused(notification: NSNotification){
+        for i in 0..<likedSongs.count{
+            likedSongs[i].videoPlayState = .paused
+        }
     }
     
     private func setupViews(){
@@ -74,6 +111,7 @@ class LikesVC: UIViewController{
         view.addSubview(playerPlaceholderView)
         refreshControl.endRefreshing()
     }
+    
     @objc func refreshPulled() {
         loadLikedSongs()  //このloadLikedSongs()メソッドはここからと、起動時のTabBarからの２箇所から呼ばれる
     }
@@ -127,6 +165,7 @@ extension LikesVC: UITableViewDataSource{
         let cell = tableView.dequeueReusableCell(withIdentifier: LikesTableViewCell.identifier) as! LikesTableViewCell
         cell.song = likedSongs[indexPath.row]
         cell.delegate = self
+        
         return cell
     }
     
@@ -148,6 +187,12 @@ extension LikesVC: UITableViewDelegate{
 }
 
 extension LikesVC: LikesTableViewCellDelegate{
+    func changeVideoPlayState(cell: LikesTableViewCell, playState: Song.PlayState) {
+        guard let indexPath = tableView.indexPath(for: cell) else{return}
+        likedSongs[indexPath.row].videoPlayState = playState
+    }
+    
+    
     //このページでlikeボタン、checkボタンが押された時に実行されるのは、
     //0.UIの即時アップデート→これはLikesTableViewCell側で対応
     //1.likedSongs配列のアップデート→dequeueによる不一致を防ぐ為

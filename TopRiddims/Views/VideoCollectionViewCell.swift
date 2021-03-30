@@ -13,26 +13,30 @@ class VideoCollectionViewCell: UIView{
     
     //MARK: - Properties
     static let identifier = "collectionViewCell"
-    
-    var showPlayButton: Bool = true{
+//    var user: User?
+
+    var videoPlayState: Song.PlayState = .paused{
         didSet{
-            DispatchQueue.main.async { [weak self] in
-                guard let self = self else{return}
-                if self.showPlayButton{
-                    self.playButton.isHidden = false
-                    self.pauseButton.isHidden = true
-                    self.spinner.isHidden = true
-                    self.spinner.stopAnimating()
-                    self.song.showPlayButton = true
-                }else{
-                    self.playButton.isHidden = true
-                    self.spinner.isHidden = false
-                    self.spinner.startAnimating()
-                }
+            switch videoPlayState{
+            case .loading:  //◯の状態。つまりスピナーが回っている
+                self.playButton.isHidden = true
+                self.pauseButton.isHidden = true
+                self.spinner.isHidden = false
+                self.spinner.startAnimating()
+            case .playing:  //||の状態
+                self.playButton.isHidden = true
+                self.pauseButton.isHidden = false
+                self.spinner.isHidden = true
+                self.spinner.stopAnimating()
+            case .paused: //△が表示されている状態
+                self.playButton.isHidden = false
+                self.pauseButton.isHidden = true
+                self.spinner.isHidden = true
+                self.spinner.stopAnimating()
             }
         }
     }
-
+    
     var videoWidth: CGFloat = 0
     private var videoHeight: CGFloat{ return videoWidth/16*9 }
     
@@ -45,6 +49,7 @@ class VideoCollectionViewCell: UIView{
                 return
             }
             configureCell()
+            videoPlayState = song.videoPlayState
         }
     }
     
@@ -119,30 +124,34 @@ class VideoCollectionViewCell: UIView{
     
     //MARK: - Observers
     private func setupObservers(){
-        NotificationCenter.default.addObserver(self, selector: #selector(someSongPlayingNow), name: Notification.Name(rawValue:"NowPlaying"), object: nil)
-        NotificationCenter.default.addObserver(self, selector: #selector(someSongPausedNow), name: Notification.Name(rawValue:"NowPausing"), object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(someCellLoading), name: Notification.Name(rawValue:"someCellLoading"), object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(someCellPlaying), name: Notification.Name(rawValue:"someCellPlaying"), object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(someCellPaused), name: Notification.Name(rawValue:"someCellPaused"), object: nil)
     }
-    @objc private func someSongPlayingNow(notification: NSNotification){
+    
+    @objc private func someCellLoading(notification: NSNotification){
         guard let userInfo = notification.userInfo else{return}
         guard let playingTrackID = userInfo["trackID"] as? String else{return}
-        if playingTrackID == song.trackID{
-            print("started playback")
-            DispatchQueue.main.async {[weak self] in
-                guard let self = self else {return}
-                self.spinner.stopAnimating()
-                self.spinner.isHidden = true
-                self.pauseButton.isHidden = false
-                self.song.showPlayButton = false            }
-        }else{
-            showPlayButton = true
+        if playingTrackID == song.trackID{  //自分がloading状態にならないといけない◯
+            videoPlayState = .loading
+        }else{  //自分はpaused状態に
+            videoPlayState = .paused
         }
     }
-    @objc private func someSongPausedNow(notification: NSNotification){
-        showPlayButton = true
+    
+    @objc private func someCellPlaying(notification: NSNotification){
+        guard let userInfo = notification.userInfo else{return}
+        guard let playingTrackID = userInfo["trackID"] as? String else{return}
+        if playingTrackID == song.trackID{  //自分がplaying状態にならないといけない△
+            videoPlayState = .playing
+        }else{  //自分はpaused状態に
+            videoPlayState = .paused
+        }
     }
     
-    
-    //MARK: - NotificationsとFirstResponder検知機能、Jump機能  --いらない
+    @objc private func someCellPaused(notification: NSNotification){
+        videoPlayState = .paused
+    }
     
     //MARK: - Dequeueリセット
     private func configureCell(){
@@ -155,15 +164,11 @@ class VideoCollectionViewCell: UIView{
     //MARK: - Button Handling
     
     @objc private func playButtonPressed(){ //カスタムのプレイボタンが押された時
-        showPlayButton = false
-        
         let dict: [String: Any] = ["trackID": song.trackID]
         NotificationCenter.default.post(name: Notification.Name(rawValue:"videoPlayOrder"), object: nil, userInfo: dict)
     }
     
     @objc private func pauseButtonPressed(){
-        showPlayButton = true
-        
         let dict: [String: Any] = ["trackID": song.trackID]
         NotificationCenter.default.post(name: Notification.Name(rawValue:"videoPauseOrder"), object: nil, userInfo: dict)
     }

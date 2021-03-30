@@ -23,6 +23,7 @@ class ChartCollectionViewCell: UICollectionViewCell {
     
     static var identifier = "ChartCell"
     weak var delegate: ChartCollectionViewCellDelegate?
+    var user: User?
     
     var cellSelfWidth: CGFloat = 0
     private var videoWidth: CGFloat{ return self.cellSelfWidth*K.videoCoverWidthMultiplier }
@@ -98,19 +99,23 @@ class ChartCollectionViewCell: UICollectionViewCell {
     lazy var videoCollectionView: iCarousel = {
         let ic = iCarousel()
         ic.backgroundColor = .clear
-        ic.clipsToBounds = true
-        ic.type = .invertedTimeMachine
+        ic.clipsToBounds = false
+        ic.type = .coverFlow2
         ic.dataSource = self
         ic.delegate = self
-        ic.scrollSpeed = 1.5
-        ic.decelerationRate = 0.7 //デフォルトは0.95
-        ic.bounceDistance = 0.5 //デフォルトは1
+        ic.scrollSpeed = 0.6
+        //scroll speed multiplier when the user flicks the carousel with their finger. Defaults to 1.0.
+        ic.decelerationRate = 0.85
+        //デフォルトは0.95.Values should be in the range 0.0 (carousel stops immediately when released) to 1.0 (carousel continues indefinitely without slowing down, unless it reaches the end).
+        ic.bounceDistance = 0.6 //デフォルトは1
+        ic.perspective = -0.002  //左右前後広がり
+        ic.viewpointOffset = CGSize(width: 0, height: 0)
         return ic
     }()
     
     private let numberLabel: UILabel = {
         let lb = UILabel()
-        lb.font = UIFont.systemFont(ofSize: 37, weight: .light)
+        lb.font = UIFont.systemFont(ofSize: 36, weight: .light)
         lb.textColor = .secondaryLabel
         return lb
     }()
@@ -119,6 +124,7 @@ class ChartCollectionViewCell: UICollectionViewCell {
         let lb = UILabel()
         lb.font = UIFont.systemFont(ofSize: 15, weight: .regular)
         lb.textColor = .secondaryLabel
+        lb.textAlignment = .center
         return lb
     }()
     
@@ -126,6 +132,7 @@ class ChartCollectionViewCell: UICollectionViewCell {
         let lb = UILabel()
         lb.font = UIFont.systemFont(ofSize: 14, weight: .regular)
         lb.textColor = .secondaryLabel
+        lb.textAlignment = .center
         return lb
     }()
     
@@ -201,36 +208,46 @@ class ChartCollectionViewCell: UICollectionViewCell {
     override func layoutSubviews() {
         super.layoutSubviews()
         
-        countryLabel.anchor(top: self.topAnchor, left: self.leftAnchor, right: self.rightAnchor, paddingTop: 3, paddingLeft: 20)
+        countryLabel.anchor(top: self.topAnchor, left: leftArrow.rightAnchor, right: rightArrow.leftAnchor, paddingTop: 3)
         
         videoCollectionView.centerX(inView: self, topAnchor: countryLabel.bottomAnchor, paddingTop: 3)
         videoCollectionView.setHeight(self.videoHeight)
         videoCollectionView.widthAnchor.constraint(equalTo: self.widthAnchor, multiplier: K.videoCollectionViewWidthMultiplier).isActive = true
+//
         
         leftArrow.setDimensions(height: 16, width: 7)
         leftArrow.rightAnchor.constraint(equalTo: videoCollectionView.leftAnchor, constant: -15).isActive = true
         leftArrow.centerYAnchor.constraint(equalTo: videoCollectionView.centerYAnchor).isActive = true
         
+        
+//        countryLabel.leftAnchor.constraint(equalTo: leftArrow.rightAnchor).isActive = true
+        
         rightArrow.setDimensions(height: 16, width: 7)
         rightArrow.leftAnchor.constraint(equalTo: videoCollectionView.rightAnchor, constant: 15).isActive = true
         rightArrow.centerYAnchor.constraint(equalTo: videoCollectionView.centerYAnchor).isActive = true
         
-        let adjustment = (self.frame.width*K.videoCollectionViewWidthMultiplier - videoWidth)/2
-        numberLabel.anchor(top: videoCollectionView.bottomAnchor, paddingTop: 0)
-        numberLabel.leftAnchor.constraint(equalTo: videoCollectionView.leftAnchor, constant: adjustment/2).isActive = true
-        
         songNameLabel.centerX(inView: self, topAnchor: videoCollectionView.bottomAnchor, paddingTop: 3)
+        songNameLabel.setWidth(videoWidth+22)
         songNameLabel.setContentCompressionResistancePriority(UILayoutPriority.init(100), for: .horizontal)
         artistNameLabel.centerX(inView: self, topAnchor: songNameLabel.bottomAnchor, paddingTop: 0)
+        artistNameLabel.setWidth(videoWidth+22)
         artistNameLabel.setContentCompressionResistancePriority(UILayoutPriority.init(100), for: .horizontal)
+        
+        
+        let adjustment = (self.frame.width-videoWidth)/2
+        numberLabel.translatesAutoresizingMaskIntoConstraints = false
+        numberLabel.firstBaselineAnchor.constraint(equalTo: artistNameLabel.firstBaselineAnchor).isActive = true
+        numberLabel.rightAnchor.constraint(equalTo: self.leftAnchor, constant: adjustment-15).isActive = true
 
-        checkButton.anchor(right: videoCollectionView.rightAnchor, paddingRight: 4)
-        checkButton.firstBaselineAnchor.constraint(equalTo: songNameLabel.firstBaselineAnchor).isActive = true
-        heartButton.anchor(right: checkButton.leftAnchor, paddingRight: 6)
+        heartButton.translatesAutoresizingMaskIntoConstraints = false
         heartButton.firstBaselineAnchor.constraint(equalTo: songNameLabel.firstBaselineAnchor).isActive = true
+        heartButton.leftAnchor.constraint(equalTo: self.rightAnchor, constant: -adjustment+15).isActive = true
+        
+        checkButton.translatesAutoresizingMaskIntoConstraints = false
+        checkButton.firstBaselineAnchor.constraint(equalTo: songNameLabel.firstBaselineAnchor).isActive = true
+        checkButton.leftAnchor.constraint(equalTo: heartButton.rightAnchor, constant: 4).isActive = true
         
         loader.center(inView: self)
-        
     }
     
     
@@ -295,6 +312,48 @@ extension ChartCollectionViewCell: iCarouselDelegate{
             currentPageIndexNum += 1
         }
         videoCollectionView.scrollToItem(at: currentPageIndexNum, duration: 0.4)
+    }
+    func carousel(_ carousel: iCarousel, valueFor option: iCarouselOption, withDefault value: CGFloat) -> CGFloat {
+        switch option{
+//        case .wrap:
+//            <#code#>
+//        case .showBackfaces:
+//            <#code#>
+//        case .offsetMultiplier:
+//            <#code#>
+        case .visibleItems:
+            return 5
+//        case .count:
+//            return 5
+//        case .arc: //デフォルトは6.2位
+//            print("arc\(value)")
+//            return value
+//        case .angle:
+//            print("angle\(value)")
+//            return 0
+//        case .radius:  //172.16123422625455がデフォルト
+//            print("radius\(value)")
+//            return 100
+//        case .tilt:  //関係ない
+//            <#code#>
+        case .spacing:
+            return 0.1
+        case .fadeMin:
+//            print("fadeMin\(value)")
+            return 0
+        case .fadeMax:
+//            print("fadeMax\(value)")
+            return 0
+        case .fadeRange:
+//            print("fadeRange\(value)")
+            return 3
+        case .fadeMinAlpha:
+//            print("fadeMinAlpha\(value)")
+            return 0.1
+        @unknown default:
+//            print("option called")
+            return value
+        }
     }
 }
 

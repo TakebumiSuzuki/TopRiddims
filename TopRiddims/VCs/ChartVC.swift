@@ -108,8 +108,52 @@ class ChartVC: UIViewController{
         print(uid)
         setupNavBar()
         setupViews()
+        setupObservers()
 //        setupNotifications()//ジャンプボタンはとりあえずオフに
     }
+    
+    private func setupObservers(){
+        NotificationCenter.default.addObserver(self, selector: #selector(someCellLoading), name: Notification.Name(rawValue:"someCellLoading"), object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(someCellPlaying), name: Notification.Name(rawValue:"someCellPlaying"), object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(someCellPaused), name: Notification.Name(rawValue:"someCellPaused"), object: nil)
+    }
+    @objc private func someCellLoading(notification: NSNotification){
+        guard let userInfo = notification.userInfo else{return}
+        guard let playingTrackID = userInfo["trackID"] as? String else{return}
+        for i in 0..<user.allChartData.count{
+            for n in 0..<20{
+                if user.allChartData[i].songs[n].trackID == playingTrackID{
+                    user.allChartData[i].songs[n].videoPlayState = .loading
+                }else{
+                    user.allChartData[i].songs[n].videoPlayState = .paused
+                }
+            }
+       }
+    }
+    
+    @objc private func someCellPlaying(notification: NSNotification){
+        guard let userInfo = notification.userInfo else{return}
+        guard let playingTrackID = userInfo["trackID"] as? String else{return}
+        for i in 0..<user.allChartData.count{
+            for n in 0..<20{
+                if user.allChartData[i].songs[n].trackID == playingTrackID{
+                    user.allChartData[i].songs[n].videoPlayState = .playing
+                }else{
+                    user.allChartData[i].songs[n].videoPlayState = .paused
+                }
+            }
+       }
+    }
+    
+    @objc private func someCellPaused(notification: NSNotification){
+        for i in 0..<user.allChartData.count{
+            for n in 0..<20{
+                user.allChartData[i].songs[n].videoPlayState = .paused
+            }
+       }
+    }
+    
+    
     
     private func setupNavBar(){
 //        let navTitleImageView = UIImageView(image:UIImage(named: "Top_Riddims")?.withTintColor(UIColor(named: "Black_Yellow")!))
@@ -146,12 +190,7 @@ class ChartVC: UIViewController{
         print("reloading data")
         chartCollectionView.reloadData()
     }
-    
-    //MARK: - Notification FirstResponder
-    //ジャンプボタンはとりあえずオフに
-    
-    
-    
+ 
     //MARK: - Gesture Handling
     @objc private func cellLongPressed(_ gesture: UILongPressGestureRecognizer){
         if reloadingOnOff { return }
@@ -371,6 +410,8 @@ extension ChartVC: UICollectionViewDataSource{
         cell.cellSelfWidth = view.frame.width*K.chartCellWidthMultiplier
         cell.videoCollectionView.scrollToItem(at: pageNumbers[indexPath.row], animated: false)
         cell.delegate = self
+        cell.user = user
+        
         return cell
     }
     func collectionView(_ collectionView: UICollectionView, viewForSupplementaryElementOfKind kind: String, at indexPath: IndexPath) -> UICollectionReusableView {
