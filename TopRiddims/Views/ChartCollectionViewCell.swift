@@ -99,7 +99,7 @@ class ChartCollectionViewCell: UICollectionViewCell {
         let ic = iCarousel()
         ic.backgroundColor = .clear
         ic.clipsToBounds = true
-        ic.type = .coverFlow
+        ic.type = .invertedTimeMachine
         ic.dataSource = self
         ic.delegate = self
         ic.scrollSpeed = 1.5

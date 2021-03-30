@@ -23,11 +23,10 @@ class LikesVC: UIViewController{
             print("DEBUG: Error! uid is nil right now. Returning empty string for uid.."); return ""}
         return currentUserId
     }
-    var likedSongs: [Song]!
-    init(user: User, likedSongs: [Song]) {
+    var likedSongs = [Song]()
+    init(user: User) {
         super.init(nibName: nil, bundle: nil)
         self.user = user
-        self.likedSongs = likedSongs
     }
     required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
     
@@ -55,26 +54,46 @@ class LikesVC: UIViewController{
         return tv
     }()
     
+    private lazy var refreshControl: UIRefreshControl = {
+        let rc = UIRefreshControl()
+        rc.addTarget(self, action: #selector(refreshPulled), for: .valueChanged)
+        return rc
+    }()
     
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        view.backgroundColor = .white
         navigationItem.title = "Likes"
-        
-        likedSongs.forEach {
-            print($0.artistName)
-            print($0.liked)
-            print($0.checked)
-        }
         setupViews()
     }
     
     private func setupViews(){
         view.backgroundColor = .systemBackground
         view.addSubview(tableView)
+        tableView.addSubview(refreshControl)
         view.addSubview(playerPlaceholderView)
-        
+        refreshControl.endRefreshing()
+    }
+    @objc func refreshPulled() {
+        loadLikedSongs()  //このloadLikedSongs()メソッドはここからと、起動時のTabBarからの２箇所から呼ばれる
+    }
+    
+    func loadLikedSongs(){
+        //製作中の段階ではページネーションを実装していなく、１０曲までしかDLしない設定になっている事に注意
+        self.firestoreService.fetchLikedSongs(uid: uid) { [weak self](result) in //ここの段階で少し遅れてlikedSongsを入手する
+            guard let self = self else {return}
+            self.refreshControl.endRefreshing()
+            switch result{
+            case .failure(_):
+                let alert = AlertService(vc:self)
+                alert.showSimpleAlert(title: "Song Database error.Please try reopen the app. Sorry!!", message: "", style: .alert)
+            case .success(let likedSongs):
+                self.likedSongs = likedSongs
+                DispatchQueue.main.async {
+                    self.tableView.reloadData()
+                }
+            }
+        }
     }
     
     override func viewDidLayoutSubviews() {

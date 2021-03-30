@@ -18,7 +18,7 @@ class MainTabBarController: UITabBarController {
     
     var authListener: AuthStateDidChangeListenerHandle!
     let firestoreService = FirestoreService()
-    var uid: String?  //まずこれをゲットして、
+    var uid: String!  //まずこれをゲットして、
     var user: User?{//Userに代入。この中にはallChartDataも完全に含まれる。
         didSet{
             print("userに新しい値がセットされました")
@@ -86,20 +86,11 @@ class MainTabBarController: UITabBarController {
                     alert.showSimpleAlert(title: "Login status error.Please try reopen the app. Sorry!!", message: "", style: .alert)
                     
                 case .success(let user):
-                    self.firestoreService.fetchLikedSongs(uid: uid) { (result) in
-                        switch result{
-                        case .failure(_):
-                            let alert = AlertService(vc:self)
-                            alert.showSimpleAlert(title: "Song Database error.Please try reopen the app. Sorry!!", message: "", style: .alert)
-                        case .success(let likedSongs):
-                            self.user = user
-                            self.likedSongs = likedSongs
-                            user.uid = uid  //一応念のため、Authからの直のuidをuserのuidに入れておく。
-                            self.configureTabs()  //ユーザーの情報を完全にゲットしてから各タブを作る。
-                            self.setupVideoView()
-                            self.setupObservers()
-                        }
-                    }
+                    self.user = user
+                    user.uid = uid  //一応念のため、Authからの直のuidをuserのuidに入れておく。
+                    self.configureTabs()  //ユーザーの情報を完全にゲットしてから各タブを作る。
+                    self.setupVideoView()
+                    self.setupObservers()
                 }
             }
         }
@@ -130,11 +121,12 @@ class MainTabBarController: UITabBarController {
                                              selectedImage: UIImage(systemName: "bolt.fill", withConfiguration: configuration)!,
                                              unselectedImage: UIImage(systemName: "bolt", withConfiguration: configuration)!)
         
-        let likesVC = LikesVC(user: user, likedSongs: self.likedSongs)
+        let likesVC = LikesVC(user: user) //この段階では空のlikedSongsでページを作る
         let likesNav = generateNavController(rootVC: likesVC,
                                              title: "likes",
                                              selectedImage: UIImage(systemName: "suit.heart.fill", withConfiguration: configuration)!,
                                              unselectedImage: UIImage(systemName: "suit.heart", withConfiguration: configuration)!)
+        likesVC.loadLikedSongs()
         
         let settingVC = SettingVC(user: user)
         let settingNav = generateNavController(rootVC: settingVC,

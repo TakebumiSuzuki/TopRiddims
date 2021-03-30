@@ -123,7 +123,7 @@ class FirestoreService{
     
     func addOrDeleteCheckedTrackID(uid: String, song: Song, checkedOrUnchecked: Bool){
         
-        let trackData: [String : Any] = ["trackID": song.trackID, "artistName": song.artistName, "songName": song.songName, "checkd": checkedOrUnchecked, "checkdStateUpdateDate": Timestamp()]
+        let trackData: [String : Any] = ["trackID": song.trackID, "artistName": song.artistName, "songName": song.songName, "checked": checkedOrUnchecked, "checkdStateUpdateDate": Timestamp()]
         
         K.FSCollectionUsers.document(uid).collection("tracks").document(song.trackID).setData(trackData, merge: true) { (error) in
             if let error = error {  //特にユーザーにエラーを表示する必要ないかと。。よってcompletionもなし。
@@ -137,7 +137,7 @@ class FirestoreService{
     
     
     func fetchLikedSongs(uid: String, completion: @escaping (Result<[Song], Error>) -> Void){
-        K.FSCollectionUsers.document(uid).collection("tracks").whereField("liked", isEqualTo: true).order(by: "likedStateUpdateDate").limit(to: 3).getDocuments { (snapshot, error) in
+        K.FSCollectionUsers.document(uid).collection("tracks").whereField("liked", isEqualTo: true).order(by: "likedStateUpdateDate").limit(to: 10).getDocuments { (snapshot, error) in
             
             if let error = error{
                 print("DEBUG: Error occured fetching liked tracks from Firestore: \(error.localizedDescription)")
