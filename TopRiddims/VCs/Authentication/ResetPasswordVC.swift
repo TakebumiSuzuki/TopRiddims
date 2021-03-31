@@ -14,7 +14,7 @@ import RxCocoa
 class ResetPasswordVC: UIViewController {
 
     //MARK: - Properties
-    private let imageAlpha: CGFloat = 0.9
+    private let imageAlpha: CGFloat = 0.97
     
     let disposeBag = DisposeBag()
     let authService = AuthService()
@@ -59,24 +59,24 @@ class ResetPasswordVC: UIViewController {
         let view = UIView()
         view.layer.cornerRadius = 6
         view.clipsToBounds = true
-        view.backgroundColor = .systemBackground
+        view.backgroundColor = .black
         view.alpha = 0.5
         return view
     }()
     
     private let resetPasswordLabel: UILabel = {
        let lb = UILabel()
-        lb.font = UIFont.systemFont(ofSize: 30, weight: .light)
-        lb.textColor = .white
+        lb.font = UIFont.systemFont(ofSize: 26, weight: .light)
+        lb.textColor = UIColor.white.withAlphaComponent(0.9)
         lb.textAlignment = .center
-        lb.text = "Reset Password"
+        lb.text = "We'll send you reset email"
         lb.adjustsFontSizeToFitWidth = true
         return lb
     }()
     
     
     private let emailTextField: CustomTextField = {
-        let tf = CustomTextField(placeholder: "Enter email to reset password")
+        let tf = CustomTextField(placeholder: "Enter email")
         tf.textContentType = .emailAddress
         tf.keyboardType = .emailAddress
         tf.autocapitalizationType = .none
@@ -104,7 +104,7 @@ class ResetPasswordVC: UIViewController {
     
     private func setupObservers(){
         emailTextField.rx.text.orEmpty.asObservable().map{ $0.count > 0 }
-            .map{ $0 ? 1 : 0.5 }.bind(to: resetPasswordButton.rx.alpha).disposed(by: disposeBag)
+            .map{ $0 ? 0.8 : 0.5 }.bind(to: resetPasswordButton.rx.alpha).disposed(by: disposeBag)
         
 //        emailTextField.rx.controlEvent(.editingDidEndOnExit).subscribe { [weak self](_) in
 //            guard let self = self else {return}
@@ -154,7 +154,7 @@ class ResetPasswordVC: UIViewController {
         
         clearPlaceholderView.anchor(left: clearScrollingView.leftAnchor, right: clearScrollingView.rightAnchor, paddingLeft: K.placeholderLeftRightPadding, paddingRight: K.placeholderLeftRightPadding)
 
-        resetPasswordLabel.anchor(top: clearPlaceholderView.topAnchor, left: clearPlaceholderView.leftAnchor, right: clearPlaceholderView.rightAnchor, paddingTop: K.placeholderInsets, paddingLeft: K.placeholderInsets, paddingRight: K.placeholderInsets)
+        resetPasswordLabel.anchor(top: clearPlaceholderView.topAnchor, left: clearPlaceholderView.leftAnchor, right: clearPlaceholderView.rightAnchor, paddingTop: K.placeholderInsets-5, paddingLeft: K.placeholderInsets, paddingRight: K.placeholderInsets)
         
         emailTextField.anchor(top: resetPasswordLabel.bottomAnchor, left: clearPlaceholderView.leftAnchor, right: clearPlaceholderView.rightAnchor, paddingTop: K.verticalSpace, paddingLeft: K.placeholderInsets, paddingRight: K.placeholderInsets)
         resetPasswordButton.anchor(top: emailTextField.bottomAnchor, left: emailTextField.leftAnchor, right: emailTextField.rightAnchor, paddingTop: K.verticalSpace)

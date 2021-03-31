@@ -49,24 +49,23 @@ class ChartVC: UIViewController{
     
     //MARK: - UI Components
     
-
     private let playerPlaceholderView: UIVisualEffectView = {
         let blurEffect = UIBlurEffect(style: .systemUltraThinMaterial)
         let bv = UIVisualEffectView(effect: blurEffect)
         bv.clipsToBounds = true
         return bv
     }()
+    
     private lazy var chartCollectionView: UICollectionView = {
         let layout = UICollectionViewFlowLayout()
         layout.scrollDirection = .vertical
         let cv = UICollectionView(frame: .zero, collectionViewLayout: layout)
-        cv.backgroundColor = .systemBackground //navBarの色と上下にbounceした時に伸ばした下地に関係する
+        cv.backgroundColor = .secondarySystemBackground //navBarの色と上下にbounceした時に伸ばした下地に関係する
+        
+        cv.alwaysBounceVertical = true
         cv.delegate = self
         cv.dataSource = self
         cv.register(ChartCollectionViewCell.self, forCellWithReuseIdentifier: ChartCollectionViewCell.identifier)
-//        cv.register(ChartCollectionHeaderView.self,
-//                                forSupplementaryViewOfKind: UICollectionView.elementKindSectionHeader,
-//                                withReuseIdentifier: ChartCollectionHeaderView.identifier)
         cv.register(ChartCollectionFooterView.self,
                                 forSupplementaryViewOfKind: UICollectionView.elementKindSectionFooter,
                                 withReuseIdentifier: ChartCollectionFooterView.identifier)

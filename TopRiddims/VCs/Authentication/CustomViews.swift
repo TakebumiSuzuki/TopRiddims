@@ -19,16 +19,18 @@ class CustomTextField: UITextField{
         borderStyle = .none
         autocapitalizationType = .none
         autocorrectionType = .no
-        keyboardAppearance = .dark
         
         layer.cornerRadius = 3
         clipsToBounds = true
         
-        backgroundColor = UIColor(white: 1, alpha: 0.3)
-        tintColor = .white  //カーソルの色
+        backgroundColor = UIColor.white.withAlphaComponent(0.5)
+        tintColor = UIColor.white //カーソルの色
+        
+        font = UIFont.systemFont(ofSize: 18, weight: .light)
         textColor = .white
+        
         attributedPlaceholder = NSAttributedString(string: placeholder,
-                                                      attributes: [.foregroundColor: UIColor(white: 1, alpha: 1),
+                                                   attributes: [.foregroundColor: UIColor.white.withAlphaComponent(0.6),
                                                                    .font: UIFont.systemFont(ofSize: 18, weight: .light)
                                                     ])
         setHeight(37)

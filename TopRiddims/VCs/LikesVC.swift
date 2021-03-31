@@ -34,7 +34,12 @@ class LikesVC: UIViewController{
     //MARK: - Properties
     private let firestoreService = FirestoreService()
     
-    
+//    private let playerPlaceholderView: UIView = {
+//        let view = UIView()
+//        view.backgroundColor = UIColor.systemGray5
+//        view.clipsToBounds = true
+//        return view
+//    }()
     
     private let playerPlaceholderView: UIVisualEffectView = {
         let blurEffect = UIBlurEffect(style: .systemUltraThinMaterial)
@@ -45,7 +50,7 @@ class LikesVC: UIViewController{
     
     private lazy var tableView: UITableView = {
        let tv = UITableView()
-        tv.backgroundColor = .systemBackground
+        tv.backgroundColor = .secondarySystemBackground
         tv.separatorStyle = .none
         tv.allowsSelection = false
         tv.dataSource = self
@@ -139,7 +144,7 @@ class LikesVC: UIViewController{
         let floatingPlayerHeight = view.frame.width*K.floatingPlayerWidthMultiplier/16*9
         playerPlaceholderView.anchor(top: view.safeAreaLayoutGuide.topAnchor, left: view.leftAnchor, right: view.rightAnchor, height: floatingPlayerHeight+K.floatingPlayerTopBottomInsets*2)
         
-        tableView.contentInset = UIEdgeInsets(top: floatingPlayerHeight+K.floatingPlayerTopBottomInsets*2, left: 0, bottom: 0, right: 0)
+        tableView.contentInset = UIEdgeInsets(top: floatingPlayerHeight+K.floatingPlayerTopBottomInsets*2+10, left: 0, bottom: 0, right: 0)
             
         tableView.anchor(top: view.safeAreaLayoutGuide.topAnchor, left: view.leftAnchor, bottom: view.bottomAnchor, right: view.rightAnchor)
         

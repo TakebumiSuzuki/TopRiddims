@@ -35,11 +35,11 @@ class ChartCollectionViewCell: UICollectionViewCell {
             if heartButtonOnOff{
                 let image = UIImage(systemName: "suit.heart.fill", withConfiguration: config)
                 heartButton.setImage(image, for: .normal)
-                heartButton.tintColor = #colorLiteral(red: 0.8549019694, green: 0.250980407, blue: 0.4784313738, alpha: 1)
+                heartButton.tintColor = #colorLiteral(red: 0.8549019694, green: 0.250980407, blue: 0.4784313738, alpha: 1).withAlphaComponent(0.9)
             }else{
                 let image = UIImage(systemName: "suit.heart", withConfiguration: config)
                 heartButton.setImage(image, for: .normal)
-                heartButton.tintColor = #colorLiteral(red: 0.8039215803, green: 0.8039215803, blue: 0.8039215803, alpha: 1)
+                heartButton.tintColor = UIColor(named: "SecondaryLabelColor")
             }
         }
     }
@@ -50,11 +50,11 @@ class ChartCollectionViewCell: UICollectionViewCell {
             if checkButtonOnOff{
                 let image = UIImage(systemName: "checkmark.circle.fill", withConfiguration: config)
                 checkButton.setImage(image, for: .normal)
-                checkButton.tintColor = #colorLiteral(red: 0.4666666687, green: 0.7647058964, blue: 0.2666666806, alpha: 1)
+                checkButton.tintColor = #colorLiteral(red: 0.4666666687, green: 0.7647058964, blue: 0.2666666806, alpha: 1).withAlphaComponent(0.9)
             }else{
                 let image = UIImage(systemName: "checkmark.circle", withConfiguration: config)
                 checkButton.setImage(image, for: .normal)
-                checkButton.tintColor = #colorLiteral(red: 0.8039215803, green: 0.8039215803, blue: 0.8039215803, alpha: 1)
+                checkButton.tintColor = UIColor(named: "SecondaryLabelColor")
             }
         }
     }
@@ -91,7 +91,7 @@ class ChartCollectionViewCell: UICollectionViewCell {
     private let countryLabel: UILabel = {
         let lb = UILabel()
         lb.font = UIFont.systemFont(ofSize: 22, weight: .regular)
-        lb.textColor = .secondaryLabel
+        lb.textColor = UIColor(named: "BasicLabelColor")
         lb.textAlignment = .left
         return lb
     }()
@@ -116,14 +116,14 @@ class ChartCollectionViewCell: UICollectionViewCell {
     private let numberLabel: UILabel = {
         let lb = UILabel()
         lb.font = UIFont.systemFont(ofSize: 36, weight: .light)
-        lb.textColor = .secondaryLabel
+        lb.textColor = UIColor(named: "SecondaryLabelColor")
         return lb
     }()
     
     private let songNameLabel: UILabel = {
         let lb = UILabel()
-        lb.font = UIFont.systemFont(ofSize: 15, weight: .regular)
-        lb.textColor = .secondaryLabel
+        lb.font = UIFont.systemFont(ofSize: 15, weight: .medium)
+        lb.textColor = UIColor(named: "SecondaryLabelColor")
         lb.textAlignment = .center
         return lb
     }()
@@ -131,7 +131,7 @@ class ChartCollectionViewCell: UICollectionViewCell {
     private let artistNameLabel: UILabel = {
         let lb = UILabel()
         lb.font = UIFont.systemFont(ofSize: 14, weight: .regular)
-        lb.textColor = .secondaryLabel
+        lb.textColor = UIColor(named: "SecondaryLabelColor")
         lb.textAlignment = .center
         return lb
     }()

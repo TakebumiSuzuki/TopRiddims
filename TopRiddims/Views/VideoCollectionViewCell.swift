@@ -66,7 +66,7 @@ class VideoCollectionViewCell: UIView{
 
     lazy var playButton: UIButton = {
         let bn = UIButton(type: .system)
-        let config = UIImage.SymbolConfiguration(pointSize: 30, weight: .thin, scale: .medium)
+        let config = UIImage.SymbolConfiguration(pointSize: 33, weight: .thin, scale: .medium)
         let buttonImage = UIImage(systemName: "play.circle", withConfiguration: config)
         bn.setImage(buttonImage, for: .normal)
         bn.tintColor = .white  //これも上のthumbnailと合わせて色を変える余地がある
@@ -78,7 +78,7 @@ class VideoCollectionViewCell: UIView{
     
     lazy var pauseButton: UIButton = {
         let bn = UIButton(type: .system)
-        let config = UIImage.SymbolConfiguration(pointSize: 30, weight: .thin, scale: .medium)
+        let config = UIImage.SymbolConfiguration(pointSize: 33, weight: .thin, scale: .medium)
         let buttonImage = UIImage(systemName: "pause.circle", withConfiguration: config)
         bn.setImage(buttonImage, for: .normal)
         bn.tintColor = .white  //これも上のthumbnailと合わせて色を変える余地がある
@@ -89,7 +89,7 @@ class VideoCollectionViewCell: UIView{
     }()
 
     private let spinner: NVActivityIndicatorView = {
-        let spinner = NVActivityIndicatorView(frame: .zero, type: .circleStrokeSpin, color: .yellow, padding: 0)
+        let spinner = NVActivityIndicatorView(frame: .zero, type: .circleStrokeSpin, color: UIColor(named: "SpinnerColor"), padding: 0)
         spinner.isHidden = true
        return spinner
     }()
@@ -118,7 +118,7 @@ class VideoCollectionViewCell: UIView{
         playButton.center(inView: self)
         pauseButton.center(inView: self)
         spinner.center(inView: thumbnailImageView)
-        spinner.setDimensions(height: 20, width: 20)
+        spinner.setDimensions(height: 28, width: 28)
     }
     
     

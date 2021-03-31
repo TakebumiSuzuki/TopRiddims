@@ -34,52 +34,58 @@ class SettingVC: UIViewController {
     
     private let bgImageView: UIImageView = {
        let iv = UIImageView()
-        iv.image = UIImage(named: "Speakers")
+        iv.image = UIImage(named: "beach")
         iv.contentMode = .scaleAspectFill
         iv.alpha = 0.85
         return iv
     }()
     
-//    let playerPlaceholderView: UIView = {
+//    private let playerPlaceholderView: UIView = {
 //        let view = UIView()
-//        view.backgroundColor = UIColor.lightGray.withAlphaComponent(0.7)
+//        view.backgroundColor = UIColor.systemGray5
+//        view.clipsToBounds = true
 //        return view
 //    }()
+    
     private let playerPlaceholderView: UIVisualEffectView = {
         let blurEffect = UIBlurEffect(style: .systemUltraThinMaterial)
         let bv = UIVisualEffectView(effect: blurEffect)
         bv.clipsToBounds = true
         return bv
     }()
-    
+
     private let blurredView: UIVisualEffectView = {
         let blurEffect = UIBlurEffect(style: .systemUltraThinMaterial)
         let bv = UIVisualEffectView(effect: blurEffect)
-        bv.layer.cornerRadius = 8
         bv.clipsToBounds = true
         return bv
     }()
     
     private lazy var dateLabel: UILabel = {
        let lb = UILabel()
-        lb.font = UIFont.systemFont(ofSize: 14, weight: .light)
-        lb.textColor = UIColor.label
+        lb.font = UIFont.systemFont(ofSize: 14, weight: .regular)
+        lb.textColor = UIColor.white.withAlphaComponent(0.95)
         
         let date = user.registrationDate.dateValue()
         let dateString = CustomDateFormatter.formatter.string(from: date)
-        lb.text = "Joined on \(dateString)"
+        lb.text = "Joined on \(dateString) "
         
         return lb
     }()
     
     private lazy var nameTextField: CustomTextField = {
         let tf = CustomTextField(placeholder: "Enter new name here..")
-        
+        tf.backgroundColor = .systemFill
+//        tf.alpha = 0.8
+        tf.textColor = UIColor.white.withAlphaComponent(0.95)
         return tf
     }()
     
     private lazy var emailTextField: CustomTextField = {
         let tf = CustomTextField(placeholder: "Enter new email here..")
+        tf.backgroundColor = .systemFill
+//        tf.alpha = 0.6
+        tf.textColor = UIColor.white.withAlphaComponent(0.95)
         return tf
     }()
     
@@ -126,21 +132,21 @@ class SettingVC: UIViewController {
     
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
-        imageContainerView.fillSuperview()
+        
+        imageContainerView.anchor(top: view.safeAreaLayoutGuide.topAnchor, left: view.leftAnchor, bottom: view.safeAreaLayoutGuide.bottomAnchor, right: view.rightAnchor)
         bgImageView.fillSuperview()
-//        bgImageView.setHeight(view.frame.height)
-//        bgImageView.setWidth(2000)
-//        bgImageView.sizeToFit()
-        imageContainerView.bounds.origin.x = -400
+        
         
         let floatingPlayerHeight = view.frame.width*K.floatingPlayerWidthMultiplier/16*9
         playerPlaceholderView.anchor(top: view.safeAreaLayoutGuide.topAnchor, left: view.leftAnchor, right: view.rightAnchor, height: floatingPlayerHeight+K.floatingPlayerTopBottomInsets*2)
         
-        blurredView.anchor(top: playerPlaceholderView.bottomAnchor, left: view.leftAnchor, right: view.rightAnchor, paddingTop: 20, paddingLeft: K.placeholderLeftRightPadding, paddingRight: K.placeholderLeftRightPadding)
+        blurredView.anchor(top: playerPlaceholderView.bottomAnchor, left: view.leftAnchor, bottom: view.safeAreaLayoutGuide.bottomAnchor, right: view.rightAnchor)
+        
+//        blurredView.anchor(top: playerPlaceholderView.bottomAnchor, left: view.leftAnchor, right: view.rightAnchor, paddingTop: 20, paddingLeft: K.placeholderLeftRightPadding, paddingRight: K.placeholderLeftRightPadding)
         
         dateLabel.anchor(top: blurredView.topAnchor, right: blurredView.rightAnchor, paddingTop: K.placeholderInsets, paddingRight: K.placeholderInsets)
         
-        nameTextField.anchor(top: dateLabel.bottomAnchor, left: blurredView.leftAnchor, right: blurredView.rightAnchor, paddingTop: 5, paddingLeft: K.placeholderInsets, paddingRight: K.placeholderInsets)
+        nameTextField.anchor(top: dateLabel.bottomAnchor, left: blurredView.leftAnchor, right: blurredView.rightAnchor, paddingTop: 6, paddingLeft: K.placeholderInsets, paddingRight: K.placeholderInsets)
         
         emailTextField.anchor(top: nameTextField.bottomAnchor, left: nameTextField.leftAnchor, right: nameTextField.rightAnchor, paddingTop: K.verticalSpace)
         
@@ -153,7 +159,7 @@ class SettingVC: UIViewController {
         blurredView.contentView.addSubview(stackView)
         stackView.centerX(inView: blurredView, topAnchor: emailTextField.bottomAnchor, paddingTop: K.verticalSpace)
         
-        blurredView.bottomAnchor.constraint(equalTo: stackView.bottomAnchor, constant: K.placeholderInsets).isActive = true
+//        blurredView.bottomAnchor.constraint(equalTo: stackView.bottomAnchor, constant: K.placeholderInsets).isActive = true
         
     }
     
@@ -169,9 +175,9 @@ class SettingVC: UIViewController {
             return (name != self.user.name || email != self.user.email)
         }
         textFieldsObservable.startWith(true).bind(to: saveButton.rx.isEnabled).disposed(by: disposeBag)
-        textFieldsObservable.startWith(true).map{ $0 ? 1 : 0.5 }.bind(to: saveButton.rx.alpha).disposed(by: disposeBag)
+        textFieldsObservable.startWith(true).map{ $0 ? 0.7 : 0.3 }.bind(to: saveButton.rx.alpha).disposed(by: disposeBag)
         textFieldsObservable.startWith(false).bind(to: cancelButton.rx.isEnabled).disposed(by: disposeBag)
-        textFieldsObservable.startWith(false).map{ $0 ? 1 : 0.5 }.bind(to: cancelButton.rx.alpha).disposed(by: disposeBag)
+        textFieldsObservable.startWith(false).map{ $0 ? 0.7 : 0.3 }.bind(to: cancelButton.rx.alpha).disposed(by: disposeBag)
     }
     
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {

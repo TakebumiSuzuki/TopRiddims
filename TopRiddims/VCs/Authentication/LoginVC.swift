@@ -15,7 +15,7 @@ import RxCocoa
 class LoginVC: UIViewController{
     
     //MARK: - Properties
-    private let imageAlpha: CGFloat = 0.9
+    private let imageAlpha: CGFloat = 0.85
     
     let disposeBag = DisposeBag()
     let twitterProvider = OAuthProvider(providerID: "twitter.com")
@@ -37,7 +37,7 @@ class LoginVC: UIViewController{
     }()
     private lazy var backgroundImageView: UIImageView = {
        let iv = UIImageView()
-        let image = UIImage(named: "musician")
+        let image = UIImage(named: "beach2")
         iv.image = image
         iv.alpha = imageAlpha
         iv.clipsToBounds = true
@@ -63,17 +63,17 @@ class LoginVC: UIViewController{
         let view = UIView()
         view.layer.cornerRadius = 6
         view.clipsToBounds = true
-        view.backgroundColor = .systemBackground
-        view.alpha = 0.3
+        view.backgroundColor = .black
+        view.alpha = 0.5
         return view
     }()
     
-    private let welcomLabel: UILabel = {
+    private let letsLabel: UILabel = {
        let lb = UILabel()
-        lb.font = UIFont.systemFont(ofSize: 30, weight: .light)
-        lb.textColor = .white
+        lb.font = UIFont.systemFont(ofSize: 26, weight: .light)
+        lb.textColor = UIColor.white.withAlphaComponent(0.9)
         lb.textAlignment = .center
-        lb.text = "Welcome to Top Riddims!!"
+        lb.text = "Let's Dive into island Music!"
         lb.adjustsFontSizeToFitWidth = true
         return lb
     }()
@@ -94,7 +94,7 @@ class LoginVC: UIViewController{
         let bn = UIButton(type: .system)
         bn.setTitle("Forgot password?", for: .normal)
         bn.titleLabel?.font = UIFont.systemFont(ofSize: 16, weight: .medium)
-        bn.tintColor = .white
+        bn.tintColor = UIColor.white.withAlphaComponent(0.9)
         bn.addTarget(self, action: #selector(forgotPasswordTapped), for: .touchUpInside)
         return bn
     }()
@@ -112,7 +112,7 @@ class LoginVC: UIViewController{
         let lb = UILabel()
         lb.text = "or connect with..."
         lb.font = UIFont.systemFont(ofSize: 16, weight: .medium)
-        lb.textColor = .white
+        lb.textColor = UIColor.white.withAlphaComponent(0.9)
         return lb
     }()
     
@@ -126,6 +126,7 @@ class LoginVC: UIViewController{
         bn.imageView?.contentMode = .scaleAspectFit
         bn.backgroundColor = UIColor(hexaRGBA: "00ACEE")
         bn.tintColor = .white
+        bn.alpha = 0.9
         bn.addTarget(self, action: #selector(twitterButtonTapped), for: .touchUpInside)
         return bn
     }()
@@ -138,6 +139,7 @@ class LoginVC: UIViewController{
         bn.imageView?.contentMode = .scaleAspectFit
         bn.backgroundColor = UIColor(hexaRGBA: "3B5998")
         bn.tintColor = .white
+        bn.alpha = 0.9
         bn.addTarget(self, action: #selector(fbButtonTapped), for: .touchUpInside)
         return bn
     }()
@@ -160,7 +162,7 @@ class LoginVC: UIViewController{
             return (email.count > 0 && password.count > 0)
         }
         textFieldsObservable.bind(to: loginButton.rx.isEnabled).disposed(by: disposeBag)
-        textFieldsObservable.map{$0 ? 1 : 0.5}.bind(to: loginButton.rx.alpha).disposed(by: disposeBag)
+        textFieldsObservable.map{$0 ? 0.8 : 0.5}.bind(to: loginButton.rx.alpha).disposed(by: disposeBag)
         
         emailTextField.rx.controlEvent(.editingDidEndOnExit).subscribe { [weak self](_) in
             guard let self = self else {return}
@@ -175,7 +177,7 @@ class LoginVC: UIViewController{
     private func setupNavBar(){
         navigationController?.navigationBar.tintColor = .label
         navigationItem.title = "Login"
-        let rightButton = UIBarButtonItem(title: "SignUp!", style: .done, target: self, action: #selector(signUpButtonTapped))
+        let rightButton = UIBarButtonItem(title: "Sign Up", style: .done, target: self, action: #selector(signUpButtonTapped))
         rightButton.setTitleTextAttributes([.foregroundColor: UIColor.white.withAlphaComponent(0.7), .font: UIFont.systemFont(ofSize: 16, weight: .regular)], for: .normal)
         navigationItem.rightBarButtonItem = rightButton
         
@@ -194,7 +196,7 @@ class LoginVC: UIViewController{
         view.addSubview(clearScrollingView)
         clearScrollingView.addSubview(clearPlaceholderView)
         clearPlaceholderView.addSubview(darkView)
-        clearPlaceholderView.addSubview(welcomLabel)
+        clearPlaceholderView.addSubview(letsLabel)
         clearPlaceholderView.addSubview(emailTextField)
         clearPlaceholderView.addSubview(passwordTextField)
         clearPlaceholderView.addSubview(forgotPasswordButton)
@@ -212,19 +214,14 @@ class LoginVC: UIViewController{
         
         imageContainerView.bounds.origin.x = (modifiedWidth-view.frame.width)/2
         
-        
-        
         clearScrollingView.fillSuperview()
-        
         
         clearPlaceholderView.anchor(left: clearScrollingView.leftAnchor, right: clearScrollingView.rightAnchor, paddingLeft: K.placeholderLeftRightPadding, paddingRight: K.placeholderLeftRightPadding)
         
+        letsLabel.anchor(top: clearPlaceholderView.topAnchor, left: clearPlaceholderView.leftAnchor, right: clearPlaceholderView.rightAnchor, paddingTop: K.placeholderInsets-5, paddingLeft: K.placeholderInsets, paddingRight: K.placeholderInsets)
         
         
-        welcomLabel.anchor(top: clearPlaceholderView.topAnchor, left: clearPlaceholderView.leftAnchor, right: clearPlaceholderView.rightAnchor, paddingTop: K.placeholderInsets, paddingLeft: K.placeholderInsets, paddingRight: K.placeholderInsets)
-        
-        
-        emailTextField.anchor(top: welcomLabel.bottomAnchor, left: welcomLabel.leftAnchor, right: welcomLabel.rightAnchor, paddingTop: K.verticalSpace)
+        emailTextField.anchor(top: letsLabel.bottomAnchor, left: clearPlaceholderView.leftAnchor, right: clearPlaceholderView.rightAnchor, paddingTop: K.verticalSpace, paddingLeft: K.placeholderInsets, paddingRight: K.placeholderInsets)
         
         passwordTextField.anchor(top: emailTextField.bottomAnchor, left: emailTextField.leftAnchor, right: emailTextField.rightAnchor, paddingTop: K.verticalSpace)
         
@@ -233,8 +230,6 @@ class LoginVC: UIViewController{
         
         
         loginButton.anchor(top: forgotPasswordButton.bottomAnchor, left: emailTextField.leftAnchor, right: emailTextField.rightAnchor, paddingTop: 3)
-        
-        
         
         connectLabel.centerX(inView: clearPlaceholderView, topAnchor: loginButton.bottomAnchor, paddingTop: K.verticalSpace)
         
@@ -260,7 +255,6 @@ class LoginVC: UIViewController{
     }
     
     @objc func willShowKeyboard(notification: NSNotification){
-        
         let keyboardFrame = (notification.userInfo![UIResponder.keyboardFrameEndUserInfoKey] as AnyObject).cgRectValue
         guard let keyboardMinY = keyboardFrame?.minY else {return}
         
@@ -275,7 +269,6 @@ class LoginVC: UIViewController{
     @objc private func willHideKeyboard(notification: NSNotification){
         self.clearScrollingView.bounds.origin.y = 0
     }
-    
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
         view.endEditing(true)
     }

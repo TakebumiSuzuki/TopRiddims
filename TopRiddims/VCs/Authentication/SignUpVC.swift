@@ -14,7 +14,7 @@ import RxCocoa
 class SignUpVC: UIViewController {
 
     //MARK: - Properties
-    private let imageAlpha: CGFloat = 0.9
+    private let imageAlpha: CGFloat = 0.85
     
     let disposeBag = DisposeBag()
     let authService = AuthService()
@@ -34,7 +34,7 @@ class SignUpVC: UIViewController {
     }()
     private lazy var backgroundImageView: UIImageView = {  //変数imageAlphaを使う為にlazyにしている。
        let iv = UIImageView()
-        let image = UIImage(named: "mas")
+        let image = UIImage(named: "mas2")
         iv.image = image
         iv.alpha = imageAlpha
         iv.clipsToBounds = true
@@ -60,14 +60,23 @@ class SignUpVC: UIViewController {
         let view = UIView()
         view.layer.cornerRadius = 6
         view.clipsToBounds = true
-        view.backgroundColor = .systemBackground
-        view.alpha = 0.3
+        view.backgroundColor = .black
+        view.alpha = 0.5
         return view
+    }()
+    
+    private let welcomLabel: UILabel = {
+       let lb = UILabel()
+        lb.font = UIFont.systemFont(ofSize: 26, weight: .light)
+        lb.textColor = UIColor.white.withAlphaComponent(0.9)
+        lb.textAlignment = .center
+        lb.text = "Welcom to TopRiddims!!"
+        lb.adjustsFontSizeToFitWidth = true
+        return lb
     }()
     
     private lazy var nameTextField: CustomTextField = {
         let tf = CustomTextField(placeholder: "Enter name")
-//        tf.delegate = self
         return tf
     }()
     
@@ -111,7 +120,7 @@ class SignUpVC: UIViewController {
             return (name.count > 0 && email.count > 0 && password.count > 0)
         }
         textFieldsObservable.bind(to: signUpButton.rx.isEnabled).disposed(by: disposeBag)
-        textFieldsObservable.map{$0 ? 1 : 0.5}.bind(to: signUpButton.rx.alpha).disposed(by: disposeBag)
+        textFieldsObservable.map{$0 ? 0.8 : 0.5}.bind(to: signUpButton.rx.alpha).disposed(by: disposeBag)
         
         nameTextField.rx.controlEvent(.editingDidEndOnExit).subscribe { [weak self](_) in
             guard let self = self else {return}
@@ -151,6 +160,7 @@ class SignUpVC: UIViewController {
         clearScrollingView.addSubview(clearPlaceholderView)
         
         clearPlaceholderView.addSubview(darkView)
+        clearPlaceholderView.addSubview(welcomLabel)
         clearPlaceholderView.addSubview(nameTextField)
         clearPlaceholderView.addSubview(emailTextField)
         clearPlaceholderView.addSubview(passwordTextField)
@@ -171,7 +181,10 @@ class SignUpVC: UIViewController {
         
         clearPlaceholderView.anchor(left: clearScrollingView.leftAnchor, right: clearScrollingView.rightAnchor, paddingLeft: K.placeholderLeftRightPadding, paddingRight: K.placeholderLeftRightPadding)
         
-        nameTextField.anchor(top: clearPlaceholderView.topAnchor, left: clearPlaceholderView.leftAnchor, right: clearPlaceholderView.rightAnchor, paddingTop: K.placeholderInsets, paddingLeft: K.placeholderInsets, paddingRight: K.placeholderInsets)
+        welcomLabel.anchor(top: clearPlaceholderView.topAnchor, left: clearPlaceholderView.leftAnchor, right: clearPlaceholderView.rightAnchor, paddingTop: K.placeholderInsets-5, paddingLeft: K.placeholderInsets, paddingRight: K.placeholderInsets)
+        
+        nameTextField.anchor(top: welcomLabel.bottomAnchor, left: clearPlaceholderView.leftAnchor, right: clearPlaceholderView.rightAnchor, paddingTop: K.verticalSpace, paddingLeft: K.placeholderInsets, paddingRight: K.placeholderInsets)
+        
         emailTextField.anchor(top: nameTextField.bottomAnchor, left: nameTextField.leftAnchor, right: nameTextField.rightAnchor, paddingTop: K.verticalSpace)
         passwordTextField.anchor(top: emailTextField.bottomAnchor, left: nameTextField.leftAnchor, right: nameTextField.rightAnchor, paddingTop: K.verticalSpace)
         signUpButton.anchor(top: passwordTextField.bottomAnchor, left: nameTextField.leftAnchor, right: nameTextField.rightAnchor, paddingTop: K.verticalSpace)
@@ -233,21 +246,4 @@ class SignUpVC: UIViewController {
     
 }
 
-//
-////MARK: - TextField Delegate
-//extension SignUpVC: UITextFieldDelegate{
-//    func textFieldShouldReturn(_ textField: UITextField) -> Bool {
-//        switch textField{
-//        case nameTextField:
-//            emailTextField.becomeFirstResponder()
-//        case emailTextField:
-//            passwordTextField.becomeFirstResponder()
-//        case passwordTextField:
-//            textField.resignFirstResponder()
-//        default:
-//            break
-//        }
-//        return true
-//    }
-//}
 

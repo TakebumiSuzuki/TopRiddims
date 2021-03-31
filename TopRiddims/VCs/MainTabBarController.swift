@@ -32,8 +32,8 @@ class MainTabBarController: UITabBarController {
     lazy var videoPlayer: YTPlayerView = {
         let vp = YTPlayerView(frame: .zero)
         vp.delegate = self
-        vp.backgroundColor = UIColor.systemFill
-        vp.layer.cornerRadius = 3
+        vp.backgroundColor = UIColor.systemGray5
+        vp.layer.cornerRadius = 0
         vp.clipsToBounds = true
         return vp
     }()
@@ -48,13 +48,14 @@ class MainTabBarController: UITabBarController {
     private let blackImageView: UIImageView = {
         let iv = UIImageView()
         iv.image = UIImage(named: "BlackScreen")
-        iv.layer.cornerRadius = 4
+        iv.tintColor = UIColor.systemGray5
+        iv.layer.cornerRadius = 0
         iv.clipsToBounds = true
         return iv
     }()
     
     private let spinner: NVActivityIndicatorView = {
-        let spinner = NVActivityIndicatorView(frame: .zero, type: .circleStrokeSpin, color: .yellow, padding: 0)
+        let spinner = NVActivityIndicatorView(frame: .zero, type: .circleStrokeSpin, color: UIColor(named: "SpinnerColor"), padding: 0)
         return spinner
     }()
     
@@ -119,6 +120,7 @@ class MainTabBarController: UITabBarController {
         
         //        tabBar.itemPositioning = .centered //itemの配置の仕方。必要ないかも。
         tabBar.tintColor = UIColor(named: "Black_Yellow")
+        tabBar.unselectedItemTintColor = UIColor.label.withAlphaComponent(0.8)
         let configuration = UIImage.SymbolConfiguration(weight: .thin)
         
         
@@ -137,7 +139,7 @@ class MainTabBarController: UITabBarController {
         
         let settingVC = SettingVC(user: user)
         let settingNav = generateNavController(rootVC: settingVC,
-                                               title: "setting",
+                                               title: "account",
                                                selectedImage: UIImage(systemName: "person.fill", withConfiguration: configuration)!,
                                                unselectedImage: UIImage(systemName: "person", withConfiguration: configuration)!)
         
@@ -181,7 +183,7 @@ class MainTabBarController: UITabBarController {
         blackImageView.setDimensions(height: playerWidth/16*9, width: playerWidth)
         
         spinner.center(inView: blackImageView)
-        spinner.setDimensions(height: 40, width: 40)
+        spinner.setDimensions(height: 44, width: 44)
     }
     
     //MARK: - Video再生コントロール

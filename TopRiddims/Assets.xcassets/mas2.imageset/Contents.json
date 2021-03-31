@@ -1,7 +1,7 @@
 {
   "images" : [
     {
-      "filename" : "Screen Shot 2021-03-19 at 7.46.44 PM.png",
+      "filename" : "2_SLS_PoolParty01_20253.jpg",
       "idiom" : "universal",
       "scale" : "1x"
     },
@@ -17,8 +17,5 @@
   "info" : {
     "author" : "xcode",
     "version" : 1
-  },
-  "properties" : {
-    "template-rendering-intent" : "template"
   }
 }

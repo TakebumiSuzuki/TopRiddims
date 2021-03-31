@@ -53,11 +53,11 @@ class LikesTableViewCell: UITableViewCell {
     
     private var heartButtonOnOff: Bool = false{
         didSet{
-            let config = UIImage.SymbolConfiguration(pointSize: 20, weight: .thin, scale: .medium)
+            let config = UIImage.SymbolConfiguration(pointSize: 21, weight: .thin, scale: .medium)
             if heartButtonOnOff{
                 let image = UIImage(systemName: "suit.heart.fill", withConfiguration: config)
                 heartButton.setImage(image, for: .normal)
-                heartButton.tintColor = #colorLiteral(red: 0.8549019694, green: 0.250980407, blue: 0.4784313738, alpha: 1)
+                heartButton.tintColor = #colorLiteral(red: 0.8549019694, green: 0.250980407, blue: 0.4784313738, alpha: 1).withAlphaComponent(0.9)
             }else{
                 let image = UIImage(systemName: "suit.heart", withConfiguration: config)
                 heartButton.setImage(image, for: .normal)
@@ -68,11 +68,11 @@ class LikesTableViewCell: UITableViewCell {
     
     private var checkButtonOnOff: Bool = false{
         didSet{
-            let config = UIImage.SymbolConfiguration(pointSize: 18, weight: .thin, scale: .medium)
+            let config = UIImage.SymbolConfiguration(pointSize: 21, weight: .thin, scale: .medium)
             if checkButtonOnOff{
                 let image = UIImage(systemName: "checkmark.circle.fill", withConfiguration: config)
                 checkButton.setImage(image, for: .normal)
-                checkButton.tintColor = #colorLiteral(red: 0.4666666687, green: 0.7647058964, blue: 0.2666666806, alpha: 1)
+                checkButton.tintColor = #colorLiteral(red: 0.4666666687, green: 0.7647058964, blue: 0.2666666806, alpha: 1).withAlphaComponent(0.9)
             }else{
                 let image = UIImage(systemName: "checkmark.circle", withConfiguration: config)
                 checkButton.setImage(image, for: .normal)
@@ -92,7 +92,7 @@ class LikesTableViewCell: UITableViewCell {
     
     lazy var playButton: UIButton = {
         let bn = UIButton(type: .system)
-        let config = UIImage.SymbolConfiguration(pointSize: 30, weight: .thin, scale: .medium)
+        let config = UIImage.SymbolConfiguration(pointSize: 24, weight: .thin, scale: .medium)
         let buttonImage = UIImage(systemName: "play.circle", withConfiguration: config)
         bn.setImage(buttonImage, for: .normal)
         bn.tintColor = .white  //これも上のthumbnailと合わせて色を変える余地がある
@@ -104,7 +104,7 @@ class LikesTableViewCell: UITableViewCell {
     
     lazy var pauseButton: UIButton = {
         let bn = UIButton(type: .system)
-        let config = UIImage.SymbolConfiguration(pointSize: 30, weight: .thin, scale: .medium)
+        let config = UIImage.SymbolConfiguration(pointSize: 24, weight: .thin, scale: .medium)
         let buttonImage = UIImage(systemName: "pause.circle", withConfiguration: config)
         bn.setImage(buttonImage, for: .normal)
         bn.tintColor = .white  //これも上のthumbnailと合わせて色を変える余地がある
@@ -115,19 +115,23 @@ class LikesTableViewCell: UITableViewCell {
     }()
 
     private let spinner: NVActivityIndicatorView = {
-        let spinner = NVActivityIndicatorView(frame: .zero, type: .circleStrokeSpin, color: .yellow, padding: 0)
+        let spinner = NVActivityIndicatorView(frame: .zero, type: .circleStrokeSpin, color: UIColor(named: "SpinnerColor"), padding: 0)
         spinner.isHidden = true
        return spinner
     }()
     
     let songNameLabel: UILabel = {
         let lb = UILabel()
-        lb.font = UIFont.systemFont(ofSize: 16, weight: .light)
+        lb.font = UIFont.systemFont(ofSize: 15, weight: .medium)
+        lb.textAlignment = .left
+        lb.tintColor = UIColor(named: "SecondaryLabelColor")
         return lb
     }()
     let artistNameLabel: UILabel = {
         let lb = UILabel()
-        lb.font = UIFont.systemFont(ofSize: 14, weight: .light)
+        lb.font = UIFont.systemFont(ofSize: 14, weight: .regular)
+        lb.textAlignment = .left
+        lb.tintColor = UIColor(named: "SecondaryLabelColor")
         return lb
     }()
 
@@ -146,7 +150,8 @@ class LikesTableViewCell: UITableViewCell {
     
     private let dateLabel: UILabel = {
        let lb = UILabel()
-        lb.font = UIFont.systemFont(ofSize: 14, weight: .light)
+        lb.font = UIFont.systemFont(ofSize: 12, weight: .light)
+        lb.tintColor = .systemGray5
         return lb
     }()
 
@@ -188,19 +193,23 @@ class LikesTableViewCell: UITableViewCell {
         
         thumbnailImageView.anchor(top: self.topAnchor, left: self.leftAnchor, paddingTop: 8, paddingLeft: 10, width: 44/9*16, height: 44)
         
-        songNameLabel.anchor(top: self.topAnchor, left: thumbnailImageView.rightAnchor, paddingTop: 10, paddingLeft: 10)
+        songNameLabel.anchor(top: self.topAnchor, left: thumbnailImageView.rightAnchor, right: heartButton.leftAnchor, paddingTop: 10, paddingLeft: 10, paddingRight: 5)
+        
         songNameLabel.setContentCompressionResistancePriority(UILayoutPriority.init(100), for: .horizontal)
-        artistNameLabel.anchor(top: songNameLabel.bottomAnchor, left: songNameLabel.leftAnchor, paddingTop: 3)
+        
+        artistNameLabel.anchor(top: songNameLabel.bottomAnchor, left: songNameLabel.leftAnchor, right: dateLabel.leftAnchor, paddingTop: 3, paddingRight: 5)
         artistNameLabel.setContentCompressionResistancePriority(UILayoutPriority.init(100), for: .horizontal)
+        artistNameLabel.setContentHuggingPriority(UILayoutPriority.init(100), for: .horizontal)
         
         checkButton.anchor(right: self.rightAnchor, paddingRight: 16)
-        checkButton.lastBaselineAnchor.constraint(equalTo: songNameLabel.firstBaselineAnchor).isActive = true
+        checkButton.centerYAnchor.constraint(equalTo: songNameLabel.centerYAnchor).isActive = true
         
-        heartButton.anchor(right: checkButton.leftAnchor, paddingRight: 10)
-        heartButton.lastBaselineAnchor.constraint(equalTo: songNameLabel.firstBaselineAnchor).isActive = true
+        
+        heartButton.anchor(right: checkButton.leftAnchor, paddingRight: 5)
+        heartButton.centerYAnchor.constraint(equalTo: songNameLabel.centerYAnchor).isActive = true
         
         dateLabel.anchor(right: self.rightAnchor, paddingRight: 16)
-        dateLabel.lastBaselineAnchor.constraint(equalTo: artistNameLabel.firstBaselineAnchor).isActive = true
+        dateLabel.lastBaselineAnchor.constraint(equalTo: artistNameLabel.firstBaselineAnchor, constant: 0).isActive = true
         
         
         setupObservers()
