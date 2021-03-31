@@ -45,7 +45,7 @@ class ChartVC: UIViewController{
     var songNames = [String]()
     var artistNames = [String]()
     private var reloadingOnOff: Bool = false  //navBar内のreloadボタンの管理
-    
+    private var countryRowNeedShowLoader: [Bool] = []  //チャートをフェッチする時の国ごとのローダー表示命令を管理
     
     //MARK: - UI Components
     
@@ -104,11 +104,15 @@ class ChartVC: UIViewController{
     //MARK: - View Life Cycles
     override func viewDidLoad() {
         super.viewDidLoad()
-        print(uid)
+        
         setupNavBar()
         setupViews()
         setupObservers()
-//        setupNotifications()//ジャンプボタンはとりあえずオフに
+        
+        for _ in 0..<user.allChartData.count{  //まず全てfalseの配列を作る
+            countryRowNeedShowLoader.append(false)
+        }
+        
     }
     
     private func setupObservers(){
@@ -155,8 +159,7 @@ class ChartVC: UIViewController{
     
     
     private func setupNavBar(){
-//        let navTitleImageView = UIImageView(image:UIImage(named: "Top_Riddims")?.withTintColor(UIColor(named: "Black_Yellow")!))
-//        navigationItem.titleView = navTitleImageView
+        
         navigationItem.title = "Charts"
         
         let rightButton = UIBarButtonItem()
@@ -166,10 +169,7 @@ class ChartVC: UIViewController{
         smallCircleImageView.center(inView: dummyButton)
         smallPauseImageView.center(inView: dummyButton)
         self.navigationItem.rightBarButtonItem = rightButton
-        
-        //ジャンプボタンはとりあえずオフに
-//        let buttonItem = UIBarButtonItem(title: "Jump", style: .plain, target: self, action: #selector(jumpToPlayingVideo))
-//        navigationItem.leftBarButtonItem = buttonItem
+       
     }
     
     private func setupViews(){
@@ -186,7 +186,6 @@ class ChartVC: UIViewController{
     
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(true)
-        print("reloading data")
         chartCollectionView.reloadData()
     }
  
@@ -231,8 +230,11 @@ class ChartVC: UIViewController{
             self.smallPauseImageView.isHidden = false
             for i in 0...self.user.allChartData.count{
                 guard let cell = self.chartCollectionView.cellForItem(at: IndexPath(item: i, section: 0)) as? ChartCollectionViewCell else{continue}
-                cell.loader.startAnimating()
-                cell.loader.isHidden = false
+                
+                self.countryRowNeedShowLoader[i] = true
+                cell.hud.show(in: cell)
+                cell.spinner.startAnimating()
+                cell.spinner.isHidden = false
             }
         }
         scrapingManager = ScrapingManager(chartDataToFetch: user.allChartData, startingIndex: 0)
@@ -248,6 +250,11 @@ class ChartVC: UIViewController{
             timer.invalidate()
         }
         scrapingManager = nil  //これで綺麗さっぱり全てのオブジェクトがdismissされる。
+//        for i in 0..<user.allChartData.count{
+//            countryRowNeedShowLoader[i] = false
+//            guard let cell = chartCollectionView.cellForItem(at: IndexPath(row: i, section: 0)) as? ChartCollectionViewCell else{continue}
+//            cell.hud.dismiss()
+//        }
     }
 }
 
@@ -263,7 +270,8 @@ extension ChartVC: ScrapingManagerDelegate{
             print("IndexNumber \(countryIndexNumber) is out of screen, so this doesn't show liveupdate")
             return
         }
-        DispatchQueue.main.async {
+        DispatchQueue.main.async { [weak self] in
+            guard let self = self else {return}
             cellToLiveUpdate.songs = songs  //この時点でdidSetが起動し自動アップデートが行われる
             cellToLiveUpdate.videoCollectionView.reloadData()
             let flash = CABasicAnimation(keyPath: "opacity")
@@ -273,8 +281,12 @@ extension ChartVC: ScrapingManagerDelegate{
             flash.timingFunction = CAMediaTimingFunction(name: CAMediaTimingFunctionName.easeInEaseOut)
             flash.repeatCount = 1
             cellToLiveUpdate.layer.add(flash, forKey: nil)
-            cellToLiveUpdate.loader.stopAnimating()
-            cellToLiveUpdate.loader.isHidden = true
+            print("called????")
+            
+            self.countryRowNeedShowLoader[countryIndexNumber] = false
+            cellToLiveUpdate.hud.dismiss()
+            cellToLiveUpdate.spinner.stopAnimating()
+            cellToLiveUpdate.spinner.isHidden = true
         }
         
     }
@@ -296,7 +308,7 @@ extension ChartVC: ScrapingManagerDelegate{
         stopAllLoaders()
     }
     
-    func stopAllLoaders(){
+    func stopAllLoaders(){  //これには国ごとのhudも含まれる。
         DispatchQueue.main.async { [weak self] in
             guard let self = self else {return}
             self.smallCircleImageView.stopRotation()
@@ -304,12 +316,19 @@ extension ChartVC: ScrapingManagerDelegate{
             
             for i in 0...self.user.allChartData.count{
                 guard let cell = self.chartCollectionView.cellForItem(at: IndexPath(item: i, section: 0)) as? ChartCollectionViewCell else{continue}
-                cell.loader.stopAnimating()
-                cell.loader.isHidden = true
+                
+                cell.hud.dismiss()
+                self.countryRowNeedShowLoader[i] = false
+                cell.spinner.stopAnimating()
+                cell.spinner.isHidden = true
+                
             }
             self.chartCollectionView.reloadData()
         }
     }
+    
+    
+    
 }
 
 //MARK: - FooterからのMap関連 Delegate
@@ -334,12 +353,11 @@ extension ChartVC: MapVCDelegate{
             for _ in 0...19{ array.append(0) }
             return array
         }()
-        self.chartCollectionView.reloadData() //残された国のみで一度リロード
-        for i in 0..<user.allChartData.count{ //これらはアプリ立ち上げまもない時はcellがinitされ、loaderが起動してしまうので。
-            guard let cell = chartCollectionView.cellForItem(at: IndexPath(item: i, section: 0)) as? ChartCollectionViewCell else {continue}
-            cell.loader.stopRotation()
-            cell.loader.isHidden = true
+        countryRowNeedShowLoader = []  //ここで一度からにして数行下で残された国の数でもう一度falseを入れる
+        for _ in 0..<user.allChartData.count{
+            countryRowNeedShowLoader.append(false)
         }
+        self.chartCollectionView.reloadData() //残された国のみで一度リロード
         var currentEntries = [String]()
         user.allChartData.forEach{ currentEntries.append($0.country) }
         let newEntries: [String] = selectedCountries.filter{ !currentEntries.contains($0) }
@@ -365,6 +383,7 @@ extension ChartVC: MapVCDelegate{
             //songNameとartistnameを空にしたら、下のinsertItemsの段で、一番目の要素(jamaica)から挿入された。UIKitのバグかと。
             
             newCountryData.append(data)
+            countryRowNeedShowLoader.append(true) //新しく加わる国分だけtrueを入れる
         }
         
         let startingIndex = user.allChartData.count
@@ -410,7 +429,7 @@ extension ChartVC: UICollectionViewDataSource{
         cell.videoCollectionView.scrollToItem(at: pageNumbers[indexPath.row], animated: false)
         cell.delegate = self
         cell.user = user
-        
+        cell.needShowLoader = countryRowNeedShowLoader[indexPath.row]
         return cell
     }
     func collectionView(_ collectionView: UICollectionView, viewForSupplementaryElementOfKind kind: String, at indexPath: IndexPath) -> UICollectionReusableView {

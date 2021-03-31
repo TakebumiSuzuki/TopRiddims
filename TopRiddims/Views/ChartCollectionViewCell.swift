@@ -8,6 +8,7 @@
 import UIKit
 import iCarousel
 import NVActivityIndicatorView
+import JGProgressHUD
 
 protocol ChartCollectionViewCellDelegate: class{
     func heartButtonTapped(chartCellIndexNumber: Int, currentPageIndexNum: Int, buttonState: Bool)
@@ -68,11 +69,6 @@ class ChartCollectionViewCell: UICollectionViewCell {
     var songs = [Song](){
         didSet{
             videoCollectionView.reloadData()
-            
-            if songs.count == 20{
-                loader.stopAnimating()
-                loader.isHidden = true
-            }
         }
     }
     var currentPageIndexNum: Int = 0{ //いくつめのビデオが前面に出ているか
@@ -80,13 +76,38 @@ class ChartCollectionViewCell: UICollectionViewCell {
             setLabelInfo()
         }
     }
-    //MARK: - UI Components
     
-    let loader: NVActivityIndicatorView = {
-        let loader = NVActivityIndicatorView(frame: CGRect(x: 0, y: 0, width: 40, height: 40))
-        loader.type = .ballScaleRippleMultiple
-        return loader
+    let hud: JGProgressHUD = {
+        let hud = JGProgressHUD()
+        hud.textLabel.text = "Loading"
+        hud.style = JGProgressHUDStyle.dark
+        hud.alpha = 0.2
+        return hud
     }()
+    var needShowLoader: Bool = false{
+        didSet{
+            if needShowLoader{
+//                hud.show(in: self)
+                print("showが呼ばれてます")
+                spinner.startAnimating()
+                spinner.isHidden = false
+            }else{
+//                hud.dismiss()
+                print("dismissが呼ばれてます")
+                spinner.stopAnimating()
+                spinner.isHidden = true
+            }
+        }
+    }
+    
+    let spinner: NVActivityIndicatorView = {
+        let spinner = NVActivityIndicatorView(frame: .zero, type: .ballScaleMultiple, color: UIColor(named: "SpinnerColor"), padding: 0)
+        spinner.isHidden = true
+       return spinner
+    }()
+    
+    
+    //MARK: - UI Components
     
     private let countryLabel: UILabel = {
         let lb = UILabel()
@@ -180,7 +201,6 @@ class ChartCollectionViewCell: UICollectionViewCell {
     override init(frame: CGRect) {
         super.init(frame: frame)
         setupViews()
-        startLoader()
     }
     required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
     
@@ -197,12 +217,7 @@ class ChartCollectionViewCell: UICollectionViewCell {
         self.addSubview(artistNameLabel)
         self.addSubview(checkButton)
         self.addSubview(heartButton)
-        self.addSubview(loader)
-    }
-    
-    private func startLoader(){
-        loader.startAnimating()
-        loader.isHidden = false
+        self.addSubview(spinner)
     }
     
     override func layoutSubviews() {
@@ -247,7 +262,9 @@ class ChartCollectionViewCell: UICollectionViewCell {
         checkButton.firstBaselineAnchor.constraint(equalTo: songNameLabel.firstBaselineAnchor).isActive = true
         checkButton.leftAnchor.constraint(equalTo: heartButton.rightAnchor, constant: 4).isActive = true
         
-        loader.center(inView: self)
+        spinner.centerX(inView: self)
+        spinner.centerYAnchor.constraint(equalTo: videoCollectionView.centerYAnchor).isActive = true
+        spinner.setDimensions(height: 100, width: 100)
     }
     
     
