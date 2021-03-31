@@ -54,6 +54,15 @@ class MainTabBarController: UITabBarController {
         return iv
     }()
     
+    private lazy var logoImageView: UIImageView = {
+        let image = UIImage(named: "TopRiddimsLogo")
+        let iv = UIImageView(image: image)
+        iv.alpha = 0.15
+        iv.tintColor = UIColor(named: "BasicLabelColor")
+        iv.contentMode = .scaleAspectFit
+        return iv
+    }()
+    
     private let spinner: NVActivityIndicatorView = {
         let spinner = NVActivityIndicatorView(frame: .zero, type: .circleStrokeSpin, color: UIColor(named: "SpinnerColor"), padding: 0)
         return spinner
@@ -162,10 +171,12 @@ class MainTabBarController: UITabBarController {
         view.addSubview(videoPlayer)
         view.addSubview(scaleChangeButton)
         view.addSubview(blackImageView)
+        view.addSubview(logoImageView)
         view.addSubview(spinner)
         view.bringSubviewToFront(videoPlayer)
         view.bringSubviewToFront(blackImageView)
         view.bringSubviewToFront(spinner)
+        view.bringSubviewToFront(logoImageView)
         blackImageView.alpha = 0
         spinner.isHidden = true
         
@@ -182,6 +193,8 @@ class MainTabBarController: UITabBarController {
         blackImageView.centerX(inView: view, topAnchor: view.safeAreaLayoutGuide.topAnchor, paddingTop: nav.navigationBar.frame.maxY + K.floatingPlayerTopBottomInsets)
         blackImageView.setDimensions(height: playerWidth/16*9, width: playerWidth)
         
+        logoImageView.anchor(top: videoPlayer.topAnchor, left: videoPlayer.leftAnchor, bottom:videoPlayer.bottomAnchor, right: videoPlayer.rightAnchor)
+        
         spinner.center(inView: blackImageView)
         spinner.setDimensions(height: 44, width: 44)
     }
@@ -194,6 +207,7 @@ class MainTabBarController: UITabBarController {
     
     @objc func playVideo(notification: NSNotification){
         let info = notification.userInfo
+        logoImageView.isHidden = true
         
         guard let trackID = info?["trackID"] as? String else {return}
         if currentTrackID == trackID{

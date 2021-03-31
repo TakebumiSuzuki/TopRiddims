@@ -229,19 +229,37 @@ class SignUpVC: UIViewController {
         guard let email = emailTextField.text else{return}
         guard let password = passwordTextField.text else{return}
         
-        //ここにバリデーション
-        
-        hud.show(in: self.view)
-        authService.createUser(name: name, email: email, password: password) { [weak self](error) in
-            guard let self = self else{return}
-            self.hud.dismiss()
-            if let error = error{
-                let alert = AlertService(vc: self)
-                alert.showSimpleAlert(title: error.localizedDescription, message: "", style: .alert)
-                return
-            }
-            //サクセス。何もしなくて良いのでは？
+        let alert = AlertService(vc: self)
+        do{
+            let validatedName = try ValidationService.validateName(name: name)
+            let validatedEmail = try ValidationService.validateEmail(email: email)
+            let validatedPassword = try ValidationService.validatePassword(password: password)
+            
+            hud.show(in: self.view)
+             authService.createUser(name: validatedName, email: validatedEmail, password: validatedPassword) { [weak self](error) in
+                 guard let self = self else{return}
+                 self.hud.dismiss()
+                 if let error = error{
+                     let alert = AlertService(vc: self)
+                     alert.showSimpleAlert(title: error.localizedDescription, message: "", style: .alert)
+                     return
+                 }
+                 //サクセス。何もしなくて良いのでは？
+             }
+            
+        }catch ValidationError.invalidEmail{
+            alert.showSimpleAlert(title: ValidationError.invalidEmail.localizedDescription, message: "", style: .alert)
+        }catch ValidationError.nameIsTooLong{
+            alert.showSimpleAlert(title: ValidationError.nameIsTooLong.localizedDescription, message: "", style: .alert)
+        }catch ValidationError.nameIsTooShort{
+            alert.showSimpleAlert(title: ValidationError.nameIsTooShort.localizedDescription, message: "", style: .alert)
+        }catch ValidationError.passwordLessThan6Charactors{
+            alert.showSimpleAlert(title: ValidationError.passwordLessThan6Charactors.localizedDescription, message: "", style: .alert)
+        }catch{
+            return
         }
+        
+       
     }
     
 }

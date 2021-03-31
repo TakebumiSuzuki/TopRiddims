@@ -17,11 +17,10 @@
                         <rect key="frame" x="0.0" y="0.0" width="414" height="896"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
-                            <imageView clipsSubviews="YES" userInteractionEnabled="NO" alpha="0.5" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" image="netclipart.com-clipart-for-illustrator-1551508" translatesAutoresizingMaskIntoConstraints="NO" id="JnQ-K2-8nn">
-                                <rect key="frame" x="-24" y="-80" width="462" height="1196"/>
+                            <imageView clipsSubviews="YES" userInteractionEnabled="NO" alpha="0.40000000000000002" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" image="island" translatesAutoresizingMaskIntoConstraints="NO" id="wG9-zR-8S8">
+                                <rect key="frame" x="-70" y="-72" width="555" height="1041"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                                <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
-                                <color key="tintColor" name="Yellow_Yellow"/>
+                                <color key="tintColor" name="SplashLogoColor"/>
                             </imageView>
                         </subviews>
                         <viewLayoutGuide key="safeArea" id="6Tk-OE-BBY"/>
@@ -35,9 +34,9 @@
         </scene>
     </scenes>
     <resources>
-        <image name="netclipart.com-clipart-for-illustrator-1551508" width="461" height="756"/>
-        <namedColor name="Yellow_Yellow">
-            <color red="0.98900002241134644" green="0.88999998569488525" blue="0.29100000858306885" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+        <image name="island" width="1024" height="1024"/>
+        <namedColor name="SplashLogoColor">
+            <color red="0.61292433375634525" green="0.61292433375634525" blue="0.61292433375634525" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
         </namedColor>
         <systemColor name="systemGroupedBackgroundColor">
             <color red="0.94901960784313721" green="0.94901960784313721" blue="0.96862745098039216" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>

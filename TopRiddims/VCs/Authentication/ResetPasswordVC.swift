@@ -14,7 +14,7 @@ import RxCocoa
 class ResetPasswordVC: UIViewController {
 
     //MARK: - Properties
-    private let imageAlpha: CGFloat = 0.97
+    private let imageAlpha: CGFloat = 1
     
     let disposeBag = DisposeBag()
     let authService = AuthService()
@@ -199,27 +199,37 @@ class ResetPasswordVC: UIViewController {
     @objc func resetButtonTapped(){
         guard let email = emailTextField.text else{return}
         
-        hud.show(in: self.view)
-        authService.resetPassword(email: email) { [weak self](error) in
-            guard let self = self else{return}
-            self.hud.dismiss()
-            if let error = error{
-                let alert = AlertService(vc: self)
-                alert.showSimpleAlert(title: "Error occured. Please try again later.\(error.localizedDescription)", message: "", style: .alert)
-                return
-            }
-            //成功した場合
-            let alert = UIAlertController(title: "Ok! We sent you email. Please reset your password from there.",
-                                          message: "",
-                                          preferredStyle: .alert)
+        let alert = AlertService(vc: self)
+        do{
+            let validatedEmail = try ValidationService.validateEmail(email: email)
             
-            let action = UIAlertAction(title: "ok", style: .default) { [weak self] (action) in
-                guard let self = self else {return}
-                self.dismiss(animated: true, completion: nil)
-                self.navigationController?.popViewController(animated: true)
+            hud.show(in: self.view)
+            authService.resetPassword(email: validatedEmail) { [weak self](error) in
+                guard let self = self else{return}
+                self.hud.dismiss()
+                if let error = error{
+                    let alert = AlertService(vc: self)
+                    alert.showSimpleAlert(title: "Error occured. Please try again later.\(error.localizedDescription)", message: "", style: .alert)
+                    return
+                }
+                //成功した場合
+                let alert = UIAlertController(title: "Ok! We sent you an email. Please reset your password from there.",
+                                              message: "",
+                                              preferredStyle: .alert)
+                
+                let action = UIAlertAction(title: "ok", style: .default) { [weak self] (action) in
+                    guard let self = self else {return}
+                    self.dismiss(animated: true, completion: nil)
+                    self.navigationController?.popViewController(animated: true)
+                }
+                alert.addAction(action)
+                self.present(alert, animated: true, completion: nil)
             }
-            alert.addAction(action)
-            self.present(alert, animated: true, completion: nil)
+            
+        }catch ValidationError.invalidEmail{
+            alert.showSimpleAlert(title: ValidationError.invalidEmail.localizedDescription, message: "", style: .alert)
+        }catch{
+            return
         }
     }
     

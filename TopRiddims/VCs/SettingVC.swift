@@ -11,6 +11,7 @@ import FBSDKLoginKit
 import Firebase
 import RxSwift
 import RxCocoa
+import JGProgressHUD
 
 
 
@@ -24,8 +25,13 @@ class SettingVC: UIViewController {
     required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
     
     let disposeBag = DisposeBag()
-    
-    
+    let authService = AuthService()
+    let hud: JGProgressHUD = {
+        let hud = JGProgressHUD()
+        hud.textLabel.text = "Saving"
+        hud.style = JGProgressHUDStyle.dark
+        return hud
+    }()
     private let imageContainerView: UIView = {
        let view = UIView()
         view.backgroundColor = .clear
@@ -34,9 +40,9 @@ class SettingVC: UIViewController {
     
     private let bgImageView: UIImageView = {
        let iv = UIImageView()
-        iv.image = UIImage(named: "beach")
+        iv.image = UIImage(named: "nightPalm7")
         iv.contentMode = .scaleAspectFill
-        iv.alpha = 0.85
+        iv.alpha = 1
         return iv
     }()
     
@@ -55,7 +61,7 @@ class SettingVC: UIViewController {
     }()
 
     private let blurredView: UIVisualEffectView = {
-        let blurEffect = UIBlurEffect(style: .systemUltraThinMaterial)
+        let blurEffect = UIBlurEffect(style: .systemThinMaterial)
         let bv = UIVisualEffectView(effect: blurEffect)
         bv.clipsToBounds = true
         return bv
@@ -106,6 +112,9 @@ class SettingVC: UIViewController {
         return bn
     }()
     
+    
+        
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         setupNavBar()
@@ -128,19 +137,22 @@ class SettingVC: UIViewController {
         blurredView.contentView.addSubview(dateLabel)
         blurredView.contentView.addSubview(nameTextField)
         blurredView.contentView.addSubview(emailTextField)
+        
     }
     
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
         
-        imageContainerView.anchor(top: view.safeAreaLayoutGuide.topAnchor, left: view.leftAnchor, bottom: view.safeAreaLayoutGuide.bottomAnchor, right: view.rightAnchor)
+        let floatingPlayerHeight = view.frame.width*K.floatingPlayerWidthMultiplier/16*9
+        
+        imageContainerView.anchor(top: view.safeAreaLayoutGuide.topAnchor, left: view.leftAnchor, bottom: view.safeAreaLayoutGuide.bottomAnchor, right: view.rightAnchor, paddingTop: floatingPlayerHeight)
         bgImageView.fillSuperview()
         
         
-        let floatingPlayerHeight = view.frame.width*K.floatingPlayerWidthMultiplier/16*9
+        
         playerPlaceholderView.anchor(top: view.safeAreaLayoutGuide.topAnchor, left: view.leftAnchor, right: view.rightAnchor, height: floatingPlayerHeight+K.floatingPlayerTopBottomInsets*2)
         
-        blurredView.anchor(top: playerPlaceholderView.bottomAnchor, left: view.leftAnchor, bottom: view.safeAreaLayoutGuide.bottomAnchor, right: view.rightAnchor)
+        blurredView.anchor(top: playerPlaceholderView.bottomAnchor, left: view.leftAnchor, bottom: view.bottomAnchor, right: view.rightAnchor)
         
 //        blurredView.anchor(top: playerPlaceholderView.bottomAnchor, left: view.leftAnchor, right: view.rightAnchor, paddingTop: 20, paddingLeft: K.placeholderLeftRightPadding, paddingRight: K.placeholderLeftRightPadding)
         
@@ -158,6 +170,7 @@ class SettingVC: UIViewController {
         stackView.spacing = 40
         blurredView.contentView.addSubview(stackView)
         stackView.centerX(inView: blurredView, topAnchor: emailTextField.bottomAnchor, paddingTop: K.verticalSpace)
+        
         
 //        blurredView.bottomAnchor.constraint(equalTo: stackView.bottomAnchor, constant: K.placeholderInsets).isActive = true
         
@@ -193,38 +206,88 @@ class SettingVC: UIViewController {
     @objc func saveButtonTapped(){
         guard let newName = nameTextField.text else {return}
         guard let newEmail = emailTextField.text else {return}
-        
-        K.FSCollectionUsers.document(user.uid).setData(["name": newName, "email": newEmail], merge: true)
+        let alert = AlertService(vc:self)
+        do{
+            let validatedName = try ValidationService.validateName(name: newName)
+            let validatedEmail = try ValidationService.validateEmail(email: newEmail)
+            
+            hud.show(in: self.view)
+            K.FSCollectionUsers.document(user.uid).setData(["name": validatedName, "email": validatedEmail], merge: true) { [weak self](error) in
+                guard let self = self else { return }
+                if let error = error{
+                    print("Debug: Error occured saving new user info to Firestore: \(error.localizedDescription)")
+                    alert.showSimpleAlert(title: "Failed to save info.Please try again later.Sorry!", message: "", style: .alert)
+                    self.hud.dismiss()
+                    return
+                }
+                self.saveNameAndEmail(validatedName: validatedName, validatedEmail: validatedEmail)
+            }
+            
+        }catch ValidationError.invalidEmail{
+            alert.showSimpleAlert(title: ValidationError.invalidEmail.localizedDescription, message: "", style: .alert)
+        }catch ValidationError.nameIsTooLong{
+            alert.showSimpleAlert(title: ValidationError.nameIsTooLong.localizedDescription, message: "", style: .alert)
+        }catch ValidationError.nameIsTooShort{
+            alert.showSimpleAlert(title: ValidationError.nameIsTooShort.localizedDescription, message: "", style: .alert)
+        }catch{
+            return
+        }
+    }
+    
+    private func saveNameAndEmail(validatedName: String, validatedEmail: String){
+        let alert = AlertService(vc:self)
         let changeRequest = Auth.auth().currentUser?.createProfileChangeRequest()
-        if newName != user.name{  //もし名前が変更されている場合にはこのブロックを
-            changeRequest?.displayName = newName
+        
+        if validatedName != user.name{  //もし名前が変更されている場合にはこのブロックを
+            changeRequest?.displayName = validatedName
             changeRequest?.commitChanges(completion: { [weak self](error) in
                 guard let self = self else {return}
                 if let error = error {
                     print("DEBUG:Error occured changing name in Auth: \(error.localizedDescription)")
-                    let alert = AlertService(vc:self)
                     alert.showSimpleAlert(title: "Error occured.Please try later again. Sorry!", message: "", style: .alert)
+                    self.hud.dismiss()
                     return
                 }
-                self.user.name = newName
+                self.user.name = validatedName
+                if validatedEmail == self.user.email{
+                    alert.showSimpleAlert(title: "Saved successfully.Your displayName is \(validatedName) now.", message: "", style: .alert)
+                    self.hud.dismiss()
+                    self.view.endEditing(true)
+                    self.cancelButton.isEnabled = false
+                    self.saveButton.isEnabled = false
+                    self.cancelButton.alpha = 0.3
+                    self.saveButton.alpha = 0.3
+                }else{
+                    self.saveEmail(validatedName: validatedName, validatedEmail: validatedEmail)
+                }
             })
+        }else{
+            self.saveEmail(validatedName: validatedName, validatedEmail: validatedEmail)
         }
-        if newEmail != user.email{  //もしemailが変更されている場合にはこのブロックを
-            Auth.auth().currentUser?.updateEmail(to: newEmail) { [weak self](error) in
-                guard let self = self else {return}
-                if let error = error {
-                    print("DEBUG:Error occured changing email in Auth: \(error.localizedDescription)")
-                    let alert = AlertService(vc:self)
-                    alert.showSimpleAlert(title: "Error occured.Please try later again. Sorry!", message: "", style: .alert)
-                    return
-                }
-                self.user.email = newName
-            }
-        }
-        view.endEditing(true)
-        
     }
     
+
+    
+    private func saveEmail(validatedName: String, validatedEmail: String){
+        let alert = AlertService(vc:self)
+        Auth.auth().currentUser?.updateEmail(to: validatedEmail) { [weak self](error) in
+            guard let self = self else {return}
+            if let error = error {
+                print("DEBUG:Error occured changing email in Auth: \(error.localizedDescription)")
+                alert.showSimpleAlert(title: "Error occured.Please try later again. Sorry!", message: "", style: .alert)
+                self.hud.dismiss()
+                return
+            }
+            self.user.email = validatedEmail
+            alert.showSimpleAlert(title: "Saved successfully.Your displayName is \(validatedName) and your email is \(validatedEmail) now.", message: "", style: .alert)
+            self.hud.dismiss()
+            self.view.endEditing(true)
+            self.cancelButton.isEnabled = false
+            self.saveButton.isEnabled = false
+            self.cancelButton.alpha = 0.3
+            self.saveButton.alpha = 0.3
+        }
+    }
     
     @objc func logoutButtonPressed(){
         let alert = AlertService(vc: self)

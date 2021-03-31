@@ -181,7 +181,7 @@ class ChartVC: UIViewController{
         super.viewDidLayoutSubviews()
         let floatingPlayerHeight = view.frame.width*K.floatingPlayerWidthMultiplier/16*9
         playerPlaceholderView.anchor(top: view.safeAreaLayoutGuide.topAnchor, left: view.leftAnchor, right: view.rightAnchor, height: floatingPlayerHeight+K.floatingPlayerTopBottomInsets*2)
-        chartCollectionView.anchor(top: playerPlaceholderView.bottomAnchor, left: view.leftAnchor, bottom: view.safeAreaLayoutGuide.bottomAnchor, right: view.rightAnchor)
+        chartCollectionView.anchor(top: playerPlaceholderView.bottomAnchor, left: view.leftAnchor, bottom: view.bottomAnchor, right: view.rightAnchor)
     }
     
     override func viewWillAppear(_ animated: Bool) {

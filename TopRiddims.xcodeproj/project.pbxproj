@@ -38,6 +38,8 @@
 		0C8A313D2602021E003AF166 /* ChartCollectionFooterView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0C8A313C2602021E003AF166 /* ChartCollectionFooterView.swift */; };
 		0C8A314526020DFC003AF166 /* WebpageScraper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0C8A314426020DFC003AF166 /* WebpageScraper.swift */; };
 		0C8A314826020E52003AF166 /* Song.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0C8A314726020E52003AF166 /* Song.swift */; };
+		0CABD1722614C8670093F97E /* ValidationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0CABD1712614C8660093F97E /* ValidationService.swift */; };
+		0CABD1752614C8D40093F97E /* Extension + String.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0CABD1742614C8D40093F97E /* Extension + String.swift */; };
 		0CAC7E0D2605CCFE00582E3A /* AlertService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0CAC7E0C2605CCFE00582E3A /* AlertService.swift */; };
 		0CB575642601C6CD00DE22F9 /* Constants.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0CB575632601C6CD00DE22F9 /* Constants.swift */; };
 		0CB575682601C9E500DE22F9 /* Extension + UIView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0CB575672601C9E500DE22F9 /* Extension + UIView.swift */; };
@@ -80,6 +82,8 @@
 		0C8A313C2602021E003AF166 /* ChartCollectionFooterView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChartCollectionFooterView.swift; sourceTree = "<group>"; };
 		0C8A314426020DFC003AF166 /* WebpageScraper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebpageScraper.swift; sourceTree = "<group>"; };
 		0C8A314726020E52003AF166 /* Song.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Song.swift; sourceTree = "<group>"; };
+		0CABD1712614C8660093F97E /* ValidationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ValidationService.swift; sourceTree = "<group>"; };
+		0CABD1742614C8D40093F97E /* Extension + String.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Extension + String.swift"; sourceTree = "<group>"; };
 		0CAC7E0C2605CCFE00582E3A /* AlertService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlertService.swift; sourceTree = "<group>"; };
 		0CB575632601C6CD00DE22F9 /* Constants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Constants.swift; sourceTree = "<group>"; };
 		0CB575672601C9E500DE22F9 /* Extension + UIView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Extension + UIView.swift"; sourceTree = "<group>"; };
@@ -147,11 +151,13 @@
 				0C8A314426020DFC003AF166 /* WebpageScraper.swift */,
 				0C68F67026131F79005BC185 /* TrackLikedCheckedSynchronizer.swift */,
 				0CC5BC7526076DBF00C6AAFF /* MapCheckBoxRight.swift */,
+				0CABD1712614C8660093F97E /* ValidationService.swift */,
 				0CC5BC7A2607864E00C6AAFF /* MapCheckBoxLeft.swift */,
 				0CC5BC7D260792C200C6AAFF /* CustomCheckBox.swift */,
 				0C62B8D225FF8E5D00A203B2 /* Extension + UIColor.swift */,
 				0CB575672601C9E500DE22F9 /* Extension + UIView.swift */,
 				0C68F603260F5BAB005BC185 /* Extension + UIImageView.swift */,
+				0CABD1742614C8D40093F97E /* Extension + String.swift */,
 				0C68F65E261274FF005BC185 /* DateFormattingService.swift */,
 				0CAC7E0C2605CCFE00582E3A /* AlertService.swift */,
 				0CB575632601C6CD00DE22F9 /* Constants.swift */,
@@ -346,7 +352,9 @@
 				0C37570E260DB260007CC850 /* ResetPasswordVC.swift in Sources */,
 				0C8A314826020E52003AF166 /* Song.swift in Sources */,
 				0C62B8CD25FE932C00A203B2 /* LikesVC.swift in Sources */,
+				0CABD1752614C8D40093F97E /* Extension + String.swift in Sources */,
 				0C68F67126131F79005BC185 /* TrackLikedCheckedSynchronizer.swift in Sources */,
+				0CABD1722614C8670093F97E /* ValidationService.swift in Sources */,
 				0C2810A62603A6D00065C43D /* ScrapingManager.swift in Sources */,
 				0C68F60A260FA655005BC185 /* User.swift in Sources */,
 				0C8A313926020183003AF166 /* ChartCollectionHeaderView.swift in Sources */,
