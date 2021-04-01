@@ -23,7 +23,6 @@ class LikesVC: UIViewController{
             print("DEBUG: Error! uid is nil right now. Returning empty string for uid.."); return ""}
         return currentUserId
     }
-    var likedSongs = [Song]()
     init(user: User) {
         super.init(nibName: nil, bundle: nil)
         self.user = user
@@ -32,6 +31,8 @@ class LikesVC: UIViewController{
     
     
     //MARK: - Properties
+    
+    var likedSongs = [Song]()
     private let firestoreService = FirestoreService()
     
 //    private let playerPlaceholderView: UIView = {
@@ -121,7 +122,7 @@ class LikesVC: UIViewController{
         loadLikedSongs()  //このloadLikedSongs()メソッドはここからと、起動時のTabBarからの２箇所から呼ばれる
     }
     
-    func loadLikedSongs(){
+    func loadLikedSongs(){  //起動時にtabBarから呼ばれる
         //製作中の段階ではページネーションを実装していなく、１０曲までしかDLしない設定になっている事に注意
         self.firestoreService.fetchLikedSongs(uid: uid) { [weak self](result) in //ここの段階で少し遅れてlikedSongsを入手する
             guard let self = self else {return}
@@ -221,6 +222,7 @@ extension LikesVC: LikesTableViewCellDelegate{
         firestoreService.saveAllChartData(uid: self.uid, allChartData: user.allChartData, updateNeedToBeUpdated: false) { (error) in
             //特にエラーハンドリングの必要ないかと。
         }
+        print("checked\(buttonState)")
         
     }
     
@@ -239,6 +241,7 @@ extension LikesVC: LikesTableViewCellDelegate{
         firestoreService.saveAllChartData(uid: self.uid, allChartData: user.allChartData, updateNeedToBeUpdated: false) { (error) in
             //特にエラーハンドリングの必要ないかと。
         }
+        
     }
     
     

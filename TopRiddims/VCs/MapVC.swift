@@ -15,11 +15,9 @@ protocol MapVCDelegate: class{
 
 class MapVC: UIViewController{
     
-    weak var delegate: MapVCDelegate?
-    var allChartData: [(country: String, songs:[Song], updated: Timestamp)]!
+    //MARK: - Initialization
     
-    var allCheckButtons = [MapCheckBox]()
-    var selectedCountries = [String]()
+    var allChartData: [(country: String, songs:[Song], updated: Timestamp)]!
     
     init(allChartData: [(country: String, songs:[Song], updated: Timestamp)]) {
         super.init(nibName: nil, bundle: nil)
@@ -27,26 +25,34 @@ class MapVC: UIViewController{
     }
     required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
     
+    
+    //MARK: - Properties
+    
+    weak var delegate: MapVCDelegate?
+    
+    private var allCheckButtons = [MapCheckBox]()  //MapCheckBoxはLeftとRight両方を含む共通プロトコル
+    private var selectedCountries = [String]()
+    
+    //MARK: - UI Parts
     private let scrollView: UIScrollView = {
         let sv = UIScrollView(frame: .zero)
+        sv.bounces = false
         return sv
     }()
-    
-    let clearContainerView: UIView = {
+    private let clearContainerView: UIView = {
         let view = UIView()
         return view
     }()
-    
     private let mapImageView: UIImageView = {
-       let iv = UIImageView()
+        let iv = UIImageView()
         iv.image = UIImage(named: "CaribbeanMap")!
         iv.contentMode = .scaleAspectFit
         iv.clipsToBounds = true
-        iv.isUserInteractionEnabled = true  //ボタンが反応するために必要
+        iv.isUserInteractionEnabled = true  //ボタンが反応するために必ず必要
         return iv
     }()
     
-    
+    //MARK: - View Life Cycles
     override func viewDidLoad() {
         super.viewDidLoad()
         setupNav()
@@ -55,22 +61,23 @@ class MapVC: UIViewController{
     
     private func setupNav(){
         navigationItem.title = "Select Areas"
-        let attributes:[NSAttributedString.Key : Any] = [.font: UIFont.systemFont(ofSize: 22, weight: .light),
-                                                         .foregroundColor: UIColor(named: "Black_Yellow")!]
-        navigationController?.navigationBar.titleTextAttributes = attributes
+        
+//        let attributes:[NSAttributedString.Key : Any] = [.font: UIFont.systemFont(ofSize: 22, weight: .light),
+//                                                         .foregroundColor: UIColor(named: "Black_Yellow")!]
+//        navigationController?.navigationBar.titleTextAttributes = attributes
         let leftItem = UIBarButtonItem(title: "Cancel", style: .plain, target: self, action: #selector(cancelButtonTapped))
-        leftItem.tintColor = UIColor(named: "Black_Yellow")!
+//        leftItem.tintColor = UIColor(named: "Black_Yellow")!
         navigationItem.leftBarButtonItem = leftItem
         let rightItem = UIBarButtonItem(title: "Done", style: .done, target: self, action: #selector(doneButtonTapped))
-        rightItem.tintColor = UIColor(named: "Black_Yellow")!
+//        rightItem.tintColor = UIColor(named: "Black_Yellow")!
         navigationItem.rightBarButtonItem = rightItem
     }
     
     private func setupViews(){
         
-        view.backgroundColor = .systemBackground
+//        view.backgroundColor = .systemBackground
         scrollView.backgroundColor = .systemBackground
-        let bottomSpaceHeight: CGFloat = 70
+        let bottomSpaceHeight: CGFloat = 70  //下の黒い帯
         
         view.addSubview(scrollView)
         scrollView.addSubview(clearContainerView)
@@ -78,6 +85,7 @@ class MapVC: UIViewController{
         
         scrollView.anchor(top: view.safeAreaLayoutGuide.topAnchor, left: view.leftAnchor, bottom:view.bottomAnchor, right: view.rightAnchor, paddingBottom: bottomSpaceHeight)
         
+        //以下でscrollViewの内部であるcontentのsizeを求めている。
         guard let navBar = navigationController?.navigationBar else {return}
         guard let rootView = UIWindow.key?.rootViewController?.view else {return}
         let navBarFrameInWindow = navBar.convert(navBar.frame, to: rootView)   //UIWindow(画面全体)に対するnavBarのframeを求めている。
@@ -96,10 +104,10 @@ class MapVC: UIViewController{
         fillCheckButtons()
     }
     
-    func setMapCheckBoxes(mapHeight: CGFloat, mapWidth: CGFloat){
+    private func setMapCheckBoxes(mapHeight: CGFloat, mapWidth: CGFloat){
         
         for country in K.Country.allCases{
-            let box: MapCheckBox
+            let box: MapCheckBox   // MapCheckBoxは共通のprotocol
             if country.tailDirection == .right{
                 let checkBox = MapCheckBoxRight(countryName: country.name, boxColor: .systemPink)
                 checkBox.delegate = self
@@ -135,47 +143,40 @@ class MapVC: UIViewController{
         
     }
     private func fillCheckButtons(){
-        var countries = [String]() //allChartDataから国名だけ取り出した配列を作る
-        allChartData.forEach{ countries.append($0.country) }
-        allCheckButtons.forEach{
+        var countries = [String]()
+        allChartData.forEach{ countries.append($0.country) } //allChartDataから国名だけ取り出したcountries arrayを作る
+        allCheckButtons.forEach{  //全ての国ボタンそれぞれについて、allChartDataの中に含まれているかどうか調べる。
             if countries.contains($0.countryName){
                 $0.checkBox.checkState = .checked
                 selectedCountries.append($0.countryName)
             }
         }
-        
     }
     
-    @objc func cancelButtonTapped(){
+    @objc private func cancelButtonTapped(){
         dismiss(animated: true, completion: nil)
     }
-    @objc func doneButtonTapped(){
+    @objc private func doneButtonTapped(){
         delegate?.newCountrySelectionDone(selectedCountries: selectedCountries)
     }
     
 }
 
-
-
-
+//MARK: - CheckBox Delegate
 extension MapVC: MapCheckBoxDelegate{
     func checkButtonIsOn(_ checkBox: MapCheckBox) {
-        let box = checkBox
-        if !selectedCountries.contains(box.countryName){
-            selectedCountries.append(box.countryName)
+//        let box = checkBox
+        if !selectedCountries.contains(checkBox.countryName){
+            selectedCountries.append(checkBox.countryName)
         }
     }
     func checkButtonIsOff(_ checkBox: MapCheckBox) {
-        let box = checkBox
-        selectedCountries = selectedCountries.filter{ $0 != box.countryName }
-        
+//        let box = checkBox
+        selectedCountries = selectedCountries.filter{ $0 != checkBox.countryName }
     }
 }
 
-
-
-
-extension UIWindow {
+extension UIWindow {  //上のsetupViewsの中で、scrollViewのcontentSizeを求めるのに必要。(NavBarの座標を求めるので)
     static var key: UIWindow? {
         if #available(iOS 13, *) {
             return UIApplication.shared.windows.first { $0.isKeyWindow }

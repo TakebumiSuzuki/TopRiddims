@@ -17,7 +17,8 @@ protocol MapCheckBox: UIView{
     var checkBox: CustomCheckBox { get set}
 }
 
-class MapCheckBoxRight: UIStackView, MapCheckBox{
+//カスタムなstackViewを使っている理由は、見えない大きさを外側に広げてクリックしやすくする為。
+class MapCheckBoxRight: CustomStackView, MapCheckBox{ 
     
     weak var delegate: MapCheckBoxDelegate?
     
@@ -28,7 +29,7 @@ class MapCheckBoxRight: UIStackView, MapCheckBox{
     let fontSize: CGFloat = 14
     
     
-    private let halfCircleView: UIImageView = {
+    private let halfCircleView: UIImageView = {   //このUIImageViewの中にcheckBoxを入れる
         let iv = UIImageView(image: UIImage(named: "HalfCircle"))
         iv.contentMode = .scaleAspectFill
         iv.isUserInteractionEnabled = true
@@ -53,15 +54,18 @@ class MapCheckBoxRight: UIStackView, MapCheckBox{
         return iv
     }()
     
-    
+   
     init(countryName: String, boxColor: UIColor) {
         
         super.init(frame: .zero)
-        self.isUserInteractionEnabled = true
         
         self.countryName = countryName
         self.boxColor = boxColor
         countryLabel.text = "\(countryName) "
+        
+        self.isUserInteractionEnabled = true
+        let gesture = UITapGestureRecognizer(target: self, action: #selector(labelTapped))
+        addGestureRecognizer(gesture)
         
         addArrangedSubview(halfCircleView)
         addArrangedSubview(countryLabel)
@@ -89,8 +93,11 @@ class MapCheckBoxRight: UIStackView, MapCheckBox{
         
     }
     
+    @objc func labelTapped(){
+        checkBox.toggleCheckState(true)
+    }
     
-    @objc func buttonGotTapped(){
+    @objc private func buttonGotTapped(){
         
         switch checkBox.checkState {
         case .unchecked:

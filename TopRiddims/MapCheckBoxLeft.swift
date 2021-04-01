@@ -8,7 +8,7 @@
 import UIKit
 import M13Checkbox
 
-class MapCheckBoxLeft: UIStackView, MapCheckBox{
+class MapCheckBoxLeft: CustomStackView, MapCheckBox{
     
     weak var delegate: MapCheckBoxDelegate?
     
@@ -46,13 +46,17 @@ class MapCheckBoxLeft: UIStackView, MapCheckBox{
     init(countryName: String, boxColor: UIColor) {
         super.init(frame: .zero)
         
-        self.isUserInteractionEnabled = true
-        self.layer.cornerRadius = 3
-        self.clipsToBounds = true  //右サイドに丸みをつけるために必要
-        
         self.countryName = countryName
         self.boxColor = boxColor
         countryLabel.text = "\(countryName)  "
+        
+        self.layer.cornerRadius = 3  //右サイドに丸みをつけるために必要
+        self.clipsToBounds = true  //右サイドに丸みをつけるために必要
+        
+        self.isUserInteractionEnabled = true
+        self.isUserInteractionEnabled = true
+        let gesture = UITapGestureRecognizer(target: self, action: #selector(labelTapped))
+        addGestureRecognizer(gesture)
         
         addArrangedSubview(tailView)
         addArrangedSubview(checkBoxContainerView)
@@ -80,6 +84,9 @@ class MapCheckBoxLeft: UIStackView, MapCheckBox{
      
     }
     
+    @objc func labelTapped(){
+        checkBox.toggleCheckState(true)
+    }
     
     @objc func buttonGotTapped(){
         switch checkBox.checkState {

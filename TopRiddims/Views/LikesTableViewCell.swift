@@ -267,7 +267,7 @@ class LikesTableViewCell: UITableViewCell {
     }
     @objc private func checkButtonPressed(){
         checkButtonOnOff.toggle()
-        delegate?.checkButtonTapped(cell: self, buttonState: heartButtonOnOff)
+        delegate?.checkButtonTapped(cell: self, buttonState: checkButtonOnOff)
     }
 
 }

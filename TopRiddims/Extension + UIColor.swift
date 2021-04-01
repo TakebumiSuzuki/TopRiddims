@@ -22,4 +22,22 @@ extension UIColor{
                   blue: .init(strtoul(String(chars[4...5]), nil, 16)) / 255,
                   alpha: .init(strtoul(String(chars[6...7]), nil, 16)) / 255)
     }
+    
+    
+    
+//    var image: UIImage? {
+//        let rect = CGRect(x: 0, y: 0, width: 1, height: 1)
+//        UIGraphicsBeginImageContext(rect.size)
+//        guard let context = UIGraphicsGetCurrentContext() else {
+//            return nil
+//        }
+//        context.setFillColor(self.cgColor)
+//        context.fill(rect)
+//        let image = UIGraphicsGetImageFromCurrentImageContext()
+//        UIGraphicsEndImageContext()
+//        return image
+//    }
+    
+    
+    
 }

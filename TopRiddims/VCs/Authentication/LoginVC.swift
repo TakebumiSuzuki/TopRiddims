@@ -15,7 +15,7 @@ import RxCocoa
 class LoginVC: UIViewController{
     
     //MARK: - Properties
-    private let imageAlpha: CGFloat = 0.85
+    private let imageAlpha: CGFloat = 0.75
     
     let disposeBag = DisposeBag()
     let twitterProvider = OAuthProvider(providerID: "twitter.com")
@@ -80,13 +80,12 @@ class LoginVC: UIViewController{
     
     private lazy var emailTextField: CustomTextField = {
         let tf = CustomTextField(placeholder: "Enter email")
-//        tf.delegate = self
         return tf
     }()
     
     private lazy var passwordTextField: CustomTextField = {
         let tf = CustomTextField(placeholder: "Enter password")
-//        tf.delegate = self
+        tf.isSecureTextEntry = true
         return tf
     }()
     

@@ -69,8 +69,9 @@ class VideoCollectionViewCell: UIView{
         let config = UIImage.SymbolConfiguration(pointSize: 33, weight: .thin, scale: .medium)
         let buttonImage = UIImage(systemName: "play.circle", withConfiguration: config)
         bn.setImage(buttonImage, for: .normal)
-        bn.tintColor = .white  //これも上のthumbnailと合わせて色を変える余地がある
-        bn.alpha = 0.8
+        bn.tintColor = UIColor.white.withAlphaComponent(0.8)
+        bn.backgroundColor = UIColor.black.withAlphaComponent(0.1)
+        bn.clipsToBounds = true
         bn.addTarget(self, action: #selector(playButtonPressed), for: .touchUpInside)
         bn.isHidden = false
         return bn
@@ -81,8 +82,9 @@ class VideoCollectionViewCell: UIView{
         let config = UIImage.SymbolConfiguration(pointSize: 33, weight: .thin, scale: .medium)
         let buttonImage = UIImage(systemName: "pause.circle", withConfiguration: config)
         bn.setImage(buttonImage, for: .normal)
-        bn.tintColor = .white  //これも上のthumbnailと合わせて色を変える余地がある
-        bn.alpha = 0.8
+        bn.tintColor = UIColor.white.withAlphaComponent(0.8)
+        bn.backgroundColor = UIColor.black.withAlphaComponent(0.1)
+        bn.clipsToBounds = true
         bn.addTarget(self, action: #selector(pauseButtonPressed), for: .touchUpInside)
         bn.isHidden = true
         return bn
@@ -115,10 +117,17 @@ class VideoCollectionViewCell: UIView{
     override func layoutSubviews() {
         super.layoutSubviews()
         thumbnailImageView.fillSuperview()
+        
         playButton.center(inView: self)
         pauseButton.center(inView: self)
+        
+        let playButtonIntrinsic = playButton.intrinsicContentSize
+        playButton.layer.cornerRadius = playButtonIntrinsic.width/2
+        let pauseButtonIntrinsic = pauseButton.intrinsicContentSize
+        playButton.layer.cornerRadius = pauseButtonIntrinsic.width/2
+        
         spinner.center(inView: thumbnailImageView)
-        spinner.setDimensions(height: 28, width: 28)
+        spinner.setDimensions(height: 30, width: 30)
     }
     
     

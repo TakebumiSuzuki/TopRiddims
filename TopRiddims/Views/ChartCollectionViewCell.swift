@@ -77,23 +77,12 @@ class ChartCollectionViewCell: UICollectionViewCell {
         }
     }
     
-    let hud: JGProgressHUD = {
-        let hud = JGProgressHUD()
-        hud.textLabel.text = "Loading"
-        hud.style = JGProgressHUDStyle.dark
-        hud.alpha = 0.2
-        return hud
-    }()
     var needShowLoader: Bool = false{
         didSet{
             if needShowLoader{
-//                hud.show(in: self)
-                print("showが呼ばれてます")
                 spinner.startAnimating()
                 spinner.isHidden = false
             }else{
-//                hud.dismiss()
-                print("dismissが呼ばれてます")
                 spinner.stopAnimating()
                 spinner.isHidden = true
             }
@@ -101,7 +90,7 @@ class ChartCollectionViewCell: UICollectionViewCell {
     }
     
     let spinner: NVActivityIndicatorView = {
-        let spinner = NVActivityIndicatorView(frame: .zero, type: .ballScaleMultiple, color: UIColor(named: "SpinnerColor"), padding: 0)
+        let spinner = NVActivityIndicatorView(frame: .zero, type: .lineSpinFadeLoader, color: UIColor(named: "SpinnerColor"), padding: 0)
         spinner.isHidden = true
        return spinner
     }()
@@ -126,7 +115,7 @@ class ChartCollectionViewCell: UICollectionViewCell {
         ic.delegate = self
         ic.scrollSpeed = 0.6
         //scroll speed multiplier when the user flicks the carousel with their finger. Defaults to 1.0.
-        ic.decelerationRate = 0.85
+        ic.decelerationRate = 0.9
         //デフォルトは0.95.Values should be in the range 0.0 (carousel stops immediately when released) to 1.0 (carousel continues indefinitely without slowing down, unless it reaches the end).
         ic.bounceDistance = 0.6 //デフォルトは1
         ic.perspective = -0.002  //左右前後広がり
@@ -179,19 +168,21 @@ class ChartCollectionViewCell: UICollectionViewCell {
     
     private lazy var leftArrow: UIButton = {
         let bn = UIButton(type: .system)
-        let config = UIImage.SymbolConfiguration(pointSize: 20, weight: .thin, scale: .large)
+        let config = UIImage.SymbolConfiguration(pointSize: 10, weight: .thin, scale: .large)
         let image = UIImage(systemName: "arrowtriangle.left.fill", withConfiguration: config)
         bn.setImage(image, for: .normal)
-        bn.tintColor = .separator
+        bn.tintColor = UIColor.tertiaryLabel
+//        bn.setBackgroundColor(UIColor.tertiaryLabel, for: .highlighted)
         bn.addTarget(self, action: #selector(leftArrowTapped), for: .touchUpInside)
         return bn
     }()
     private lazy var rightArrow: UIButton = {
         let bn = UIButton(type: .system)
-        let config = UIImage.SymbolConfiguration(pointSize: 20, weight: .thin, scale: .large)
+        let config = UIImage.SymbolConfiguration(pointSize: 10, weight: .thin, scale: .large)
         let image = UIImage(systemName: "arrowtriangle.right.fill", withConfiguration: config)
         bn.setImage(image, for: .normal)
-        bn.tintColor = .separator
+        bn.tintColor = UIColor.tertiaryLabel
+//        bn.setBackgroundColor(UIColor.tertiaryLabel, for: .highlighted)
         bn.addTarget(self, action: #selector(rightArrowTapped), for: .touchUpInside)
         return bn
     }()
@@ -228,19 +219,11 @@ class ChartCollectionViewCell: UICollectionViewCell {
         videoCollectionView.centerX(inView: self, topAnchor: countryLabel.bottomAnchor, paddingTop: 3)
         videoCollectionView.setHeight(self.videoHeight)
         videoCollectionView.widthAnchor.constraint(equalTo: self.widthAnchor, multiplier: K.videoCollectionViewWidthMultiplier).isActive = true
-//
         
-        leftArrow.setDimensions(height: 16, width: 7)
-        leftArrow.rightAnchor.constraint(equalTo: videoCollectionView.leftAnchor, constant: -15).isActive = true
-        leftArrow.centerYAnchor.constraint(equalTo: videoCollectionView.centerYAnchor).isActive = true
+        leftArrow.anchor(top: videoCollectionView.topAnchor, left: self.leftAnchor, bottom: videoCollectionView.bottomAnchor, right: videoCollectionView.leftAnchor)
         
-        
-//        countryLabel.leftAnchor.constraint(equalTo: leftArrow.rightAnchor).isActive = true
-        
-        rightArrow.setDimensions(height: 16, width: 7)
-        rightArrow.leftAnchor.constraint(equalTo: videoCollectionView.rightAnchor, constant: 15).isActive = true
-        rightArrow.centerYAnchor.constraint(equalTo: videoCollectionView.centerYAnchor).isActive = true
-        
+        rightArrow.anchor(top: videoCollectionView.topAnchor, left: videoCollectionView.rightAnchor, bottom: videoCollectionView.bottomAnchor, right: self.rightAnchor)
+
         songNameLabel.centerX(inView: self, topAnchor: videoCollectionView.bottomAnchor, paddingTop: 3)
         songNameLabel.setWidth(videoWidth+22)
         songNameLabel.setContentCompressionResistancePriority(UILayoutPriority.init(100), for: .horizontal)
@@ -264,7 +247,7 @@ class ChartCollectionViewCell: UICollectionViewCell {
         
         spinner.centerX(inView: self)
         spinner.centerYAnchor.constraint(equalTo: videoCollectionView.centerYAnchor).isActive = true
-        spinner.setDimensions(height: 100, width: 100)
+        spinner.setDimensions(height: 42, width: 42)
     }
     
     
@@ -286,8 +269,6 @@ class ChartCollectionViewCell: UICollectionViewCell {
         delegate?.checkButtonTapped(chartCellIndexNumber: chartCellIndexNumber,currentPageIndexNum: currentPageIndexNum, buttonState: checkButtonOnOff)
     }
 }
-
-
 
 
 //MARK: - VideoCollectionView DataSource

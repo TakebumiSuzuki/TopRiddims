@@ -14,7 +14,7 @@ import RxCocoa
 class ResetPasswordVC: UIViewController {
 
     //MARK: - Properties
-    private let imageAlpha: CGFloat = 1
+    private let imageAlpha: CGFloat = 0.75
     
     let disposeBag = DisposeBag()
     let authService = AuthService()
@@ -33,12 +33,12 @@ class ResetPasswordVC: UIViewController {
     }()
     private lazy var backgroundImageView: UIImageView = {
        let iv = UIImageView()
-        let image = UIImage(named: "car")
+        let image = UIImage(named: "mas2")
         iv.image = image
         iv.alpha = imageAlpha
         iv.clipsToBounds = true
         iv.contentMode = .scaleAspectFill
-        iv.alpha = 0.8
+        iv.alpha = imageAlpha
         return iv
     }()
     

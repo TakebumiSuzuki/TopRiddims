@@ -142,7 +142,7 @@ class FirestoreService{
     
     
     func fetchLikedSongs(uid: String, completion: @escaping (Result<[Song], Error>) -> Void){
-        K.FSCollectionUsers.document(uid).collection("tracks").whereField("liked", isEqualTo: true).order(by: "likedStateUpdateDate", descending: true).limit(to: 10).getDocuments { (snapshot, error) in
+        K.FSCollectionUsers.document(uid).collection("tracks").whereField("liked", isEqualTo: true).order(by: "likedStateUpdateDate", descending: true).limit(to: 25).getDocuments { (snapshot, error) in
             
             if let error = error{
                 print("DEBUG: Error occured fetching liked tracks from Firestore: \(error.localizedDescription)")

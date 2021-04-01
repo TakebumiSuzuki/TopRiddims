@@ -75,8 +75,8 @@ class ChartVC: UIViewController{
         return cv
     }()
     
-    private lazy var dummyButton: UIButton = { //setupNavBar内でnavigationItemに格納する
-        let bn = UIButton(type: .system)
+    private lazy var dummyButton: CustomUIButtonForReload = { //setupNavBar内でnavigationItemに格納する
+        let bn = CustomUIButtonForReload(type: .system)
         bn.addTarget(self, action: #selector(reloadButtonTapped), for: .touchUpInside)
         bn.frame = CGRect(x: 0, y: 0, width: 40, height: 40)
         bn.backgroundColor = .clear
@@ -113,6 +113,18 @@ class ChartVC: UIViewController{
             countryRowNeedShowLoader.append(false)
         }
         
+//        let userDefaults = UserDefaults.standard
+//        guard let id = userDefaults.object(forKey: "loggedInUser") as? String else{
+//            let alert = AlertService(vc: self)
+//            alert.showSimpleAlert(title: "Welcome \(user.name)!!プラスボタンから国を選んでください", message: "", style: .alert)
+//            userDefaults.register(defaults: ["loggedInUser": "default"])
+//            userDefaults.setValue(user.uid, forKey: "loggedInUser")
+//            return
+//        }
+//        if id == uid{
+//            let alert = AlertService(vc: self)
+//            alert.showSimpleAlert(title: "Welcome back\(user.name)!!", message: "", style: .alert)
+//        }
     }
     
     private func setupObservers(){
@@ -232,7 +244,6 @@ class ChartVC: UIViewController{
                 guard let cell = self.chartCollectionView.cellForItem(at: IndexPath(item: i, section: 0)) as? ChartCollectionViewCell else{continue}
                 
                 self.countryRowNeedShowLoader[i] = true
-                cell.hud.show(in: cell)
                 cell.spinner.startAnimating()
                 cell.spinner.isHidden = false
             }
@@ -250,11 +261,6 @@ class ChartVC: UIViewController{
             timer.invalidate()
         }
         scrapingManager = nil  //これで綺麗さっぱり全てのオブジェクトがdismissされる。
-//        for i in 0..<user.allChartData.count{
-//            countryRowNeedShowLoader[i] = false
-//            guard let cell = chartCollectionView.cellForItem(at: IndexPath(row: i, section: 0)) as? ChartCollectionViewCell else{continue}
-//            cell.hud.dismiss()
-//        }
     }
 }
 
@@ -281,10 +287,8 @@ extension ChartVC: ScrapingManagerDelegate{
             flash.timingFunction = CAMediaTimingFunction(name: CAMediaTimingFunctionName.easeInEaseOut)
             flash.repeatCount = 1
             cellToLiveUpdate.layer.add(flash, forKey: nil)
-            print("called????")
             
             self.countryRowNeedShowLoader[countryIndexNumber] = false
-            cellToLiveUpdate.hud.dismiss()
             cellToLiveUpdate.spinner.stopAnimating()
             cellToLiveUpdate.spinner.isHidden = true
         }
@@ -308,7 +312,7 @@ extension ChartVC: ScrapingManagerDelegate{
         stopAllLoaders()
     }
     
-    func stopAllLoaders(){  //これには国ごとのhudも含まれる。
+    func stopAllLoaders(){  //これには国ごとのspinnerも含まれる。
         DispatchQueue.main.async { [weak self] in
             guard let self = self else {return}
             self.smallCircleImageView.stopRotation()
@@ -317,7 +321,6 @@ extension ChartVC: ScrapingManagerDelegate{
             for i in 0...self.user.allChartData.count{
                 guard let cell = self.chartCollectionView.cellForItem(at: IndexPath(item: i, section: 0)) as? ChartCollectionViewCell else{continue}
                 
-                cell.hud.dismiss()
                 self.countryRowNeedShowLoader[i] = false
                 cell.spinner.stopAnimating()
                 cell.spinner.isHidden = true
@@ -453,6 +456,7 @@ extension ChartVC: UICollectionViewDelegate{
         true
     }
     func collectionView(_ collectionView: UICollectionView, moveItemAt sourceIndexPath: IndexPath, to destinationIndexPath: IndexPath) {
+        
         let item = user.allChartData.remove(at: sourceIndexPath.row)
         user.allChartData.insert(item, at: destinationIndexPath.row)
         let videoPage = pageNumbers.remove(at: sourceIndexPath.row)

@@ -8,6 +8,9 @@
 
 /* Begin PBXBuildFile section */
 		097808DF858EBE3BF9436367 /* Pods_TopRiddims.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7FDF02ADAE7D1C6484A80E4B /* Pods_TopRiddims.framework */; };
+		0C2262E726165C6F00792E10 /* CustomStackView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0C2262E626165C6F00792E10 /* CustomStackView.swift */; };
+		0C22630B2616663D00792E10 /* Extension + UIButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0C22630A2616663D00792E10 /* Extension + UIButton.swift */; };
+		0C226310261679EB00792E10 /* CustomUIButtonForReload.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0C22630F261679EB00792E10 /* CustomUIButtonForReload.swift */; };
 		0C2810A62603A6D00065C43D /* ScrapingManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0C2810A52603A6D00065C43D /* ScrapingManager.swift */; };
 		0C3756E0260B7EC9007CC850 /* ChartCollectionViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0C3756DF260B7EC9007CC850 /* ChartCollectionViewCell.swift */; };
 		0C3756E5260B85AA007CC850 /* VideoCollectionViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0C3756E4260B85AA007CC850 /* VideoCollectionViewCell.swift */; };
@@ -50,6 +53,9 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		0C2262E626165C6F00792E10 /* CustomStackView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomStackView.swift; sourceTree = "<group>"; };
+		0C22630A2616663D00792E10 /* Extension + UIButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Extension + UIButton.swift"; sourceTree = "<group>"; };
+		0C22630F261679EB00792E10 /* CustomUIButtonForReload.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomUIButtonForReload.swift; sourceTree = "<group>"; };
 		0C2810A52603A6D00065C43D /* ScrapingManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScrapingManager.swift; sourceTree = "<group>"; };
 		0C3756DF260B7EC9007CC850 /* ChartCollectionViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChartCollectionViewCell.swift; sourceTree = "<group>"; };
 		0C3756E4260B85AA007CC850 /* VideoCollectionViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VideoCollectionViewCell.swift; sourceTree = "<group>"; };
@@ -150,14 +156,17 @@
 				0C2810A52603A6D00065C43D /* ScrapingManager.swift */,
 				0C8A314426020DFC003AF166 /* WebpageScraper.swift */,
 				0C68F67026131F79005BC185 /* TrackLikedCheckedSynchronizer.swift */,
-				0CC5BC7526076DBF00C6AAFF /* MapCheckBoxRight.swift */,
 				0CABD1712614C8660093F97E /* ValidationService.swift */,
+				0CC5BC7526076DBF00C6AAFF /* MapCheckBoxRight.swift */,
 				0CC5BC7A2607864E00C6AAFF /* MapCheckBoxLeft.swift */,
 				0CC5BC7D260792C200C6AAFF /* CustomCheckBox.swift */,
+				0C2262E626165C6F00792E10 /* CustomStackView.swift */,
+				0C22630F261679EB00792E10 /* CustomUIButtonForReload.swift */,
 				0C62B8D225FF8E5D00A203B2 /* Extension + UIColor.swift */,
 				0CB575672601C9E500DE22F9 /* Extension + UIView.swift */,
 				0C68F603260F5BAB005BC185 /* Extension + UIImageView.swift */,
 				0CABD1742614C8D40093F97E /* Extension + String.swift */,
+				0C22630A2616663D00792E10 /* Extension + UIButton.swift */,
 				0C68F65E261274FF005BC185 /* DateFormattingService.swift */,
 				0CAC7E0C2605CCFE00582E3A /* AlertService.swift */,
 				0CB575632601C6CD00DE22F9 /* Constants.swift */,
@@ -354,6 +363,7 @@
 				0C62B8CD25FE932C00A203B2 /* LikesVC.swift in Sources */,
 				0CABD1752614C8D40093F97E /* Extension + String.swift in Sources */,
 				0C68F67126131F79005BC185 /* TrackLikedCheckedSynchronizer.swift in Sources */,
+				0C226310261679EB00792E10 /* CustomUIButtonForReload.swift in Sources */,
 				0CABD1722614C8670093F97E /* ValidationService.swift in Sources */,
 				0C2810A62603A6D00065C43D /* ScrapingManager.swift in Sources */,
 				0C68F60A260FA655005BC185 /* User.swift in Sources */,
@@ -369,6 +379,7 @@
 				0C62B8D325FF8E5D00A203B2 /* Extension + UIColor.swift in Sources */,
 				0CC5BC7626076DBF00C6AAFF /* MapCheckBoxRight.swift in Sources */,
 				0C8A314526020DFC003AF166 /* WebpageScraper.swift in Sources */,
+				0C2262E726165C6F00792E10 /* CustomStackView.swift in Sources */,
 				0C68F5FC260F2CD1005BC185 /* SignUpVC.swift in Sources */,
 				0C62B8B025FE8F7300A203B2 /* SceneDelegate.swift in Sources */,
 				0C68F604260F5BAB005BC185 /* Extension + UIImageView.swift in Sources */,
@@ -378,6 +389,7 @@
 				0C68F613260FBDFE005BC185 /* FacebookLoginService.swift in Sources */,
 				0C62B8CA25FE930900A203B2 /* ChartVC.swift in Sources */,
 				0C3756E0260B7EC9007CC850 /* ChartCollectionViewCell.swift in Sources */,
+				0C22630B2616663D00792E10 /* Extension + UIButton.swift in Sources */,
 				0CB575642601C6CD00DE22F9 /* Constants.swift in Sources */,
 				0C68F60F260FACB8005BC185 /* AuthService.swift in Sources */,
 			);

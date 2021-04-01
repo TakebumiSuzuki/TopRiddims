@@ -14,7 +14,7 @@ import RxCocoa
 class SignUpVC: UIViewController {
 
     //MARK: - Properties
-    private let imageAlpha: CGFloat = 0.85
+    private let imageAlpha: CGFloat = 0.8
     
     let disposeBag = DisposeBag()
     let authService = AuthService()
@@ -34,7 +34,7 @@ class SignUpVC: UIViewController {
     }()
     private lazy var backgroundImageView: UIImageView = {  //変数imageAlphaを使う為にlazyにしている。
        let iv = UIImageView()
-        let image = UIImage(named: "mas2")
+        let image = UIImage(named: "car")
         iv.image = image
         iv.alpha = imageAlpha
         iv.clipsToBounds = true

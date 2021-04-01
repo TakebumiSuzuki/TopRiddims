@@ -216,25 +216,25 @@ class SettingVC: UIViewController {
                 guard let self = self else { return }
                 if let error = error{
                     print("Debug: Error occured saving new user info to Firestore: \(error.localizedDescription)")
-                    alert.showSimpleAlert(title: "Failed to save info.Please try again later.Sorry!", message: "", style: .alert)
+                    alert.showSimpleAlert(title: "Failed to save info.Please try again later.Sorry!", message: "", style: .actionSheet)
                     self.hud.dismiss()
                     return
                 }
-                self.saveNameAndEmail(validatedName: validatedName, validatedEmail: validatedEmail)
+                self.saveName(validatedName: validatedName, validatedEmail: validatedEmail)
             }
             
         }catch ValidationError.invalidEmail{
-            alert.showSimpleAlert(title: ValidationError.invalidEmail.localizedDescription, message: "", style: .alert)
+            alert.showSimpleAlert(title: ValidationError.invalidEmail.localizedDescription, message: "", style: .actionSheet)
         }catch ValidationError.nameIsTooLong{
-            alert.showSimpleAlert(title: ValidationError.nameIsTooLong.localizedDescription, message: "", style: .alert)
+            alert.showSimpleAlert(title: ValidationError.nameIsTooLong.localizedDescription, message: "", style: .actionSheet)
         }catch ValidationError.nameIsTooShort{
-            alert.showSimpleAlert(title: ValidationError.nameIsTooShort.localizedDescription, message: "", style: .alert)
+            alert.showSimpleAlert(title: ValidationError.nameIsTooShort.localizedDescription, message: "", style: .actionSheet)
         }catch{
             return
         }
     }
     
-    private func saveNameAndEmail(validatedName: String, validatedEmail: String){
+    private func saveName(validatedName: String, validatedEmail: String){
         let alert = AlertService(vc:self)
         let changeRequest = Auth.auth().currentUser?.createProfileChangeRequest()
         
@@ -244,19 +244,21 @@ class SettingVC: UIViewController {
                 guard let self = self else {return}
                 if let error = error {
                     print("DEBUG:Error occured changing name in Auth: \(error.localizedDescription)")
-                    alert.showSimpleAlert(title: "Error occured.Please try later again. Sorry!", message: "", style: .alert)
+                    alert.showSimpleAlert(title: "Error occured.Please try later again. Sorry!", message: "", style: .actionSheet)
                     self.hud.dismiss()
                     return
                 }
                 self.user.name = validatedName
                 if validatedEmail == self.user.email{
-                    alert.showSimpleAlert(title: "Saved successfully.Your displayName is \(validatedName) now.", message: "", style: .alert)
+                    alert.showSimpleAlert(title: "Saved successfully.Your displayName is \(validatedName) now.", message: "", style: .actionSheet)
                     self.hud.dismiss()
                     self.view.endEditing(true)
                     self.cancelButton.isEnabled = false
                     self.saveButton.isEnabled = false
                     self.cancelButton.alpha = 0.3
                     self.saveButton.alpha = 0.3
+                    self.nameTextField.resignFirstResponder()
+                    self.emailTextField.resignFirstResponder()
                 }else{
                     self.saveEmail(validatedName: validatedName, validatedEmail: validatedEmail)
                 }
@@ -274,24 +276,26 @@ class SettingVC: UIViewController {
             guard let self = self else {return}
             if let error = error {
                 print("DEBUG:Error occured changing email in Auth: \(error.localizedDescription)")
-                alert.showSimpleAlert(title: "Error occured.Please try later again. Sorry!", message: "", style: .alert)
+                alert.showSimpleAlert(title: "Error occured.Please try later again. Sorry!", message: "", style: .actionSheet)
                 self.hud.dismiss()
                 return
             }
             self.user.email = validatedEmail
-            alert.showSimpleAlert(title: "Saved successfully.Your displayName is \(validatedName) and your email is \(validatedEmail) now.", message: "", style: .alert)
+            alert.showSimpleAlert(title: "Saved successfully.Your displayName is \(validatedName) and your email is \(validatedEmail) now.", message: "", style: .actionSheet)
             self.hud.dismiss()
             self.view.endEditing(true)
             self.cancelButton.isEnabled = false
             self.saveButton.isEnabled = false
             self.cancelButton.alpha = 0.3
             self.saveButton.alpha = 0.3
+            self.nameTextField.resignFirstResponder()
+            self.emailTextField.resignFirstResponder()
         }
     }
     
     @objc func logoutButtonPressed(){
         let alert = AlertService(vc: self)
-        alert.showAlertWithCancelation(title: "Would you really like to log out?", message: "", style: .alert) {
+        alert.showAlertWithCancelation(title: "Would you really like to log out?", message: "", style: .actionSheet) {
             
             LoginManager().logOut()  //facebookのログアウト
             
