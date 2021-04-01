@@ -8,13 +8,11 @@
 //Select Product => Scheme => Edit Scheme or use shortcut : CMD + <
 //Select the Run option from left side.
 //On Environment Variables section, add the variable OS_ACTIVITY_MODE = disable
-//デリートした時と、ジェスチャーで順番変えた時。
 
 import UIKit
 import Firebase
 
 class ChartVC: UIViewController{
-    
     
     //MARK: - Initialization
     
@@ -30,22 +28,25 @@ class ChartVC: UIViewController{
     }
     required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
     
+    
     //MARK: - Properties
+    
     private let firestoreService = FirestoreService()
     private var videoWidth: CGFloat{ return view.frame.width*K.chartCellWidthMultiplier*K.videoCoverWidthMultiplier}
     private var videoHeight: CGFloat{ return videoWidth/16*9 }
     
-    private var pageNumbers: [Int] = {
+    private var pageNumbers: [Int] = {  //国の数だけ必要なので、初期化する時に必ずしも20要素作る必要はない(0...19の部分の事)
         var array = [Int]()
         for _ in 0...19{ array.append(0) }
         return array
     }()
     var scrapingManager: ScrapingManager? //ScrapingManagerはinjectionしない？
-    var videoIDs = [String]()
-    var songNames = [String]()
-    var artistNames = [String]()
-    private var reloadingOnOff: Bool = false  //navBar内のreloadボタンの管理
+//    var videoIDs = [String]()
+//    var songNames = [String]()
+//    var artistNames = [String]()
+    private var reloadingOnOff: Bool = false  //navBar内のreloadボタンの管理。これがOnの間はジェスチャーできないようにしている
     private var countryRowNeedShowLoader: [Bool] = []  //チャートをフェッチする時の国ごとのローダー表示命令を管理
+    
     
     //MARK: - UI Components
     
@@ -60,8 +61,7 @@ class ChartVC: UIViewController{
         let layout = UICollectionViewFlowLayout()
         layout.scrollDirection = .vertical
         let cv = UICollectionView(frame: .zero, collectionViewLayout: layout)
-        cv.backgroundColor = .secondarySystemBackground //navBarの色と上下にbounceした時に伸ばした下地に関係する
-        
+        cv.backgroundColor = .secondarySystemBackground //navBarの色と上下にbounceした時に伸びた部分の下地に関係する
         cv.alwaysBounceVertical = true
         cv.delegate = self
         cv.dataSource = self
@@ -75,8 +75,8 @@ class ChartVC: UIViewController{
         return cv
     }()
     
-    private lazy var dummyButton: CustomUIButtonForReload = { //setupNavBar内でnavigationItemに格納する
-        let bn = CustomUIButtonForReload(type: .system)
+    private lazy var dummyButton: CustomUIButtonForReload = { //setupNavBar内でnavigationItemに配置し、リロードボタンを格納。
+        let bn = CustomUIButtonForReload(type: .system)  //このカスタムサブクラスにより、押した時にalphaが薄まる
         bn.addTarget(self, action: #selector(reloadButtonTapped), for: .touchUpInside)
         bn.frame = CGRect(x: 0, y: 0, width: 40, height: 40)
         bn.backgroundColor = .clear
@@ -127,16 +127,50 @@ class ChartVC: UIViewController{
 //        }
     }
     
-    private func setupObservers(){
+    
+    private func setupNavBar(){
+        navigationItem.title = "Charts"
+        
+        let rightButton = UIBarButtonItem()
+        rightButton.customView = dummyButton
+        dummyButton.addSubview(smallCircleImageView)
+        dummyButton.addSubview(smallPauseImageView)
+        smallCircleImageView.center(inView: dummyButton)
+        smallPauseImageView.center(inView: dummyButton)
+        self.navigationItem.rightBarButtonItem = rightButton
+    }
+    
+    private func setupViews(){
+        view.backgroundColor = .systemBackground
+        view.addSubview(playerPlaceholderView)
+        view.addSubview(chartCollectionView)
+    }
+    
+    override func viewDidLayoutSubviews() {
+        super.viewDidLayoutSubviews()
+        let floatingPlayerHeight = view.frame.width*K.floatingPlayerWidthMultiplier/16*9
+        playerPlaceholderView.anchor(top: view.safeAreaLayoutGuide.topAnchor, left: view.leftAnchor, right: view.rightAnchor, height: floatingPlayerHeight+K.floatingPlayerTopBottomInsets*2)
+        chartCollectionView.anchor(top: playerPlaceholderView.bottomAnchor, left: view.leftAnchor, bottom: view.bottomAnchor, right: view.rightAnchor)
+    }
+    
+    override func viewWillAppear(_ animated: Bool) {  //毎回このタブに移る時にreloadDataしてcollectionViewの表示をアップデートする
+        super.viewWillAppear(true)
+        chartCollectionView.reloadData()
+    }
+    
+    
+    //MARK: - Observers: allChartDataの全Song内のvideoPlayStateをその都度全て書き換え
+    private func setupObservers(){  //tabBarControllerからプレイヤーの状態変化により送られる。
         NotificationCenter.default.addObserver(self, selector: #selector(someCellLoading), name: Notification.Name(rawValue:"someCellLoading"), object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(someCellPlaying), name: Notification.Name(rawValue:"someCellPlaying"), object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(someCellPaused), name: Notification.Name(rawValue:"someCellPaused"), object: nil)
     }
+    
     @objc private func someCellLoading(notification: NSNotification){
         guard let userInfo = notification.userInfo else{return}
         guard let playingTrackID = userInfo["trackID"] as? String else{return}
         for i in 0..<user.allChartData.count{
-            for n in 0..<20{
+            for n in 0..<user.allChartData[i].songs.count{
                 if user.allChartData[i].songs[n].trackID == playingTrackID{
                     user.allChartData[i].songs[n].videoPlayState = .loading
                 }else{
@@ -169,63 +203,7 @@ class ChartVC: UIViewController{
     }
     
     
-    
-    private func setupNavBar(){
-        
-        navigationItem.title = "Charts"
-        
-        let rightButton = UIBarButtonItem()
-        rightButton.customView = dummyButton
-        dummyButton.addSubview(smallCircleImageView)
-        dummyButton.addSubview(smallPauseImageView)
-        smallCircleImageView.center(inView: dummyButton)
-        smallPauseImageView.center(inView: dummyButton)
-        self.navigationItem.rightBarButtonItem = rightButton
-       
-    }
-    
-    private func setupViews(){
-        view.backgroundColor = .systemBackground
-        view.addSubview(playerPlaceholderView)
-        view.addSubview(chartCollectionView)
-    }
-    override func viewDidLayoutSubviews() {
-        super.viewDidLayoutSubviews()
-        let floatingPlayerHeight = view.frame.width*K.floatingPlayerWidthMultiplier/16*9
-        playerPlaceholderView.anchor(top: view.safeAreaLayoutGuide.topAnchor, left: view.leftAnchor, right: view.rightAnchor, height: floatingPlayerHeight+K.floatingPlayerTopBottomInsets*2)
-        chartCollectionView.anchor(top: playerPlaceholderView.bottomAnchor, left: view.leftAnchor, bottom: view.bottomAnchor, right: view.rightAnchor)
-    }
-    
-    override func viewWillAppear(_ animated: Bool) {
-        super.viewWillAppear(true)
-        chartCollectionView.reloadData()
-    }
- 
-    //MARK: - Gesture Handling
-    @objc private func cellLongPressed(_ gesture: UILongPressGestureRecognizer){
-        if reloadingOnOff { return }
-        //以下の作業全てメインスレッドで行われているよう
-        switch gesture.state{
-            case .began:
-                guard let targetIndexPath = chartCollectionView.indexPathForItem(at: gesture.location(in: chartCollectionView)) else{return}
-//                guard let cell = chartCollectionView.cellForItem(at: targetIndexPath) else{return}
-//                cell.backgroundColor = .systemGray5
-                self.chartCollectionView.beginInteractiveMovementForItem(at: targetIndexPath)
-            case .changed:
-                self.chartCollectionView.updateInteractiveMovementTargetPosition(gesture.location(in: self.chartCollectionView))
-            case .ended:
-//                guard let targetIndexPath = chartCollectionView.indexPathForItem(at: gesture.location(in: chartCollectionView)) else{return}
-//                guard let cell = chartCollectionView.cellForItem(at: targetIndexPath) else{return}
-//                cell.backgroundColor = .clear
-                self.chartCollectionView.endInteractiveMovement()
-            case .cancelled:
-                self.chartCollectionView.cancelInteractiveMovement()
-            default:
-                return
-            }
-    }
-    
-    //MARK: - Handle Button Taps
+    //MARK: - handling Reload Button Tapped
     @objc private func reloadButtonTapped(){
         reloadingOnOff.toggle()
         if reloadingOnOff{
@@ -241,11 +219,13 @@ class ChartVC: UIViewController{
             self.smallCircleImageView.rotate360Degrees(duration: 2)
             self.smallPauseImageView.isHidden = false
             for i in 0...self.user.allChartData.count{
+                //いま見えているUIの即時アップデート。ローダーを見せる
                 guard let cell = self.chartCollectionView.cellForItem(at: IndexPath(item: i, section: 0)) as? ChartCollectionViewCell else{continue}
-                
-                self.countryRowNeedShowLoader[i] = true
                 cell.spinner.startAnimating()
                 cell.spinner.isHidden = false
+                
+                //dequeueされた時にも対応できるようにグローバル変数をアップデート
+                self.countryRowNeedShowLoader[i] = true
             }
         }
         scrapingManager = ScrapingManager(chartDataToFetch: user.allChartData, startingIndex: 0)
@@ -260,81 +240,11 @@ class ChartVC: UIViewController{
         if let timer = scrapingManager?.timer{
             timer.invalidate()
         }
-        scrapingManager = nil  //これで綺麗さっぱり全てのオブジェクトがdismissされる。
+        scrapingManager = nil  //これで綺麗さっぱり全てのオブジェクトがdeallocateされる。
     }
 }
 
-//MARK: - ScrapingManager Delegate
-extension ChartVC: ScrapingManagerDelegate{
-    //チャート情報をゲットできた国から順番にこのメソッドが呼ばれる
-    func setCellWithSongsInfo(songs: [Song], countryIndexNumber: Int) {
-        user.allChartData[countryIndexNumber].songs = songs //グローバル変数のallChartDataをアップデート
-        user.allChartData[countryIndexNumber].updated = Timestamp()
-        //以下は、アップデートするcellをつかみ、メインキューで表示させる
-        let indexPath = IndexPath(row: countryIndexNumber, section: 0)
-        guard let cellToLiveUpdate = chartCollectionView.cellForItem(at: indexPath) as? ChartCollectionViewCell else{
-            print("IndexNumber \(countryIndexNumber) is out of screen, so this doesn't show liveupdate")
-            return
-        }
-        DispatchQueue.main.async { [weak self] in
-            guard let self = self else {return}
-            cellToLiveUpdate.songs = songs  //この時点でdidSetが起動し自動アップデートが行われる
-            cellToLiveUpdate.videoCollectionView.reloadData()
-            let flash = CABasicAnimation(keyPath: "opacity")
-            flash.duration = 0.3
-            flash.fromValue = 1
-            flash.toValue = 0.3
-            flash.timingFunction = CAMediaTimingFunction(name: CAMediaTimingFunctionName.easeInEaseOut)
-            flash.repeatCount = 1
-            cellToLiveUpdate.layer.add(flash, forKey: nil)
-            
-            self.countryRowNeedShowLoader[countryIndexNumber] = false
-            cellToLiveUpdate.spinner.stopAnimating()
-            cellToLiveUpdate.spinner.isHidden = true
-        }
-        
-    }
-    //以下の2つのうちどちらかが必ず呼ばれる。
-    func fetchingDataAllDone(){
-        scrapingManager = nil //これによりfetching関連で作ったインスタンスを消去
-        reloadingOnOff.toggle()
-        stopAllLoaders()
-        firestoreService.saveAllChartData(uid: self.uid, allChartData: user.allChartData, updateNeedToBeUpdated: true) { (error) in
-            //ここでエラーになった場合でも成功した場合でも特にユーザーに伝える必要はないかと。このまま何もせずにok
-        }
-    }
-    
-    func timeOutNotice(){
-        let alert = AlertService(vc: self)
-        alert.showSimpleAlert(title: "Time Out Error!", message: "There seem to be internet connection probem. Please try updating later again.", style: .alert)
-        scrapingManager = nil
-        reloadingOnOff.toggle()
-        stopAllLoaders()
-    }
-    
-    func stopAllLoaders(){  //これには国ごとのspinnerも含まれる。
-        DispatchQueue.main.async { [weak self] in
-            guard let self = self else {return}
-            self.smallCircleImageView.stopRotation()
-            self.smallPauseImageView.isHidden = true
-            
-            for i in 0...self.user.allChartData.count{
-                guard let cell = self.chartCollectionView.cellForItem(at: IndexPath(item: i, section: 0)) as? ChartCollectionViewCell else{continue}
-                
-                self.countryRowNeedShowLoader[i] = false
-                cell.spinner.stopAnimating()
-                cell.spinner.isHidden = true
-                
-            }
-            self.chartCollectionView.reloadData()
-        }
-    }
-    
-    
-    
-}
-
-//MARK: - FooterからのMap関連 Delegate
+//MARK: - handling Plus Button Tapped
 extension ChartVC: ChartCollectionFooterViewDelegate{
     
     func footerPlusButtonPressed(){
@@ -344,6 +254,7 @@ extension ChartVC: ChartCollectionFooterViewDelegate{
         present(nav, animated: true, completion: nil)
     }
 }
+
 
 //MARK: - MapVC Delegate
 extension ChartVC: MapVCDelegate{
@@ -414,6 +325,121 @@ extension ChartVC: MapVCDelegate{
     }
 }
 
+
+//MARK: - ScrapingManager Delegate
+extension ChartVC: ScrapingManagerDelegate{
+    //チャート情報をゲットできた国から順番にこのメソッドが呼ばれる
+    func setCellWithSongsInfo(songs: [Song], countryIndexNumber: Int) {
+        user.allChartData[countryIndexNumber].songs = songs //グローバル変数のallChartDataをアップデート
+        user.allChartData[countryIndexNumber].updated = Timestamp()
+        //以下は、アップデートするcellをつかみ、メインキューで表示させる
+        let indexPath = IndexPath(row: countryIndexNumber, section: 0)
+        guard let cellToLiveUpdate = chartCollectionView.cellForItem(at: indexPath) as? ChartCollectionViewCell else{
+            print("IndexNumber \(countryIndexNumber) is out of screen, so this doesn't show liveupdate")
+            return
+        }
+        DispatchQueue.main.async { [weak self] in
+            guard let self = self else {return}
+            cellToLiveUpdate.songs = songs  //この時点でdidSetが起動し自動アップデートが行われる
+            cellToLiveUpdate.videoCollectionView.reloadData()
+            let flash = CABasicAnimation(keyPath: "opacity")
+            flash.duration = 0.3
+            flash.fromValue = 1
+            flash.toValue = 0.3
+            flash.timingFunction = CAMediaTimingFunction(name: CAMediaTimingFunctionName.easeInEaseOut)
+            flash.repeatCount = 1
+            cellToLiveUpdate.layer.add(flash, forKey: nil)
+            
+            self.countryRowNeedShowLoader[countryIndexNumber] = false
+            cellToLiveUpdate.spinner.stopAnimating()
+            cellToLiveUpdate.spinner.isHidden = true
+        }
+        
+    }
+    //以下の2つのうちどちらかが必ず呼ばれる。
+    func fetchingDataAllDone(){
+        scrapingManager = nil //これによりfetching関連で作ったインスタンスを消去
+        reloadingOnOff.toggle()
+        stopAllLoaders()
+        firestoreService.saveAllChartData(uid: self.uid, allChartData: user.allChartData, updateNeedToBeUpdated: true) { (error) in
+            //ここでエラーになった場合でも成功した場合でも特にユーザーに伝える必要はないかと。このまま何もせずにok
+        }
+    }
+    
+    func timeOutNotice(){
+        let alert = AlertService(vc: self)
+        alert.showSimpleAlert(title: "Time Out Error!", message: "There seem to be internet connection probem. Please try updating later again.", style: .alert)
+        scrapingManager = nil
+        reloadingOnOff.toggle()
+        stopAllLoaders()
+    }
+    
+    func stopAllLoaders(){  //これには国ごとのspinnerも含まれる。
+        DispatchQueue.main.async { [weak self] in
+            guard let self = self else {return}
+            self.smallCircleImageView.stopRotation()
+            self.smallPauseImageView.isHidden = true
+            
+            for i in 0...self.user.allChartData.count{
+                guard let cell = self.chartCollectionView.cellForItem(at: IndexPath(item: i, section: 0)) as? ChartCollectionViewCell else{continue}
+                
+                self.countryRowNeedShowLoader[i] = false
+                cell.spinner.stopAnimating()
+                cell.spinner.isHidden = true
+                
+            }
+            self.chartCollectionView.reloadData()
+        }
+    }
+}
+
+//MARK: - chartCollectionView Delegate　ジェスチャー関連
+extension ChartVC: UICollectionViewDelegate{
+    
+    @objc private func cellLongPressed(_ gesture: UILongPressGestureRecognizer){
+        if reloadingOnOff { return }
+        //以下の作業全てメインスレッドで行われているよう
+        switch gesture.state{
+            case .began:
+                guard let targetIndexPath = chartCollectionView.indexPathForItem(at: gesture.location(in: chartCollectionView)) else{return}
+//                guard let cell = chartCollectionView.cellForItem(at: targetIndexPath) else{return}
+//                cell.backgroundColor = .systemGray5
+                self.chartCollectionView.beginInteractiveMovementForItem(at: targetIndexPath)
+            case .changed:
+                self.chartCollectionView.updateInteractiveMovementTargetPosition(gesture.location(in: self.chartCollectionView))
+            case .ended:
+//                guard let targetIndexPath = chartCollectionView.indexPathForItem(at: gesture.location(in: chartCollectionView)) else{return}
+//                guard let cell = chartCollectionView.cellForItem(at: targetIndexPath) else{return}
+//                cell.backgroundColor = .clear
+                self.chartCollectionView.endInteractiveMovement()
+            case .cancelled:
+                self.chartCollectionView.cancelInteractiveMovement()
+            default:
+                return
+            }
+    }
+    
+    func collectionView(_ collectionView: UICollectionView, canMoveItemAt indexPath: IndexPath) -> Bool {
+        true
+    }
+    
+    func collectionView(_ collectionView: UICollectionView, moveItemAt sourceIndexPath: IndexPath, to destinationIndexPath: IndexPath) {
+        
+        let item = user.allChartData.remove(at: sourceIndexPath.row)
+        user.allChartData.insert(item, at: destinationIndexPath.row)
+        let videoPage = pageNumbers.remove(at: sourceIndexPath.row)
+        pageNumbers.insert(videoPage, at: destinationIndexPath.row)
+        chartCollectionView.reloadData()
+        //最後の引数updateNeedToBeUpdatedは国ごとのチャートデータ(20曲セット)がいつアップデートされたかを表す"updated"フィールド書き込むかどうか。
+        //ここでは単にデータの列を入れ替えているだけで新しいデータをゲットするわけではないので書き込まない=falseにする。
+        firestoreService.saveAllChartData(uid: self.uid, allChartData: user.allChartData, updateNeedToBeUpdated: false) { (error) in
+            //ここでエラーになった場合でも成功した場合でも特にユーザーに伝える必要はないかと。このまま何もせずにok
+            print("DEBUG: Error occured saving allChartData to Firestore after gesture long press dragging.")
+        }
+    }
+}
+
+
 //MARK: - chartCollectionView DataSource
 extension ChartVC: UICollectionViewDataSource{
 
@@ -449,27 +475,7 @@ extension ChartVC: UICollectionViewDataSource{
         }
     }
 }
-//MARK: - chartCollectionView Delegate　ジェスチャー
-extension ChartVC: UICollectionViewDelegate{
-    
-    func collectionView(_ collectionView: UICollectionView, canMoveItemAt indexPath: IndexPath) -> Bool {
-        true
-    }
-    func collectionView(_ collectionView: UICollectionView, moveItemAt sourceIndexPath: IndexPath, to destinationIndexPath: IndexPath) {
-        
-        let item = user.allChartData.remove(at: sourceIndexPath.row)
-        user.allChartData.insert(item, at: destinationIndexPath.row)
-        let videoPage = pageNumbers.remove(at: sourceIndexPath.row)
-        pageNumbers.insert(videoPage, at: destinationIndexPath.row)
-        chartCollectionView.reloadData()
-        //最後の引数updateNeedToBeUpdatedは国ごとのチャートデータ(20曲セット)がいつアップデートされたかを表す"updated"フィールド書き込むかどうか。
-        //ここでは単にデータの列を入れ替えているだけで新しいデータをゲットするわけではないので書き込まない=falseにする。
-        firestoreService.saveAllChartData(uid: self.uid, allChartData: user.allChartData, updateNeedToBeUpdated: false) { (error) in
-            //ここでエラーになった場合でも成功した場合でも特にユーザーに伝える必要はないかと。このまま何もせずにok
-        }
-        
-    }
-}
+
 
 //MARK: - chartCollectionView FlowLayout
 extension ChartVC: UICollectionViewDelegateFlowLayout{
@@ -536,10 +542,8 @@ extension ChartVC: ChartCollectionViewCellDelegate{
         }
     }
     
-    
     func handleDragScrollInfo(chartCellIndexNumber: Int, newCurrentPageIndex: Int) {
         pageNumbers[chartCellIndexNumber] = newCurrentPageIndex
-        print(pageNumbers)
     }
     
     func rightArrowTapped(chartCellIndexNumber: Int) {
@@ -548,7 +552,6 @@ extension ChartVC: ChartCollectionViewCellDelegate{
             let newNumber = origPageNumber+1
             pageNumbers[chartCellIndexNumber] = newNumber
         }
-        print(pageNumbers)
     }
     
     func leftArrowTapped(chartCellIndexNumber: Int) {
@@ -557,7 +560,6 @@ extension ChartVC: ChartCollectionViewCellDelegate{
             let newNumber = origPageNumber-1
             pageNumbers[chartCellIndexNumber] = newNumber
         }
-        print(pageNumbers)
     }
     
 }

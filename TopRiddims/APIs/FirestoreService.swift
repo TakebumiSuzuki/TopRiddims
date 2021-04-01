@@ -72,7 +72,7 @@ class FirestoreService{
         }
     }
     
-    
+    //Firestoreの各uidの中の、saveAllChartDataフィールドの部分のみを書き換える
     func saveAllChartData(uid: String, allChartData: [(country: String, songs:[Song], updated: Timestamp)], updateNeedToBeUpdated: Bool, completion: @escaping (Error?) -> Void){
         
         var allChartRawData = [[String : Any]]()
@@ -93,7 +93,7 @@ class FirestoreService{
             var countryData = [String : Any]()
             if updateNeedToBeUpdated{
                 countryData = ["songs": songsRawData, "updated": Timestamp()] as [String : Any]
-            }else{
+            }else{  //long tap gesutureの行組み換え作業の際には、チャートデータそのものは更新されていないので"updated"フィールドはここに入れない。
                 countryData = ["songs": songsRawData] as [String : Any]
             }
             

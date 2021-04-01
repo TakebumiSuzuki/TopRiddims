@@ -37,7 +37,6 @@
 		0C68F65C261264A9005BC185 /* LikesTableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0C68F65B261264A9005BC185 /* LikesTableViewCell.swift */; };
 		0C68F65F261274FF005BC185 /* DateFormattingService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0C68F65E261274FF005BC185 /* DateFormattingService.swift */; };
 		0C68F67126131F79005BC185 /* TrackLikedCheckedSynchronizer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0C68F67026131F79005BC185 /* TrackLikedCheckedSynchronizer.swift */; };
-		0C8A313926020183003AF166 /* ChartCollectionHeaderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0C8A313826020183003AF166 /* ChartCollectionHeaderView.swift */; };
 		0C8A313D2602021E003AF166 /* ChartCollectionFooterView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0C8A313C2602021E003AF166 /* ChartCollectionFooterView.swift */; };
 		0C8A314526020DFC003AF166 /* WebpageScraper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0C8A314426020DFC003AF166 /* WebpageScraper.swift */; };
 		0C8A314826020E52003AF166 /* Song.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0C8A314726020E52003AF166 /* Song.swift */; };
@@ -84,7 +83,6 @@
 		0C68F65B261264A9005BC185 /* LikesTableViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LikesTableViewCell.swift; sourceTree = "<group>"; };
 		0C68F65E261274FF005BC185 /* DateFormattingService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DateFormattingService.swift; sourceTree = "<group>"; };
 		0C68F67026131F79005BC185 /* TrackLikedCheckedSynchronizer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrackLikedCheckedSynchronizer.swift; sourceTree = "<group>"; };
-		0C8A313826020183003AF166 /* ChartCollectionHeaderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChartCollectionHeaderView.swift; sourceTree = "<group>"; };
 		0C8A313C2602021E003AF166 /* ChartCollectionFooterView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChartCollectionFooterView.swift; sourceTree = "<group>"; };
 		0C8A314426020DFC003AF166 /* WebpageScraper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebpageScraper.swift; sourceTree = "<group>"; };
 		0C8A314726020E52003AF166 /* Song.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Song.swift; sourceTree = "<group>"; };
@@ -213,7 +211,6 @@
 		0C9D6F0226024F9000252205 /* Views */ = {
 			isa = PBXGroup;
 			children = (
-				0C8A313826020183003AF166 /* ChartCollectionHeaderView.swift */,
 				0C8A313C2602021E003AF166 /* ChartCollectionFooterView.swift */,
 				0C3756DF260B7EC9007CC850 /* ChartCollectionViewCell.swift */,
 				0C3756E4260B85AA007CC850 /* VideoCollectionViewCell.swift */,
@@ -367,7 +364,6 @@
 				0CABD1722614C8670093F97E /* ValidationService.swift in Sources */,
 				0C2810A62603A6D00065C43D /* ScrapingManager.swift in Sources */,
 				0C68F60A260FA655005BC185 /* User.swift in Sources */,
-				0C8A313926020183003AF166 /* ChartCollectionHeaderView.swift in Sources */,
 				0CC5BC7B2607864E00C6AAFF /* MapCheckBoxLeft.swift in Sources */,
 				0C3756E5260B85AA007CC850 /* VideoCollectionViewCell.swift in Sources */,
 				0C68F5FF260F44C4005BC185 /* CustomViews.swift in Sources */,

@@ -196,7 +196,7 @@ class MainTabBarController: UITabBarController {
         logoImageView.anchor(top: videoPlayer.topAnchor, left: videoPlayer.leftAnchor, bottom:videoPlayer.bottomAnchor, right: videoPlayer.rightAnchor)
         
         spinner.center(inView: blackImageView)
-        spinner.setDimensions(height: 44, width: 44)
+        spinner.setDimensions(height: 46, width: 46)
     }
     
     //MARK: - Video再生コントロール
