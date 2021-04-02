@@ -19,18 +19,8 @@ class WebpageScraper{
     }
     
     var videoIDs = [String]()
-    var songNames = [String](){
-        didSet{
-            print("ソングネーム")
-            print(songNames)
-        }
-    }
-    var artistNames = [String](){
-        didSet{
-            print("アーティストネーム")
-            print(artistNames)
-        }
-    }
+    var songNames = [String]()
+    var artistNames = [String]()
     
     deinit {
         print("Scraper is being Deinitialized")
@@ -57,7 +47,7 @@ class WebpageScraper{
             }
             
             DispatchQueue.global(qos: .userInteractive).async {
-//                print("DispatchQueueの中はメインスレッド?: \(Thread.isMainThread)")
+                
                 do{
                     var ids = [String]()
                     let doc: Document = try SwiftSoup.parse(html)
@@ -67,9 +57,7 @@ class WebpageScraper{
                         ids.append(string)
                     }
                     self.videoIDs = ids.suffix(20)
-                    print(self.videoIDs.count)
                     if self.videoIDs.count != 20 {
-                        print("ビデオの数が20以下なのでリターンします")
                     }
                     
                     var songs = [String]()
@@ -80,13 +68,12 @@ class WebpageScraper{
                         songs.append(songName)
                     })
                     self.songNames = songs.suffix(20)
-                    print(self.videoIDs.count)
+                    
                     if self.songNames.count != 20 {
-                        print("ビデオの数が20以下なのでリターンします")
                     }
                     var artists = [String]()
                     let artistNameElements: Elements = try doc.getElementsByClass("entity-subtitle style-scope ytmc-entity-row")
-                    //                print(try artistNameElements.text())
+                    
                     try artistNameElements.forEach({ (element) in
                         
                         let singleElement = try element.getElementsByClass("ytmc-artist-name clickable style-scope ytmc-artists-list")

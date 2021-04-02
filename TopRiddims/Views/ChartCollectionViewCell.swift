@@ -69,6 +69,7 @@ class ChartCollectionViewCell: UICollectionViewCell {
     var songs = [Song](){
         didSet{
             videoCollectionView.reloadData()
+            setLabelInfo()
         }
     }
     var currentPageIndexNum: Int = 0{ //いくつめのビデオが前面に出ているか

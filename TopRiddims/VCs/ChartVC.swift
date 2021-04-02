@@ -35,6 +35,7 @@ class ChartVC: UIViewController{
     private var videoWidth: CGFloat{ return view.frame.width*K.chartCellWidthMultiplier*K.videoCoverWidthMultiplier}
     private var videoHeight: CGFloat{ return videoWidth/16*9 }
     
+    private var globalDispatchGroup: DispatchGroup?
     private var pageNumbers: [Int] = {  //国の数だけ必要なので、初期化する時に必ずしも20要素作る必要はない(0...19の部分の事)
         var array = [Int]()
         for _ in 0...19{ array.append(0) }
@@ -228,6 +229,10 @@ class ChartVC: UIViewController{
                 self.countryRowNeedShowLoader[i] = true
             }
         }
+        globalDispatchGroup = DispatchGroup()
+        user.allChartData.forEach { _ in
+            globalDispatchGroup?.enter()
+        }
         scrapingManager = ScrapingManager(chartDataToFetch: user.allChartData, startingIndex: 0)
         scrapingManager?.delegate = self
         scrapingManager?.startLoadingWebPages()
@@ -235,7 +240,7 @@ class ChartVC: UIViewController{
     
     private func handlePauseFetching(){
         stopAllLoaders()
-        
+        globalDispatchGroup = nil
         //この行をすぐ下のnilの行より先に書く事により循環参照でtimerだけが残って処理を続けることを防ぐ
         if let timer = scrapingManager?.timer{
             timer.invalidate()
@@ -267,11 +272,13 @@ extension ChartVC: MapVCDelegate{
             for _ in 0...19{ array.append(0) }
             return array
         }()
-        countryRowNeedShowLoader = []  //ここで一度からにして数行下で残された国の数でもう一度falseを入れる
+        countryRowNeedShowLoader = []  //ここで一度空にして、すぐ下で残された国の数でもう一度falseを入れる
         for _ in 0..<user.allChartData.count{
             countryRowNeedShowLoader.append(false)
         }
-        self.chartCollectionView.reloadData() //残された国のみで一度リロード
+        self.chartCollectionView.reloadData() //ここで残された国のみで一旦リロード
+        
+        //以下の３行はMapVCから送られてきたselectedCountriesの中から、newEntriesだけを抽出する作業
         var currentEntries = [String]()
         user.allChartData.forEach{ currentEntries.append($0.country) }
         let newEntries: [String] = selectedCountries.filter{ !currentEntries.contains($0) }
@@ -289,15 +296,14 @@ extension ChartVC: MapVCDelegate{
             }
             return
         }
+        
         //単純なString配列のnewEntriesを新しいデータ構造に変換し、allChartDataの末尾に加える
         var newCountryData = [(country: String, songs:[Song], updated: Timestamp)]()
-        
-        newEntries.forEach{  //sample1曲のみのチャートデータを新しい国ごとに作っている。
+        newEntries.forEach{  //国名のみ、後は空のsample1曲のチャートデータを新しい国ごとに作っている。
             let data = (country: $0, songs: [Song(trackID: "trackID", songName: "Getting songs now!", artistName: "Please wait for a moment...", liked: false, checked: false)], updated: Timestamp())
-            //songNameとartistnameを空にしたら、下のinsertItemsの段で、一番目の要素(jamaica)から挿入された。UIKitのバグかと。
             
             newCountryData.append(data)
-            countryRowNeedShowLoader.append(true) //新しく加わる国分だけtrueを入れる
+            countryRowNeedShowLoader.append(true) //これから新しく加わる国の分だけtrueを入れる
         }
         
         let startingIndex = user.allChartData.count
@@ -313,12 +319,14 @@ extension ChartVC: MapVCDelegate{
                 //ここでinsert命令を出しても実際にdequeueされてcellインスタンスが作られるのは少し後になる。asyncなので。
             }
             //実際のデータアップロード
-            self.chartCollectionView.scrollToItem(at: IndexPath(row: self.user.allChartData.count-1, section: 0), at: .bottom, animated: true)
+            self.chartCollectionView.scrollToItem(at: IndexPath(row: startingIndex, section: 0), at: .top, animated: true)
             self.smallCircleImageView.rotate360Degrees(duration: 2)
             self.smallPauseImageView.isHidden = false
             self.reloadingOnOff.toggle()
         }
         //上のDispatchQueue.main.asyncの中身よりも先にこちらが走る。
+        globalDispatchGroup = DispatchGroup()
+        newCountryData.forEach { _ in globalDispatchGroup?.enter() }  //新しく加わった国数だけdispatechGroupを作成
         scrapingManager = ScrapingManager(chartDataToFetch: newCountryData, startingIndex: startingIndex)
         scrapingManager?.delegate = self
         scrapingManager?.startLoadingWebPages()
@@ -332,41 +340,62 @@ extension ChartVC: ScrapingManagerDelegate{
     func setCellWithSongsInfo(songs: [Song], countryIndexNumber: Int) {
         user.allChartData[countryIndexNumber].songs = songs //グローバル変数のallChartDataをアップデート
         user.allChartData[countryIndexNumber].updated = Timestamp()
-        //以下は、アップデートするcellをつかみ、メインキューで表示させる
-        let indexPath = IndexPath(row: countryIndexNumber, section: 0)
-        guard let cellToLiveUpdate = chartCollectionView.cellForItem(at: indexPath) as? ChartCollectionViewCell else{
-            print("IndexNumber \(countryIndexNumber) is out of screen, so this doesn't show liveupdate")
-            return
-        }
-        DispatchQueue.main.async { [weak self] in
-            guard let self = self else {return}
-            cellToLiveUpdate.songs = songs  //この時点でdidSetが起動し自動アップデートが行われる
-            cellToLiveUpdate.videoCollectionView.reloadData()
-            let flash = CABasicAnimation(keyPath: "opacity")
-            flash.duration = 0.3
-            flash.fromValue = 1
-            flash.toValue = 0.3
-            flash.timingFunction = CAMediaTimingFunction(name: CAMediaTimingFunctionName.easeInEaseOut)
-            flash.repeatCount = 1
-            cellToLiveUpdate.layer.add(flash, forKey: nil)
-            
-            self.countryRowNeedShowLoader[countryIndexNumber] = false
-            cellToLiveUpdate.spinner.stopAnimating()
-            cellToLiveUpdate.spinner.isHidden = true
-        }
+        countryRowNeedShowLoader[countryIndexNumber] = false
         
-    }
+        let group = DispatchGroup()
+        for i in 0..<songs.count{
+            group.enter()
+            firestoreService.fetchLikedCheckedStatusForASong(uid: self.uid, song: songs[i]) { [weak self] (liked, checked) in
+                guard let self = self else { group.leave(); return }
+                self.user.allChartData[countryIndexNumber].songs[i].liked = liked
+                self.user.allChartData[countryIndexNumber].songs[i].checked = checked
+                group.leave()
+            }
+        }
+        group.notify(queue: .main) {
+            self.globalDispatchGroup?.leave()  //dispatchGroupの回収
+            print("globalDispatchGroupの回収")
+            //以下は、UI的にアップデート(フラッシュ)するcellをつかみ、メインキューで実行させる
+            let indexPath = IndexPath(row: countryIndexNumber, section: 0)
+            guard let cellToLiveUpdate = self.chartCollectionView.cellForItem(at: indexPath) as? ChartCollectionViewCell else{
+                print("IndexNumber \(countryIndexNumber) is outside of screen, so this doesn't show liveupdate")
+                return
+            }
+            DispatchQueue.main.async {
+                cellToLiveUpdate.songs = songs  //この時点でdidSetが起動し自動アップデートが行われる
+                cellToLiveUpdate.videoCollectionView.reloadData()
+                let flash = CABasicAnimation(keyPath: "opacity")
+                flash.duration = 0.3
+                flash.fromValue = 1
+                flash.toValue = 0.3
+                flash.timingFunction = CAMediaTimingFunction(name: CAMediaTimingFunctionName.easeInEaseOut)
+                flash.repeatCount = 1
+                cellToLiveUpdate.layer.add(flash, forKey: nil)
+                
+                cellToLiveUpdate.spinner.stopAnimating()
+                cellToLiveUpdate.spinner.isHidden = true
+            }
+        }
+   }
+    
     //以下の2つのうちどちらかが必ず呼ばれる。
     func fetchingDataAllDone(){
         scrapingManager = nil //これによりfetching関連で作ったインスタンスを消去
         reloadingOnOff.toggle()
         stopAllLoaders()
-        firestoreService.saveAllChartData(uid: self.uid, allChartData: user.allChartData, updateNeedToBeUpdated: true) { (error) in
-            //ここでエラーになった場合でも成功した場合でも特にユーザーに伝える必要はないかと。このまま何もせずにok
+        
+        globalDispatchGroup?.notify(queue: .global()) { [weak self] in
+            guard let self = self else {return}
+            self.firestoreService.saveAllChartData(uid: self.uid, allChartData: self.user.allChartData, updateNeedToBeUpdated: true) { (error) in
+                print("ちゃんとallChartDataが保存されているか。errorは\(error)")
+                //ここでエラーになった場合でも成功した場合でも特にユーザーに伝える必要はないかと。このまま何もせずにok
+            }
+            self.globalDispatchGroup = nil
         }
     }
     
     func timeOutNotice(){
+        globalDispatchGroup = nil
         let alert = AlertService(vc: self)
         alert.showSimpleAlert(title: "Time Out Error!", message: "There seem to be internet connection probem. Please try updating later again.", style: .alert)
         scrapingManager = nil
@@ -392,6 +421,7 @@ extension ChartVC: ScrapingManagerDelegate{
         }
     }
 }
+
 
 //MARK: - chartCollectionView Delegate　ジェスチャー関連
 extension ChartVC: UICollectionViewDelegate{
@@ -434,7 +464,6 @@ extension ChartVC: UICollectionViewDelegate{
         //ここでは単にデータの列を入れ替えているだけで新しいデータをゲットするわけではないので書き込まない=falseにする。
         firestoreService.saveAllChartData(uid: self.uid, allChartData: user.allChartData, updateNeedToBeUpdated: false) { (error) in
             //ここでエラーになった場合でも成功した場合でも特にユーザーに伝える必要はないかと。このまま何もせずにok
-            print("DEBUG: Error occured saving allChartData to Firestore after gesture long press dragging.")
         }
     }
 }

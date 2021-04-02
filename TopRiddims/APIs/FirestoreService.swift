@@ -172,7 +172,19 @@ class FirestoreService{
         }
     }
     
-    
+    func fetchLikedCheckedStatusForASong(uid: String, song: Song, completion: @escaping (Bool, Bool) -> Void){
+        
+        K.FSCollectionUsers.document(uid).collection("tracks").document(song.trackID).getDocument { (snapshot, error) in
+            //ここではエラーは気にしなくて良い
+            guard let snapshot = snapshot, let data = snapshot.data() else {
+                completion(false, false)
+                return
+            }
+            let liked: Bool = data["liked"] as? Bool ?? false
+            let checked = data["checked"] as? Bool ?? false
+            completion(liked, checked)
+        }
+    }
     
 }
 

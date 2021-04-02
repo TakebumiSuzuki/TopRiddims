@@ -77,7 +77,6 @@ class ScrapingManager{
         //タイマーを起動
         startTimer {[weak self] (songs, indexNumber) in
             guard let self = self else { print("DEBUG: self is nil at Timer's completion handler!"); return }
-            print("タイマー１秒後変換")
             let modifiedIndexNumber = indexNumber + self.startingIndex
             self.delegate?.setCellWithSongsInfo(songs: songs, countryIndexNumber: modifiedIndexNumber)
         }
@@ -108,7 +107,6 @@ class ScrapingManager{
                         let song = Song(trackID: scraper.videoIDs[n], songName: scraper.songNames[n], artistName: scraper.artistNames[n], liked: false, checked: false)
                         songs.append(song)
                     }
-                    print("----FINISHED FETCHING \(i)/\(self.chartDataToFetch.count)")
                     completion(songs, i)
                     self.scrapedIndexNumbers.append(i)
                     continue
