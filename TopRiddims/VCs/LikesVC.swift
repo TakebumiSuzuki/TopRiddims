@@ -40,7 +40,7 @@ class LikesVC: UIViewController{
     }()
     
     private lazy var tableView: UITableView = {
-       let tv = UITableView()
+        let tv = UITableView()
         tv.backgroundColor = .secondarySystemBackground
         tv.separatorStyle = .none
         tv.allowsSelection = false
@@ -65,6 +65,7 @@ class LikesVC: UIViewController{
     }
     
     private func setupViews(){
+        
         view.backgroundColor = .systemBackground
         view.addSubview(playerPlaceholderView)
         view.addSubview(tableView)
@@ -77,9 +78,12 @@ class LikesVC: UIViewController{
         let floatingPlayerHeight = view.frame.width*K.floatingPlayerWidthMultiplier/16*9
         playerPlaceholderView.anchor(top: view.safeAreaLayoutGuide.topAnchor, left: view.leftAnchor, right: view.rightAnchor, height: floatingPlayerHeight+K.floatingPlayerTopBottomInsets*2)
         
-        tableView.contentInset = UIEdgeInsets(top: floatingPlayerHeight+K.floatingPlayerTopBottomInsets*2+10, left: 0, bottom: 0, right: 0)
-            
-        tableView.anchor(top: view.safeAreaLayoutGuide.topAnchor, left: view.leftAnchor, bottom: view.bottomAnchor, right: view.rightAnchor)
+        let inset = view.frame.width*(1-K.chartCellWidthMultiplier)/2
+        tableView.anchor(top: playerPlaceholderView.bottomAnchor, left: view.leftAnchor, bottom: view.bottomAnchor, right: view.rightAnchor, paddingLeft: inset, paddingRight: inset)
+        //tableViewのcontentに対するinset設定は、collectionViewやscrollViewと違い、うまく効かない。よって、
+        //左右についてはtableView自体のconstraintでinsetを表現し、また、topについてはheaderVeiewをdelegateで
+        //設定する事でinsetの代わりとした。
+        
     }
     
     override func viewWillAppear(_ animated: Bool) {
@@ -88,7 +92,7 @@ class LikesVC: UIViewController{
     }
     
     
-    //MARK: - refreshing Data
+    //MARK: - refreshing likedSongs Data
     @objc func refreshPulled() {
         loadLikedSongs()
     }
@@ -110,13 +114,11 @@ class LikesVC: UIViewController{
         }
     }
     
-    private func chekEachVideoPlayState(){
-        
+    private func chekEachVideoPlayState(){  //毎回likedSongsをロードした時に必ず呼ばれる。videoPlayStateを書き込む。
         guard let tabbar = tabBarController as? MainTabBarController else {return}
         guard let currentPlayingTrackID = tabbar.currentTrackID else {return}
         
         for i in 0..<likedSongs.count{
-            
             if likedSongs[i].trackID == currentPlayingTrackID{
                 tabbar.videoPlayer.playerState { [weak self](state, error) in
                     guard let self = self else {return}
@@ -125,23 +127,18 @@ class LikesVC: UIViewController{
                     if let error = error {print("DEBUG: Failed to get videoPlayerState: \(error.localizedDescription)"); return}
                     if state.rawValue == 4{  //loading これらのrawValueの値はyoutubeのマニュアルとは異なっていた。
                         self.likedSongs[i].videoPlayState = .loading
-                        print("got called 1")
                     }
                     if state.rawValue == 2{ //playing
                         self.likedSongs[i].videoPlayState = .playing
-                        print("got called 2")
                     }
                     if state.rawValue == 3{  //paused
                         self.likedSongs[i].videoPlayState = .paused
-                        print("got called 3")
                     }
                     self.tableView.reloadData()
                 }
-                
             }
         }
     }
-    
     
     
     //MARK: - Observers
@@ -201,6 +198,18 @@ extension LikesVC: UITableViewDelegate{
     func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
         return 60
     }
+    
+    //以下の二つはtableViewのtopのインセットを表現するために、透明なheaderViewを使った。
+    func tableView(_ tableView: UITableView, viewForHeaderInSection section: Int) -> UIView?{
+        let dummyView = UIView(frame: CGRect(x: 0, y: 0, width: 0, height: 0))
+        dummyView.backgroundColor = .clear
+        return dummyView
+    }
+    func tableView(_ tableView: UITableView, heightForHeaderInSection section: Int) -> CGFloat {
+        let inset = view.frame.width*(1-K.chartCellWidthMultiplier)/2
+        return inset
+    }
+
 }
 
 

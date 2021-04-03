@@ -35,6 +35,8 @@ class SettingVC: UIViewController {
     private let imageContainerView: UIView = {
        let view = UIView()
         view.backgroundColor = .clear
+        view.layer.cornerRadius = 4
+        view.clipsToBounds = true
         return view
     }()
     
@@ -42,6 +44,7 @@ class SettingVC: UIViewController {
        let iv = UIImageView()
         iv.image = UIImage(named: "nightPalm7")
         iv.contentMode = .scaleAspectFill
+        iv.clipsToBounds = true
         iv.alpha = 1
         return iv
     }()
@@ -145,14 +148,15 @@ class SettingVC: UIViewController {
         
         let floatingPlayerHeight = view.frame.width*K.floatingPlayerWidthMultiplier/16*9
         
-        imageContainerView.anchor(top: view.safeAreaLayoutGuide.topAnchor, left: view.leftAnchor, bottom: view.safeAreaLayoutGuide.bottomAnchor, right: view.rightAnchor, paddingTop: floatingPlayerHeight)
+        let inset = view.frame.width*(1-K.chartCellWidthMultiplier)/2
+        imageContainerView.anchor(top: playerPlaceholderView.bottomAnchor, left: view.leftAnchor, bottom: view.bottomAnchor, right: view.rightAnchor, paddingTop: inset)
         bgImageView.fillSuperview()
         
         
         
         playerPlaceholderView.anchor(top: view.safeAreaLayoutGuide.topAnchor, left: view.leftAnchor, right: view.rightAnchor, height: floatingPlayerHeight+K.floatingPlayerTopBottomInsets*2)
         
-        blurredView.anchor(top: playerPlaceholderView.bottomAnchor, left: view.leftAnchor, bottom: view.bottomAnchor, right: view.rightAnchor)
+        blurredView.anchor(top: playerPlaceholderView.bottomAnchor, left: view.leftAnchor, bottom: view.bottomAnchor, right: view.rightAnchor, paddingTop: inset)
         
 //        blurredView.anchor(top: playerPlaceholderView.bottomAnchor, left: view.leftAnchor, right: view.rightAnchor, paddingTop: 20, paddingLeft: K.placeholderLeftRightPadding, paddingRight: K.placeholderLeftRightPadding)
         

@@ -525,7 +525,8 @@ extension ChartVC: UICollectionViewDelegateFlowLayout{
     }
     
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, minimumLineSpacingForSectionAt section: Int) -> CGFloat {
-        return 7  //上下2つのセルの幅距離
+        let inset = view.frame.width*(1-K.chartCellWidthMultiplier)/2 //2.5%のみの四方インセット
+        return inset  //上下2つのセルの幅距離
     }
   
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, referenceSizeForFooterInSection section: Int) -> CGSize {

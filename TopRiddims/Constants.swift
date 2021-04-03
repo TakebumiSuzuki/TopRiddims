@@ -28,7 +28,7 @@ struct K{
     static let floatingPlayerWidthMultiplier: CGFloat = 1
     static let floatingPlayerTopBottomInsets: CGFloat = 0
     
-    static let chartCellWidthMultiplier: CGFloat = 0.95 //view全体幅に対するchartCellの横幅
+    static let chartCellWidthMultiplier: CGFloat = 0.965 //view全体幅に対するchartCellの横幅
     static let videoCoverWidthMultiplier: CGFloat = 0.5 //chartCell横幅に対するソングカバーの横幅
     static let videoCollectionViewWidthMultiplier: CGFloat = 0.8 //chartCell横幅に対するvideoCollectionViewの横幅
     
@@ -43,6 +43,9 @@ struct K{
     static let VideoCollectionViewEdgeInset = UIEdgeInsets(top: 0, left: 15, bottom: 0, right: 15)
     
     static let videoCollectionViewCellExtraHeight: CGFloat = 50
+    
+    
+    
     
     enum Country: String, Equatable, CaseIterable{
         case jamaica = "0x8eda2a1bc6cf719d%3A0x59a0d1c0b5120efa"
