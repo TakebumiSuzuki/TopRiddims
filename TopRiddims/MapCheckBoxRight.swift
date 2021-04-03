@@ -95,6 +95,7 @@ class MapCheckBoxRight: CustomStackView, MapCheckBox{
     
     @objc func labelTapped(){
         checkBox.toggleCheckState(true)
+        buttonGotTapped()
     }
     
     @objc private func buttonGotTapped(){

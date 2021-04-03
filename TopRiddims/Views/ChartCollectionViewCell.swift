@@ -24,63 +24,47 @@ class ChartCollectionViewCell: UICollectionViewCell {
     
     static var identifier = "ChartCell"
     weak var delegate: ChartCollectionViewCellDelegate?
-    var user: User?
+//    var user: User?
     
-    var cellSelfWidth: CGFloat = 0
     private var videoWidth: CGFloat{ return self.cellSelfWidth*K.videoCoverWidthMultiplier }
     private var videoHeight: CGFloat{ return videoWidth/16*9 }
     
     private var heartButtonOnOff: Bool = false{
         didSet{
-            let config = UIImage.SymbolConfiguration(pointSize: 18, weight: .thin, scale: .medium)
-            if heartButtonOnOff{
-                let image = UIImage(systemName: "suit.heart.fill", withConfiguration: config)
-                heartButton.setImage(image, for: .normal)
-                heartButton.tintColor = #colorLiteral(red: 0.8549019694, green: 0.250980407, blue: 0.4784313738, alpha: 1).withAlphaComponent(0.9)
-            }else{
-                let image = UIImage(systemName: "suit.heart", withConfiguration: config)
-                heartButton.setImage(image, for: .normal)
-                heartButton.tintColor = UIColor(named: "SecondaryLabelColor")
-            }
+            heartButtonOnOffHandling()
         }
     }
-    
     private var checkButtonOnOff: Bool = false{
         didSet{
-            let config = UIImage.SymbolConfiguration(pointSize: 18, weight: .thin, scale: .medium)
-            if checkButtonOnOff{
-                let image = UIImage(systemName: "checkmark.circle.fill", withConfiguration: config)
-                checkButton.setImage(image, for: .normal)
-                checkButton.tintColor = #colorLiteral(red: 0.4666666687, green: 0.7647058964, blue: 0.2666666806, alpha: 1).withAlphaComponent(0.9)
-            }else{
-                let image = UIImage(systemName: "checkmark.circle", withConfiguration: config)
-                checkButton.setImage(image, for: .normal)
-                checkButton.tintColor = UIColor(named: "SecondaryLabelColor")
-            }
+            checkButtonOnOffHandling()
         }
     }
     
-    var chartCellIndexNumber: Int = 0  //自分自身のindexNumber
+    //MARK: - Dequeue Properties
+    
+    var cellSelfWidth: CGFloat = 0
+    var chartCellSelfIndexNumber: Int = 0  //自分自身のindexNumber
     var country: String!{
         didSet{
             countryLabel.text = country
         }
     }
-    var songs = [Song](){
+    var songs = [Song](){  //ChartVCからのUI即時アップデートで[Song]が直接ここに代入されるのでdidSet両方とも必要
         didSet{
             videoCollectionView.reloadData()
-            setLabelInfo()
+//            setLabelInfo()
         }
     }
-    var currentPageIndexNum: Int = 0{ //いくつめのビデオが前面に出ているか
+    var currentPageIndexNum: Int = 0{ //videoCollectionViewの中でいくつめ(順位)のビデオを中央前面に出すか
         didSet{
             setLabelInfo()
+//            videoCollectionView.reloadData()  //ここにreloadDataを入れると表示がカクツク
         }
     }
     
-    var needShowLoader: Bool = false{
+    var needToShowLoader: Bool = false{
         didSet{
-            if needShowLoader{
+            if needToShowLoader{
                 spinner.startAnimating()
                 spinner.isHidden = false
             }else{
@@ -90,14 +74,14 @@ class ChartCollectionViewCell: UICollectionViewCell {
         }
     }
     
-    let spinner: NVActivityIndicatorView = {
-        let spinner = NVActivityIndicatorView(frame: .zero, type: .lineSpinFadeLoader, color: UIColor(named: "SpinnerColor"), padding: 0)
+    
+    //MARK: - UI Components
+    
+    let spinner: NVActivityIndicatorView = {  //CharVCから直接呼ばれるのでprivateにしない
+        let spinner = NVActivityIndicatorView(frame: .zero, type: .lineSpinFadeLoader, color: UIColor(named: "circleStrokeSpin"), padding: 0)
         spinner.isHidden = true
        return spinner
     }()
-    
-    
-    //MARK: - UI Components
     
     private let countryLabel: UILabel = {
         let lb = UILabel()
@@ -190,6 +174,7 @@ class ChartCollectionViewCell: UICollectionViewCell {
     
     
     //MARK: - View Life Cycles
+    
     override init(frame: CGRect) {
         super.init(frame: frame)
         setupViews()
@@ -200,6 +185,7 @@ class ChartCollectionViewCell: UICollectionViewCell {
         self.backgroundColor = .systemBackground
         self.layer.cornerRadius = 2 //ジェスチャーで動かした時に形が綺麗に見えるように
         self.clipsToBounds = true
+        
         self.addSubview(countryLabel)
         self.addSubview(videoCollectionView)
         self.addSubview(rightArrow)
@@ -221,6 +207,7 @@ class ChartCollectionViewCell: UICollectionViewCell {
         videoCollectionView.setHeight(self.videoHeight)
         videoCollectionView.widthAnchor.constraint(equalTo: self.widthAnchor, multiplier: K.videoCollectionViewWidthMultiplier).isActive = true
         
+        
         leftArrow.anchor(top: videoCollectionView.topAnchor, left: self.leftAnchor, bottom: videoCollectionView.bottomAnchor, right: videoCollectionView.leftAnchor)
         
         rightArrow.anchor(top: videoCollectionView.topAnchor, left: videoCollectionView.rightAnchor, bottom: videoCollectionView.bottomAnchor, right: self.rightAnchor)
@@ -231,7 +218,6 @@ class ChartCollectionViewCell: UICollectionViewCell {
         artistNameLabel.centerX(inView: self, topAnchor: songNameLabel.bottomAnchor, paddingTop: 0)
         artistNameLabel.setWidth(videoWidth+22)
         artistNameLabel.setContentCompressionResistancePriority(UILayoutPriority.init(100), for: .horizontal)
-        
         
         let adjustment = (self.frame.width-videoWidth)/2
         numberLabel.translatesAutoresizingMaskIntoConstraints = false
@@ -253,7 +239,7 @@ class ChartCollectionViewCell: UICollectionViewCell {
     
     
     private func setLabelInfo(){
-        numberLabel.text = String(currentPageIndexNum+1) //順位なので1を足す。1位から始まるので。
+        numberLabel.text = String(currentPageIndexNum+1) //順位なので1を足す
         songNameLabel.text = songs[currentPageIndexNum].songName
         artistNameLabel.text = songs[currentPageIndexNum].artistName
         heartButtonOnOff = songs[currentPageIndexNum].liked
@@ -261,14 +247,42 @@ class ChartCollectionViewCell: UICollectionViewCell {
     }
     
     
-    @objc func heartButtonPressed(){
+    //MARK: - Button Handlings
+    @objc private func heartButtonPressed(){
         heartButtonOnOff.toggle()
-        delegate?.heartButtonTapped(chartCellIndexNumber: chartCellIndexNumber, currentPageIndexNum: currentPageIndexNum, buttonState: heartButtonOnOff)
+        delegate?.heartButtonTapped(chartCellIndexNumber: chartCellSelfIndexNumber, currentPageIndexNum: currentPageIndexNum, buttonState: heartButtonOnOff)
     }
-    @objc func checkButtonPressed(){
+    @objc private func checkButtonPressed(){
         checkButtonOnOff.toggle()
-        delegate?.checkButtonTapped(chartCellIndexNumber: chartCellIndexNumber,currentPageIndexNum: currentPageIndexNum, buttonState: checkButtonOnOff)
+        delegate?.checkButtonTapped(chartCellIndexNumber: chartCellSelfIndexNumber,currentPageIndexNum: currentPageIndexNum, buttonState: checkButtonOnOff)
     }
+    
+    private func heartButtonOnOffHandling(){
+        let config = UIImage.SymbolConfiguration(pointSize: 18, weight: .thin, scale: .medium)
+        if heartButtonOnOff{
+            let image = UIImage(systemName: "suit.heart.fill", withConfiguration: config)
+            heartButton.setImage(image, for: .normal)
+            heartButton.tintColor = #colorLiteral(red: 0.8549019694, green: 0.250980407, blue: 0.4784313738, alpha: 1).withAlphaComponent(0.9)
+        }else{
+            let image = UIImage(systemName: "suit.heart", withConfiguration: config)
+            heartButton.setImage(image, for: .normal)
+            heartButton.tintColor = UIColor(named: "SecondaryLabelColor")
+        }
+    }
+    
+    private func checkButtonOnOffHandling(){
+        let config = UIImage.SymbolConfiguration(pointSize: 18, weight: .thin, scale: .medium)
+        if checkButtonOnOff{
+            let image = UIImage(systemName: "checkmark.circle.fill", withConfiguration: config)
+            checkButton.setImage(image, for: .normal)
+            checkButton.tintColor = #colorLiteral(red: 0.4666666687, green: 0.7647058964, blue: 0.2666666806, alpha: 1).withAlphaComponent(0.9)
+        }else{
+            let image = UIImage(systemName: "checkmark.circle", withConfiguration: config)
+            checkButton.setImage(image, for: .normal)
+            checkButton.tintColor = UIColor(named: "SecondaryLabelColor")
+        }
+    }
+    
 }
 
 
@@ -281,9 +295,9 @@ extension ChartCollectionViewCell: iCarouselDataSource{
     func carousel(_ carousel: iCarousel, viewForItemAt index: Int, reusing view: UIView?) -> UIView {
         let cell = VideoCollectionViewCell()
         cell.frame = CGRect(x: 0, y: 0, width: videoWidth, height: videoHeight)
-        cell.chartCellIndex = chartCellIndexNumber  //ChatVCのjump機能のために。
+//        cell.chartCellIndex = chartCellSelfIndexNumber  //ChatVCのjump機能のために。
         cell.song = self.songs[index]
-        cell.videoCellIndex = index//順位の情報
+        cell.videoCellIndex = index  //順位の情報
         cell.videoWidth = self.videoWidth
         return cell
     }
@@ -293,25 +307,22 @@ extension ChartCollectionViewCell: iCarouselDataSource{
 extension ChartCollectionViewCell: iCarouselDelegate{
 
     func carouselCurrentItemIndexDidChange(_ carousel: iCarousel) {
-        delegate?.handleDragScrollInfo(chartCellIndexNumber: chartCellIndexNumber, newCurrentPageIndex: videoCollectionView.currentItemIndex)
-        currentPageIndexNum = videoCollectionView.currentItemIndex
+        delegate?.handleDragScrollInfo(chartCellIndexNumber: chartCellSelfIndexNumber, newCurrentPageIndex: carousel.currentItemIndex)
+        currentPageIndexNum = carousel.currentItemIndex
     }
     
-    @objc func leftArrowTapped(){
-        delegate?.leftArrowTapped(chartCellIndexNumber: chartCellIndexNumber)
-        if currentPageIndexNum != 0{
-            currentPageIndexNum -= 1
+    @objc private func leftArrowTapped(){
+        if currentPageIndexNum >= 1{
+            videoCollectionView.scrollToItem(at: currentPageIndexNum-1, duration: 0.4)
         }
-        videoCollectionView.scrollToItem(at: currentPageIndexNum, duration: 0.4)
-        
     }
-    @objc func rightArrowTapped(){
-        delegate?.rightArrowTapped(chartCellIndexNumber: chartCellIndexNumber)
-        if currentPageIndexNum != 19{
-            currentPageIndexNum += 1
+    @objc private func rightArrowTapped(){
+        if currentPageIndexNum <= songs.count-1 {
+            videoCollectionView.scrollToItem(at: currentPageIndexNum+1, duration: 0.4)
         }
-        videoCollectionView.scrollToItem(at: currentPageIndexNum, duration: 0.4)
     }
+    
+    
     func carousel(_ carousel: iCarousel, valueFor option: iCarouselOption, withDefault value: CGFloat) -> CGFloat {
         switch option{
 //        case .wrap:

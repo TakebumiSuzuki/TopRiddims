@@ -6,11 +6,6 @@
 //
 
 
-
-//一番大きな実装はアプリ立ち上げ時にliked/checkdした曲を読み込むこと。
-//後、このページのlikedSongs配列をどこで起動させるか。現在TabBarだが、こちらのページ上でやる方が良いのでは?
-//また、このページ上で曲を再生できるように。
-
 import UIKit
 import Firebase
 
@@ -35,13 +30,8 @@ class LikesVC: UIViewController{
     var likedSongs = [Song]()
     private let firestoreService = FirestoreService()
     
-//    private let playerPlaceholderView: UIView = {
-//        let view = UIView()
-//        view.backgroundColor = UIColor.systemGray5
-//        view.clipsToBounds = true
-//        return view
-//    }()
     
+    //MARK: - UI Components
     private let playerPlaceholderView: UIVisualEffectView = {
         let blurEffect = UIBlurEffect(style: .systemUltraThinMaterial)
         let bv = UIVisualEffectView(effect: blurEffect)
@@ -66,15 +56,96 @@ class LikesVC: UIViewController{
         return rc
     }()
     
+    //MARK: - View Life Cycles
     override func viewDidLoad() {
         super.viewDidLoad()
-        
         navigationItem.title = "Likes"
         setupViews()
         setupObservers()
     }
     
-    private func setupObservers(){
+    private func setupViews(){
+        view.backgroundColor = .systemBackground
+        view.addSubview(playerPlaceholderView)
+        view.addSubview(tableView)
+        tableView.addSubview(refreshControl)
+//        refreshControl.endRefreshing()
+    }
+    
+    override func viewDidLayoutSubviews() {
+        super.viewDidLayoutSubviews()
+        let floatingPlayerHeight = view.frame.width*K.floatingPlayerWidthMultiplier/16*9
+        playerPlaceholderView.anchor(top: view.safeAreaLayoutGuide.topAnchor, left: view.leftAnchor, right: view.rightAnchor, height: floatingPlayerHeight+K.floatingPlayerTopBottomInsets*2)
+        
+        tableView.contentInset = UIEdgeInsets(top: floatingPlayerHeight+K.floatingPlayerTopBottomInsets*2+10, left: 0, bottom: 0, right: 0)
+            
+        tableView.anchor(top: view.safeAreaLayoutGuide.topAnchor, left: view.leftAnchor, bottom: view.bottomAnchor, right: view.rightAnchor)
+    }
+    
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(true)
+        loadLikedSongs()
+    }
+    
+    
+    //MARK: - refreshing Data
+    @objc func refreshPulled() {
+        loadLikedSongs()
+    }
+    
+    func loadLikedSongs(){  //起動時に、空の状態でいったんイニシャライズされた後、tabBarから呼ばれる。またrefreshとViewWillAppearからも。
+        self.firestoreService.fetchLikedSongs(uid: uid) { [weak self](result) in
+            guard let self = self else {return}
+            self.refreshControl.endRefreshing()
+            switch result{
+            case .failure(_):
+                let alert = AlertService(vc:self)
+                alert.showSimpleAlert(title: "Song Database error.Please try reopen the app. Sorry!!", message: "", style: .alert)
+            case .success(let likedSongs):
+                self.likedSongs = likedSongs
+                DispatchQueue.main.async {
+                    self.chekEachVideoPlayState()
+                }
+            }
+        }
+    }
+    
+    private func chekEachVideoPlayState(){
+        
+        guard let tabbar = tabBarController as? MainTabBarController else {return}
+        guard let currentPlayingTrackID = tabbar.currentTrackID else {return}
+        
+        for i in 0..<likedSongs.count{
+            
+            if likedSongs[i].trackID == currentPlayingTrackID{
+                tabbar.videoPlayer.playerState { [weak self](state, error) in
+                    guard let self = self else {return}
+                    
+                    print (state.rawValue)
+                    if let error = error {print("DEBUG: Failed to get videoPlayerState: \(error.localizedDescription)"); return}
+                    if state.rawValue == 4{  //loading これらのrawValueの値はyoutubeのマニュアルとは異なっていた。
+                        self.likedSongs[i].videoPlayState = .loading
+                        print("got called 1")
+                    }
+                    if state.rawValue == 2{ //playing
+                        self.likedSongs[i].videoPlayState = .playing
+                        print("got called 2")
+                    }
+                    if state.rawValue == 3{  //paused
+                        self.likedSongs[i].videoPlayState = .paused
+                        print("got called 3")
+                    }
+                    self.tableView.reloadData()
+                }
+                
+            }
+        }
+    }
+    
+    
+    
+    //MARK: - Observers
+    private func setupObservers(){  //LikesTableViewCell内でも同様の作業を行なっている。こちらはdequeueリセットのため。
         NotificationCenter.default.addObserver(self, selector: #selector(someCellLoading), name: Notification.Name(rawValue:"someCellLoading"), object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(someCellPlaying), name: Notification.Name(rawValue:"someCellPlaying"), object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(someCellPaused), name: Notification.Name(rawValue:"someCellPaused"), object: nil)
@@ -109,75 +180,20 @@ class LikesVC: UIViewController{
             likedSongs[i].videoPlayState = .paused
         }
     }
-    
-    private func setupViews(){
-        view.backgroundColor = .systemBackground
-        view.addSubview(tableView)
-        tableView.addSubview(refreshControl)
-        view.addSubview(playerPlaceholderView)
-        refreshControl.endRefreshing()
-    }
-    
-    @objc func refreshPulled() {
-        loadLikedSongs()  //このloadLikedSongs()メソッドはここからと、起動時のTabBarからの２箇所から呼ばれる
-    }
-    
-    func loadLikedSongs(){  //起動時にtabBarから呼ばれる
-        //製作中の段階ではページネーションを実装していなく、１０曲までしかDLしない設定になっている事に注意
-        self.firestoreService.fetchLikedSongs(uid: uid) { [weak self](result) in //ここの段階で少し遅れてlikedSongsを入手する
-            guard let self = self else {return}
-            self.refreshControl.endRefreshing()
-            switch result{
-            case .failure(_):
-                let alert = AlertService(vc:self)
-                alert.showSimpleAlert(title: "Song Database error.Please try reopen the app. Sorry!!", message: "", style: .alert)
-            case .success(let likedSongs):
-                self.likedSongs = likedSongs
-                DispatchQueue.main.async {
-                    self.tableView.reloadData()
-                }
-            }
-        }
-    }
-    
-    override func viewDidLayoutSubviews() {
-        super.viewDidLayoutSubviews()
-        let floatingPlayerHeight = view.frame.width*K.floatingPlayerWidthMultiplier/16*9
-        playerPlaceholderView.anchor(top: view.safeAreaLayoutGuide.topAnchor, left: view.leftAnchor, right: view.rightAnchor, height: floatingPlayerHeight+K.floatingPlayerTopBottomInsets*2)
-        
-        tableView.contentInset = UIEdgeInsets(top: floatingPlayerHeight+K.floatingPlayerTopBottomInsets*2+10, left: 0, bottom: 0, right: 0)
-            
-        tableView.anchor(top: view.safeAreaLayoutGuide.topAnchor, left: view.leftAnchor, bottom: view.bottomAnchor, right: view.rightAnchor)
-        
-    }
-    
-    override func viewWillAppear(_ animated: Bool) {
-        super.viewWillAppear(true)
-        tableView.reloadData()
-    }
-    
-    
-    
 }
 
+//MARK: - TableViewDataSource & Delegate
 extension LikesVC: UITableViewDataSource{
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        
         return likedSongs.count
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        
         let cell = tableView.dequeueReusableCell(withIdentifier: LikesTableViewCell.identifier) as! LikesTableViewCell
         cell.song = likedSongs[indexPath.row]
         cell.delegate = self
-        
         return cell
     }
-    
-    
-    
-    
 }
 
 extension LikesVC: UITableViewDelegate{
@@ -185,14 +201,12 @@ extension LikesVC: UITableViewDelegate{
     func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
         return 60
     }
-//    
-//    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-//        tableView.deselectRow(at: indexPath, animated: true)
-//    }
-    
 }
 
+
+//MARK: - LikesTabelViewCell Delegate
 extension LikesVC: LikesTableViewCellDelegate{
+    
     func changeVideoPlayState(cell: LikesTableViewCell, playState: Song.PlayState) {
         guard let indexPath = tableView.indexPath(for: cell) else{return}
         likedSongs[indexPath.row].videoPlayState = playState
@@ -241,12 +255,6 @@ extension LikesVC: LikesTableViewCellDelegate{
         firestoreService.saveAllChartData(uid: self.uid, allChartData: user.allChartData, updateNeedToBeUpdated: false) { (error) in
             //特にエラーハンドリングの必要ないかと。
         }
-        
     }
-    
-    
-    
-    
-    
     
 }

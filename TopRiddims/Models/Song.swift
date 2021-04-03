@@ -23,9 +23,13 @@ class Song{
     var checked: Bool = false
     var checkedStateUpdateDate: Timestamp = Timestamp()  //こちらのcheckedした日は使わないかもしれないがとりあえず。
     
-    
-//    var showPlayButton: Bool = true
     var videoPlayState: PlayState = .paused
+    
+    enum PlayState{
+        case loading //◯
+        case playing //||
+        case paused //△
+    }
     
     
     init(trackID: String, songName: String, artistName: String, liked: Bool, checked: Bool) {
@@ -37,11 +41,6 @@ class Song{
     }
     
     
-    enum PlayState{
-        case loading //◯
-        case playing //||
-        case paused //△
-    }
     
 }
 

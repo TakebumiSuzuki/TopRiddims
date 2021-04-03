@@ -13,7 +13,6 @@ class VideoCollectionViewCell: UIView{
     
     //MARK: - Properties
     static let identifier = "collectionViewCell"
-//    var user: User?
 
     var videoPlayState: Song.PlayState = .paused{
         didSet{
@@ -40,7 +39,6 @@ class VideoCollectionViewCell: UIView{
     var videoWidth: CGFloat = 0
     private var videoHeight: CGFloat{ return videoWidth/16*9 }
     
-    var chartCellIndex: Int = 0  //jump機能の為に作った。notificationでChartVCに送る。
     var videoCellIndex: Int = 0  //曲の順位
         
     var song: Song!{
@@ -95,7 +93,6 @@ class VideoCollectionViewCell: UIView{
         spinner.isHidden = true
        return spinner
     }()
-    
     
 
     //MARK: - ViewLifeCycles

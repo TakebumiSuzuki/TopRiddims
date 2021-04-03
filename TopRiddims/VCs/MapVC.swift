@@ -166,12 +166,14 @@ class MapVC: UIViewController{
 extension MapVC: MapCheckBoxDelegate{
     func checkButtonIsOn(_ checkBox: MapCheckBox) {
 //        let box = checkBox
+        print("checkButton ON")
         if !selectedCountries.contains(checkBox.countryName){
             selectedCountries.append(checkBox.countryName)
         }
     }
     func checkButtonIsOff(_ checkBox: MapCheckBox) {
 //        let box = checkBox
+        print("checkButton OFF")
         selectedCountries = selectedCountries.filter{ $0 != checkBox.countryName }
     }
 }

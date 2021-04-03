@@ -234,14 +234,12 @@ class MainTabBarController: UITabBarController {
     }
     
     @objc func pauseVideo(notification: NSNotification){
-        print("got info")
         //        let info = notification.userInfo //使わないと思うが念のため
         //        guard let trackID = info?["trackID"] as? String else {return}
         videoPlayer.pauseVideo()
     }
     
     @objc func scaleChangeButtonTapped(){
-        print("called")
         
         videoPlayer.load(withPlaylistId: currentTrackID!, playerVars: ["playsinline": 0,
                                                                "controls" : 1,

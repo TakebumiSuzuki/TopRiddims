@@ -31,22 +31,25 @@ class ChartVC: UIViewController{
     
     //MARK: - Properties
     
-    private let firestoreService = FirestoreService()
     private var videoWidth: CGFloat{ return view.frame.width*K.chartCellWidthMultiplier*K.videoCoverWidthMultiplier}
     private var videoHeight: CGFloat{ return videoWidth/16*9 }
     
+    private let firestoreService = FirestoreService()
     private var globalDispatchGroup: DispatchGroup?
-    private var pageNumbers: [Int] = {  //国の数だけ必要なので、初期化する時に必ずしも20要素作る必要はない(0...19の部分の事)
+    private var scrapingManager: ScrapingManager?
+    
+    private var reloadingOnOff: Bool = false  //navBar内のreloadボタンの管理。これがOnの間はジェスチャーできないようにしている
+    
+    private lazy var pageNumbers: [Int] = {
         var array = [Int]()
-        for _ in 0...19{ array.append(0) }
+        user.allChartData.forEach { _ in array.append(0) }
         return array
     }()
-    var scrapingManager: ScrapingManager? //ScrapingManagerはinjectionしない？
-//    var videoIDs = [String]()
-//    var songNames = [String]()
-//    var artistNames = [String]()
-    private var reloadingOnOff: Bool = false  //navBar内のreloadボタンの管理。これがOnの間はジェスチャーできないようにしている
-    private var countryRowNeedShowLoader: [Bool] = []  //チャートをフェッチする時の国ごとのローダー表示命令を管理
+    private lazy var countryRowsToShowLoader: [Bool] = { //チャートをフェッチする時の国ごとのローダー表示命令を管理
+        var array: [Bool] = []
+        user.allChartData.forEach { _ in array.append(false) }
+        return array
+    }()
     
     
     //MARK: - UI Components
@@ -110,9 +113,6 @@ class ChartVC: UIViewController{
         setupViews()
         setupObservers()
         
-        for _ in 0..<user.allChartData.count{  //まず全てfalseの配列を作る
-            countryRowNeedShowLoader.append(false)
-        }
         
 //        let userDefaults = UserDefaults.standard
 //        guard let id = userDefaults.object(forKey: "loggedInUser") as? String else{
@@ -156,7 +156,7 @@ class ChartVC: UIViewController{
     
     override func viewWillAppear(_ animated: Bool) {  //毎回このタブに移る時にreloadDataしてcollectionViewの表示をアップデートする
         super.viewWillAppear(true)
-        chartCollectionView.reloadData()
+//        chartCollectionView.reloadData()
     }
     
     
@@ -226,7 +226,7 @@ class ChartVC: UIViewController{
                 cell.spinner.isHidden = false
                 
                 //dequeueされた時にも対応できるようにグローバル変数をアップデート
-                self.countryRowNeedShowLoader[i] = true
+                self.countryRowsToShowLoader[i] = true
             }
         }
         globalDispatchGroup = DispatchGroup()
@@ -266,16 +266,21 @@ extension ChartVC: MapVCDelegate{
     
     func newCountrySelectionDone(selectedCountries: [String]) {
         dismiss(animated: true, completion: nil)
-        user.allChartData = user.allChartData.filter{ selectedCountries.contains($0.country) }
-        pageNumbers = {  //残された国たちのスクロールのページ位置(順位)は全てリセットして1位からとする。
-            var array = [Int]()
-            for _ in 0...19{ array.append(0) }
-            return array
-        }()
-        countryRowNeedShowLoader = []  //ここで一度空にして、すぐ下で残された国の数でもう一度falseを入れる
-        for _ in 0..<user.allChartData.count{
-            countryRowNeedShowLoader.append(false)
+        
+        var leftCountriesChartData = [(country: String, songs:[Song], updated: Timestamp)]()
+        var leftCountriesPageNumbers = [Int]()
+        countryRowsToShowLoader = []
+        
+        for i in 0..<user.allChartData.count{
+            if selectedCountries.contains(user.allChartData[i].country){
+                leftCountriesChartData.append(user.allChartData[i])
+                leftCountriesPageNumbers.append(pageNumbers[i])
+                countryRowsToShowLoader.append(false)
+            }
         }
+        user.allChartData = leftCountriesChartData
+        pageNumbers = leftCountriesPageNumbers
+        
         self.chartCollectionView.reloadData() //ここで残された国のみで一旦リロード
         
         //以下の３行はMapVCから送られてきたselectedCountriesの中から、newEntriesだけを抽出する作業
@@ -299,18 +304,20 @@ extension ChartVC: MapVCDelegate{
         
         //単純なString配列のnewEntriesを新しいデータ構造に変換し、allChartDataの末尾に加える
         var newCountryData = [(country: String, songs:[Song], updated: Timestamp)]()
-        newEntries.forEach{  //国名のみ、後は空のsample1曲のチャートデータを新しい国ごとに作っている。
+        newEntries.forEach{  //国名のみ、その他はsample1曲のみのチャートデータを新しい国ごとに作っている。
             let data = (country: $0, songs: [Song(trackID: "trackID", songName: "Getting songs now!", artistName: "Please wait for a moment...", liked: false, checked: false)], updated: Timestamp())
             
             newCountryData.append(data)
-            countryRowNeedShowLoader.append(true) //これから新しく加わる国の分だけtrueを入れる
+            pageNumbers.append(0)
+            countryRowsToShowLoader.append(true) //これから新しく加わる国の分だけtrueを入れる
         }
         
         let startingIndex = user.allChartData.count
         
+        
         user.allChartData.append(contentsOf: newCountryData)
         //この地点ではメインキューで動いているよう。
-        //新しく追加された国をUI即席アップデートでcollectionViewに加える。この時animationの為insertItemsメソッドを使う。
+        //新しく追加された国をUI即時アップデートでcollectionViewに加える。この時animationの為insertItemsメソッドを使う。
         DispatchQueue.main.async { [weak self] in
             guard let self = self else {return}
             for i in 0..<newCountryData.count{
@@ -319,10 +326,11 @@ extension ChartVC: MapVCDelegate{
                 //ここでinsert命令を出しても実際にdequeueされてcellインスタンスが作られるのは少し後になる。asyncなので。
             }
             //実際のデータアップロード
-            self.chartCollectionView.scrollToItem(at: IndexPath(row: startingIndex, section: 0), at: .top, animated: true)
+            self.chartCollectionView.scrollToItem(at: IndexPath(row: startingIndex, section: 0), at: .centeredVertically, animated: true)
             self.smallCircleImageView.rotate360Degrees(duration: 2)
             self.smallPauseImageView.isHidden = false
             self.reloadingOnOff.toggle()
+            
         }
         //上のDispatchQueue.main.asyncの中身よりも先にこちらが走る。
         globalDispatchGroup = DispatchGroup()
@@ -340,7 +348,7 @@ extension ChartVC: ScrapingManagerDelegate{
     func setCellWithSongsInfo(songs: [Song], countryIndexNumber: Int) {
         user.allChartData[countryIndexNumber].songs = songs //グローバル変数のallChartDataをアップデート
         user.allChartData[countryIndexNumber].updated = Timestamp()
-        countryRowNeedShowLoader[countryIndexNumber] = false
+        countryRowsToShowLoader[countryIndexNumber] = false
         
         let group = DispatchGroup()
         for i in 0..<songs.count{
@@ -354,7 +362,6 @@ extension ChartVC: ScrapingManagerDelegate{
         }
         group.notify(queue: .main) {
             self.globalDispatchGroup?.leave()  //dispatchGroupの回収
-            print("globalDispatchGroupの回収")
             //以下は、UI的にアップデート(フラッシュ)するcellをつかみ、メインキューで実行させる
             let indexPath = IndexPath(row: countryIndexNumber, section: 0)
             guard let cellToLiveUpdate = self.chartCollectionView.cellForItem(at: indexPath) as? ChartCollectionViewCell else{
@@ -362,8 +369,8 @@ extension ChartVC: ScrapingManagerDelegate{
                 return
             }
             DispatchQueue.main.async {
-                cellToLiveUpdate.songs = songs  //この時点でdidSetが起動し自動アップデートが行われる
-                cellToLiveUpdate.videoCollectionView.reloadData()
+                cellToLiveUpdate.songs = songs
+//                cellToLiveUpdate.videoCollectionView.reloadData()
                 let flash = CABasicAnimation(keyPath: "opacity")
                 flash.duration = 0.3
                 flash.fromValue = 1
@@ -387,7 +394,6 @@ extension ChartVC: ScrapingManagerDelegate{
         globalDispatchGroup?.notify(queue: .global()) { [weak self] in
             guard let self = self else {return}
             self.firestoreService.saveAllChartData(uid: self.uid, allChartData: self.user.allChartData, updateNeedToBeUpdated: true) { (error) in
-                print("ちゃんとallChartDataが保存されているか。errorは\(error)")
                 //ここでエラーになった場合でも成功した場合でも特にユーザーに伝える必要はないかと。このまま何もせずにok
             }
             self.globalDispatchGroup = nil
@@ -412,7 +418,7 @@ extension ChartVC: ScrapingManagerDelegate{
             for i in 0...self.user.allChartData.count{
                 guard let cell = self.chartCollectionView.cellForItem(at: IndexPath(item: i, section: 0)) as? ChartCollectionViewCell else{continue}
                 
-                self.countryRowNeedShowLoader[i] = false
+                self.countryRowsToShowLoader[i] = false
                 cell.spinner.stopAnimating()
                 cell.spinner.isHidden = true
                 
@@ -477,24 +483,22 @@ extension ChartVC: UICollectionViewDataSource{
     }
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: ChartCollectionViewCell.identifier, for: indexPath) as! ChartCollectionViewCell
-        cell.chartCellIndexNumber = indexPath.row  //Jump機能の為
-        cell.country = user.allChartData[indexPath.row].country
         
+        cell.delegate = self
+        cell.cellSelfWidth = view.frame.width*K.chartCellWidthMultiplier
+        cell.chartCellSelfIndexNumber = indexPath.row
+        cell.needToShowLoader = countryRowsToShowLoader[indexPath.row]
+        cell.country = user.allChartData[indexPath.row].country
         cell.songs = user.allChartData[indexPath.row].songs  //ここでsongsに情報が代入された時点でdidSetでVideoカバーがアップデートされる
         cell.currentPageIndexNum = pageNumbers[indexPath.row]
         //順番が大切。songsの後にこのcurrentPageIndexを入れないとsongNameなど作成中にエラーが生じる。
-        cell.cellSelfWidth = view.frame.width*K.chartCellWidthMultiplier
+        
         cell.videoCollectionView.scrollToItem(at: pageNumbers[indexPath.row], animated: false)
-        cell.delegate = self
-        cell.user = user
-        cell.needShowLoader = countryRowNeedShowLoader[indexPath.row]
+        
         return cell
     }
     func collectionView(_ collectionView: UICollectionView, viewForSupplementaryElementOfKind kind: String, at indexPath: IndexPath) -> UICollectionReusableView {
         switch kind{
-//        case UICollectionView.elementKindSectionHeader:
-//            let header = collectionView.dequeueReusableSupplementaryView(ofKind: kind, withReuseIdentifier: ChartCollectionHeaderView.identifier, for: indexPath) as! ChartCollectionHeaderView
-//            return header
         case UICollectionView.elementKindSectionFooter:
             let footer = collectionView.dequeueReusableSupplementaryView(ofKind: kind, withReuseIdentifier: ChartCollectionFooterView.identifier, for: indexPath) as! ChartCollectionFooterView
             footer.delegate = self
@@ -523,14 +527,12 @@ extension ChartVC: UICollectionViewDelegateFlowLayout{
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, minimumLineSpacingForSectionAt section: Int) -> CGFloat {
         return 7  //上下2つのセルの幅距離
     }
-    
-//    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, referenceSizeForHeaderInSection section: Int) -> CGSize {
-//        return CGSize(width: view.frame.width, height: K.chartCellHeaderHeight)
-//    }
+  
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, referenceSizeForFooterInSection section: Int) -> CGSize {
         return CGSize(width: view.frame.width, height: K.chartCellFooterHeight)
     }
 }
+
 //MARK: - CellDelegate
 extension ChartVC: ChartCollectionViewCellDelegate{
     func heartButtonTapped(chartCellIndexNumber: Int, currentPageIndexNum: Int, buttonState: Bool) {
@@ -573,22 +575,23 @@ extension ChartVC: ChartCollectionViewCellDelegate{
     
     func handleDragScrollInfo(chartCellIndexNumber: Int, newCurrentPageIndex: Int) {
         pageNumbers[chartCellIndexNumber] = newCurrentPageIndex
+        print(pageNumbers)
     }
     
     func rightArrowTapped(chartCellIndexNumber: Int) {
-        let origPageNumber = pageNumbers[chartCellIndexNumber]
-        if origPageNumber != 19{
-            let newNumber = origPageNumber+1
-            pageNumbers[chartCellIndexNumber] = newNumber
-        }
+//        let origPageNumber = pageNumbers[chartCellIndexNumber]
+//        if origPageNumber != 19{
+//            let newNumber = origPageNumber+1
+//            pageNumbers[chartCellIndexNumber] = newNumber
+//        }
     }
     
     func leftArrowTapped(chartCellIndexNumber: Int) {
-        let origPageNumber = pageNumbers[chartCellIndexNumber]
-        if origPageNumber != 0{
-            let newNumber = origPageNumber-1
-            pageNumbers[chartCellIndexNumber] = newNumber
-        }
+//        let origPageNumber = pageNumbers[chartCellIndexNumber]
+//        if origPageNumber != 0{
+//            let newNumber = origPageNumber-1
+//            pageNumbers[chartCellIndexNumber] = newNumber
+//        }
     }
     
 }
