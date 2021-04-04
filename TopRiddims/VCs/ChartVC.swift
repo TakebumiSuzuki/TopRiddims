@@ -156,7 +156,7 @@ class ChartVC: UIViewController{
     
     override func viewWillAppear(_ animated: Bool) {  //毎回このタブに移る時にreloadDataしてcollectionViewの表示をアップデートする
         super.viewWillAppear(true)
-//        chartCollectionView.reloadData()
+        chartCollectionView.reloadData()
     }
     
     
@@ -544,7 +544,7 @@ extension ChartVC: ChartCollectionViewCellDelegate{
         synchronizer.likedSynchronize(allChartData: user.allChartData, trackID: trackID, newLikedStatus: buttonState)
         chartCollectionView.reloadData()
         
-        //以下はエラーハンドリング必要ないかと
+        //Firestoreのtracksコレクション内へ、曲のlike/unlikeの書き込み。エラーハンドリング必要ないかと
         let song = user.allChartData[chartCellIndexNumber].songs[currentPageIndexNum]
         firestoreService.addOrDeleteLikedTrackID(uid: self.uid, song: song, likedOrUnliked: buttonState)
         
@@ -563,7 +563,7 @@ extension ChartVC: ChartCollectionViewCellDelegate{
         synchronizer.checkedSynchronize(allChartData: user.allChartData, trackID: trackID, newCheckedStatus: buttonState)
         chartCollectionView.reloadData()
         
-        //以下はエラーハンドリング必要ないかと
+        //Firestoreのtracksコレクション内へ、曲のcheck/uncheckの書き込み。以下はエラーハンドリング必要ないかと
         let song = user.allChartData[chartCellIndexNumber].songs[currentPageIndexNum]
         firestoreService.addOrDeleteCheckedTrackID(uid: self.uid, song: song, checkedOrUnchecked: buttonState)
         
@@ -577,22 +577,6 @@ extension ChartVC: ChartCollectionViewCellDelegate{
     func handleDragScrollInfo(chartCellIndexNumber: Int, newCurrentPageIndex: Int) {
         pageNumbers[chartCellIndexNumber] = newCurrentPageIndex
         print(pageNumbers)
-    }
-    
-    func rightArrowTapped(chartCellIndexNumber: Int) {
-//        let origPageNumber = pageNumbers[chartCellIndexNumber]
-//        if origPageNumber != 19{
-//            let newNumber = origPageNumber+1
-//            pageNumbers[chartCellIndexNumber] = newNumber
-//        }
-    }
-    
-    func leftArrowTapped(chartCellIndexNumber: Int) {
-//        let origPageNumber = pageNumbers[chartCellIndexNumber]
-//        if origPageNumber != 0{
-//            let newNumber = origPageNumber-1
-//            pageNumbers[chartCellIndexNumber] = newNumber
-//        }
     }
     
 }

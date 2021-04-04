@@ -13,8 +13,6 @@ import JGProgressHUD
 protocol ChartCollectionViewCellDelegate: class{
     func heartButtonTapped(chartCellIndexNumber: Int, currentPageIndexNum: Int, buttonState: Bool)
     func checkButtonTapped(chartCellIndexNumber: Int, currentPageIndexNum: Int, buttonState: Bool)
-    func rightArrowTapped(chartCellIndexNumber: Int)
-    func leftArrowTapped(chartCellIndexNumber: Int)
     func handleDragScrollInfo(chartCellIndexNumber: Int, newCurrentPageIndex: Int)
 }
 

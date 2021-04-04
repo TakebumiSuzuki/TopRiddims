@@ -318,4 +318,9 @@ extension MainTabBarController: YTPlayerViewDelegate{
         }
     }
     
+    
+    func playerView(_ playerView: YTPlayerView, didChangeTo quality: YTPlaybackQuality) {
+        print("Quality changed")
+    }
+    
 }

@@ -17,6 +17,7 @@ import JGProgressHUD
 
 class SettingVC: UIViewController {
     
+    //MARK: - Initialization
     var user: User!
     init(user: User) {
         super.init(nibName: nil, bundle: nil)
@@ -24,14 +25,34 @@ class SettingVC: UIViewController {
     }
     required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
     
+    
+    //MARK: - Properties
     let disposeBag = DisposeBag()
     let authService = AuthService()
-    let hud: JGProgressHUD = {
+    
+    
+    //MARK: - UI Components
+    
+    private let hud: JGProgressHUD = {
         let hud = JGProgressHUD()
         hud.textLabel.text = "Saving"
         hud.style = JGProgressHUDStyle.dark
         return hud
     }()
+    
+    private let playerPlaceholderView: UIVisualEffectView = {
+        let blurEffect = UIBlurEffect(style: .systemUltraThinMaterial)
+        let bv = UIVisualEffectView(effect: blurEffect)
+        bv.clipsToBounds = true
+        return bv
+    }()
+    
+    private let dummySecondaryBackgroundView: UIView = {
+       let view = UIView()
+        view.backgroundColor = .secondarySystemBackground
+        return view
+    }()
+    
     private let imageContainerView: UIView = {
        let view = UIView()
         view.backgroundColor = .clear
@@ -47,20 +68,6 @@ class SettingVC: UIViewController {
         iv.clipsToBounds = true
         iv.alpha = 1
         return iv
-    }()
-    
-//    private let playerPlaceholderView: UIView = {
-//        let view = UIView()
-//        view.backgroundColor = UIColor.systemGray5
-//        view.clipsToBounds = true
-//        return view
-//    }()
-    
-    private let playerPlaceholderView: UIVisualEffectView = {
-        let blurEffect = UIBlurEffect(style: .systemUltraThinMaterial)
-        let bv = UIVisualEffectView(effect: blurEffect)
-        bv.clipsToBounds = true
-        return bv
     }()
 
     private let blurredView: UIVisualEffectView = {
@@ -115,9 +122,7 @@ class SettingVC: UIViewController {
         return bn
     }()
     
-    
-        
-    
+    //MARK: - View Life Cycles
     override func viewDidLoad() {
         super.viewDidLoad()
         setupNavBar()
@@ -132,10 +137,12 @@ class SettingVC: UIViewController {
     }
     
     private func setupViews(){
-        view.backgroundColor = .systemBackground
+        view.backgroundColor = .systemBackground  //navBarのバックグラウンドのみ関係する
+        
+        view.addSubview(playerPlaceholderView)
+        view.addSubview(dummySecondaryBackgroundView)
         view.addSubview(imageContainerView)
         imageContainerView.addSubview(bgImageView)
-        view.addSubview(playerPlaceholderView)
         view.addSubview(blurredView)
         blurredView.contentView.addSubview(dateLabel)
         blurredView.contentView.addSubview(nameTextField)
@@ -148,17 +155,16 @@ class SettingVC: UIViewController {
         
         let floatingPlayerHeight = view.frame.width*K.floatingPlayerWidthMultiplier/16*9
         
+        playerPlaceholderView.anchor(top: view.safeAreaLayoutGuide.topAnchor, left: view.leftAnchor, right: view.rightAnchor, height: floatingPlayerHeight+K.floatingPlayerTopBottomInsets*2)
+        
+        
         let inset = view.frame.width*(1-K.chartCellWidthMultiplier)/2
         imageContainerView.anchor(top: playerPlaceholderView.bottomAnchor, left: view.leftAnchor, bottom: view.bottomAnchor, right: view.rightAnchor, paddingTop: inset)
         bgImageView.fillSuperview()
         
-        
-        
-        playerPlaceholderView.anchor(top: view.safeAreaLayoutGuide.topAnchor, left: view.leftAnchor, right: view.rightAnchor, height: floatingPlayerHeight+K.floatingPlayerTopBottomInsets*2)
+        dummySecondaryBackgroundView.anchor(top: playerPlaceholderView.bottomAnchor, left: view.leftAnchor, bottom: view.bottomAnchor, right: view.rightAnchor)
         
         blurredView.anchor(top: playerPlaceholderView.bottomAnchor, left: view.leftAnchor, bottom: view.bottomAnchor, right: view.rightAnchor, paddingTop: inset)
-        
-//        blurredView.anchor(top: playerPlaceholderView.bottomAnchor, left: view.leftAnchor, right: view.rightAnchor, paddingTop: 20, paddingLeft: K.placeholderLeftRightPadding, paddingRight: K.placeholderLeftRightPadding)
         
         dateLabel.anchor(top: blurredView.topAnchor, right: blurredView.rightAnchor, paddingTop: K.placeholderInsets, paddingRight: K.placeholderInsets)
         
@@ -202,12 +208,13 @@ class SettingVC: UIViewController {
     }
     
     
-    @objc func cancelButtonTapped(){
+    //MARK: - Button Handlings
+    @objc private func cancelButtonTapped(){
         nameTextField.text = user.name
         emailTextField.text = user.email
     }
     
-    @objc func saveButtonTapped(){
+    @objc private func saveButtonTapped(){
         guard let newName = nameTextField.text else {return}
         guard let newEmail = emailTextField.text else {return}
         let alert = AlertService(vc:self)

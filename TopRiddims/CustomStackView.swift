@@ -11,6 +11,6 @@ import UIKit
 class CustomStackView: UIStackView{
     
     override func point(inside point: CGPoint, with event: UIEvent?) -> Bool {
-            return bounds.insetBy(dx: -7, dy: -7).contains(point)
+            return bounds.insetBy(dx: -10, dy: -10).contains(point)
         }
 }

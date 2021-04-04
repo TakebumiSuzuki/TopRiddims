@@ -32,6 +32,13 @@ class LikesVC: UIViewController{
     
     
     //MARK: - UI Components
+    
+    private let dummySecondaryBackgroundView: UIView = {
+       let view = UIView()
+        view.backgroundColor = .secondarySystemBackground
+        return view
+    }()
+    
     private let playerPlaceholderView: UIVisualEffectView = {
         let blurEffect = UIBlurEffect(style: .systemUltraThinMaterial)
         let bv = UIVisualEffectView(effect: blurEffect)
@@ -65,8 +72,8 @@ class LikesVC: UIViewController{
     }
     
     private func setupViews(){
-        
         view.backgroundColor = .systemBackground
+        view.addSubview(dummySecondaryBackgroundView)
         view.addSubview(playerPlaceholderView)
         view.addSubview(tableView)
         tableView.addSubview(refreshControl)
@@ -75,6 +82,9 @@ class LikesVC: UIViewController{
     
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
+        
+        dummySecondaryBackgroundView.anchor(top: view.safeAreaLayoutGuide.topAnchor, left: view.leftAnchor, bottom: view.bottomAnchor, right: view.rightAnchor)
+        
         let floatingPlayerHeight = view.frame.width*K.floatingPlayerWidthMultiplier/16*9
         playerPlaceholderView.anchor(top: view.safeAreaLayoutGuide.topAnchor, left: view.leftAnchor, right: view.rightAnchor, height: floatingPlayerHeight+K.floatingPlayerTopBottomInsets*2)
         

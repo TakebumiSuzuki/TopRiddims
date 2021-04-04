@@ -62,20 +62,15 @@ class MapVC: UIViewController{
     private func setupNav(){
         navigationItem.title = "Select Areas"
         
-//        let attributes:[NSAttributedString.Key : Any] = [.font: UIFont.systemFont(ofSize: 22, weight: .light),
-//                                                         .foregroundColor: UIColor(named: "Black_Yellow")!]
-//        navigationController?.navigationBar.titleTextAttributes = attributes
+        //titleのattributeやleft/rightItemのtintColorはグローバルに定義済み
         let leftItem = UIBarButtonItem(title: "Cancel", style: .plain, target: self, action: #selector(cancelButtonTapped))
-//        leftItem.tintColor = UIColor(named: "Black_Yellow")!
         navigationItem.leftBarButtonItem = leftItem
         let rightItem = UIBarButtonItem(title: "Done", style: .done, target: self, action: #selector(doneButtonTapped))
-//        rightItem.tintColor = UIColor(named: "Black_Yellow")!
         navigationItem.rightBarButtonItem = rightItem
     }
     
     private func setupViews(){
-        
-//        view.backgroundColor = .systemBackground
+        view.backgroundColor = .systemBackground
         scrollView.backgroundColor = .systemBackground
         let bottomSpaceHeight: CGFloat = 70  //下の黒い帯
         
@@ -109,11 +104,11 @@ class MapVC: UIViewController{
         for country in K.Country.allCases{
             let box: MapCheckBox   // MapCheckBoxは共通のprotocol
             if country.tailDirection == .right{
-                let checkBox = MapCheckBoxRight(countryName: country.name, boxColor: .systemPink)
+                let checkBox = MapCheckBoxRight(countryName: country.name, boxColor: UIColor(named: "MapLabelPink")!)
                 checkBox.delegate = self
                 box = checkBox
             }else{
-                let checkBox = MapCheckBoxLeft(countryName: country.name, boxColor: .systemPink)
+                let checkBox = MapCheckBoxLeft(countryName: country.name, boxColor: UIColor(named: "MapLabelPink")!)
                 checkBox.delegate = self
                 box = checkBox
             }
