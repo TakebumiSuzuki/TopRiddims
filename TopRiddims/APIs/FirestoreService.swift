@@ -19,23 +19,17 @@ class FirestoreService{
     func saveUserInfoWithAuthResult(authResult: AuthDataResult, completion: @escaping (Error?) -> Void){
         
         let uid = authResult.user.uid
-        let name = authResult.user.displayName ?? ""
-        let email = authResult.user.email ?? ""
+//        let name = authResult.user.displayName ?? ""
+//        let email = authResult.user.email ?? ""
         let isNewUser = authResult.additionalUserInfo?.isNewUser ?? true
         
         var data = [String : Any]()
         if isNewUser{
-            data = ["uid": uid,
-                    "name": name,
-                    "email": email,
-                    "isNewUser": isNewUser,
+            data = ["isNewUser": isNewUser,
                     "registrationDate": Timestamp(),
                     "lastLogInDate": Timestamp()]
         }else{
-            data = ["uid": uid,
-                    "name": name,
-                    "email": email,
-                    "isNewUser": isNewUser,
+            data = ["isNewUser": isNewUser,
                     "lastLogInDate": Timestamp()]
         }
         K.FSCollectionUsers.document(uid).setData(data, merge: true) { (error) in

@@ -20,7 +20,7 @@ class ResetPasswordVC: UIViewController {
     let authService = AuthService()
     let hud: JGProgressHUD = {
         let hud = JGProgressHUD()
-        hud.textLabel.text = "Loading"
+        hud.textLabel.text = "Loading".localized()
         hud.style = JGProgressHUDStyle.dark
         return hud
     }()
@@ -69,14 +69,14 @@ class ResetPasswordVC: UIViewController {
         lb.font = UIFont.systemFont(ofSize: 26, weight: .light)
         lb.textColor = UIColor.white.withAlphaComponent(0.9)
         lb.textAlignment = .center
-        lb.text = "We'll send you reset email"
+        lb.text = "We'll send you reset email".localized()
         lb.adjustsFontSizeToFitWidth = true
         return lb
     }()
     
     
     private let emailTextField: CustomTextField = {
-        let tf = CustomTextField(placeholder: "Enter email")
+        let tf = CustomTextField(placeholder: "Enter email".localized())
         tf.textContentType = .emailAddress
         tf.keyboardType = .emailAddress
         tf.autocapitalizationType = .none
@@ -86,7 +86,7 @@ class ResetPasswordVC: UIViewController {
     
     private lazy var resetPasswordButton: CustomButton = {
         let bn = CustomButton(type: .system)
-        bn.setUp(title: "Reset Password")
+        bn.setUp(title: "Reset Password".localized())
         bn.addTarget(self, action: #selector(resetButtonTapped), for: .touchUpInside)
         return bn
     }()
@@ -113,7 +113,7 @@ class ResetPasswordVC: UIViewController {
     }
     
     private func setupNavBar(){
-        navigationItem.title = "Reset Password"
+        navigationItem.title = "Reset Password".localized()
         navigationController?.navigationBar.tintColor = UIColor.white.withAlphaComponent(0.7) //一番左の戻るイメージ
         
         let appearance = UINavigationBarAppearance()

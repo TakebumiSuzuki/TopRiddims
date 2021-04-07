@@ -16,13 +16,13 @@ enum ValidationError: Error{
     var localizedDescription: String{
         switch self {
         case .invalidEmail:
-            return "Email is not in correct format."
+            return "Email is not in correct format.".localized()
         case .passwordLessThan6Charactors:
-            return "Password is too short."
+            return "Password is too short.".localized()
         case .nameIsTooShort:
-            return "Name is too short."
+            return "Name is too short.".localized()
         case .nameIsTooLong:
-            return "Name is too long."
+            return "Name is too long.".localized()
         }
     }
 }

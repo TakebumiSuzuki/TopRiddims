@@ -1,0 +1,32 @@
+"charts" = "チャート";
+"likes" = "お気に入り";
+"account" = "アカウント";
+"Logout" = "ログアウト";
+"Cancel" = "キャンセル";
+"Save" = "セーブ";
+"Select Areas" = "地域選択";
+"Done" = "完了";
+"Would you really like to log out?" = "ログアウトしてよろしいですか?";
+
+"Login" = "ログイン";
+"Sign Up" = "サインアップ";
+"Let's Dive into island Music!" = "さあ、カリビアン音楽の世界へ！";
+"Enter email" = "emailを入力";
+"Enter password" = "パスワードを入力";
+"or connect with..." = "以下のアプリで登録";
+"Forgot password?" = "パスワードをお忘れですか?";
+
+"Welcome to TopRiddims!" = "TopRiddimsへようこそ！";
+"Enter name" = "名前を入力";
+"Register" = "登録";
+"Loading" = "ロード中です";
+
+"Reset Password" = "パスワードのリセット";
+"We'll send you reset email" = "リセットemailを送ります";
+
+"Hi, %@! Welcome to TopRiddims. First, tap the plus button and select countries whose music chart you like to see." = "ようこそ%@さん！\nまずはプラスボタンを押して新しい国を登録してください。\nチャートが見れるようになりますよ！";
+"Joined on " = "登録日:";
+"Email is not in correct format." = "emailが間違っているようです";
+"Password is too short." = "パスワードが短すぎます";
+"Name is too short." = "名前が短すぎます";
+"Name is too long." = "名前が長すぎます";

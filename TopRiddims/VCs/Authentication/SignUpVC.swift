@@ -20,7 +20,7 @@ class SignUpVC: UIViewController {
     let authService = AuthService()
     let hud: JGProgressHUD = {
         let hud = JGProgressHUD()
-        hud.textLabel.text = "Loading"
+        hud.textLabel.text = "Loading".localized()
         hud.style = JGProgressHUDStyle.dark
         return hud
     }()
@@ -70,24 +70,24 @@ class SignUpVC: UIViewController {
         lb.font = UIFont.systemFont(ofSize: 26, weight: .light)
         lb.textColor = UIColor.white.withAlphaComponent(0.9)
         lb.textAlignment = .center
-        lb.text = "Welcom to TopRiddims!!"
+        lb.text = "Welcome to TopRiddims!".localized()
         lb.adjustsFontSizeToFitWidth = true
         return lb
     }()
     
     private lazy var nameTextField: CustomTextField = {
-        let tf = CustomTextField(placeholder: "Enter name")
+        let tf = CustomTextField(placeholder: "Enter name".localized())
         return tf
     }()
     
     private lazy var emailTextField: CustomTextField = {
-        let tf = CustomTextField(placeholder: "Enter email")
+        let tf = CustomTextField(placeholder: "Enter email".localized())
 //        tf.delegate = self
         return tf
     }()
     
     private lazy var passwordTextField: CustomTextField = {
-        let tf = CustomTextField(placeholder: "Enter password")
+        let tf = CustomTextField(placeholder: "Enter password".localized())
         tf.isSecureTextEntry = true
         
 //        tf.delegate = self
@@ -96,7 +96,7 @@ class SignUpVC: UIViewController {
     
     private lazy var signUpButton: CustomButton = {
         let bn = CustomButton(type: .system)
-        bn.setUp(title: "Register")
+        bn.setUp(title: "Register".localized())
         bn.addTarget(self, action: #selector(signUpButtonTapped), for: .touchUpInside)
         return bn
     }()
@@ -139,7 +139,7 @@ class SignUpVC: UIViewController {
     
     
     private func setupNav(){
-        navigationItem.title = "Sign Up"
+        navigationItem.title = "Sign Up".localized()
         navigationController?.navigationBar.tintColor = UIColor.white.withAlphaComponent(0.7) //一番左の戻るイメージ
         
         let appearance = UINavigationBarAppearance()

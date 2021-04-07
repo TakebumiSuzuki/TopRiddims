@@ -60,12 +60,12 @@ class MapVC: UIViewController{
     }
     
     private func setupNav(){
-        navigationItem.title = "Select Areas"
+        navigationItem.title = "Select Areas".localized()
         
         //titleのattributeやleft/rightItemのtintColorはグローバルに定義済み
-        let leftItem = UIBarButtonItem(title: "Cancel", style: .plain, target: self, action: #selector(cancelButtonTapped))
+        let leftItem = UIBarButtonItem(title: "Cancel".localized(), style: .plain, target: self, action: #selector(cancelButtonTapped))
         navigationItem.leftBarButtonItem = leftItem
-        let rightItem = UIBarButtonItem(title: "Done", style: .done, target: self, action: #selector(doneButtonTapped))
+        let rightItem = UIBarButtonItem(title: "Done".localized(), style: .done, target: self, action: #selector(doneButtonTapped))
         navigationItem.rightBarButtonItem = rightItem
     }
     

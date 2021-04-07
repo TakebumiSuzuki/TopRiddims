@@ -64,29 +64,6 @@ class LikesVC: UIViewController{
         return rc
     }()
     
-    private let searchBar: UISearchBar = {
-        let sb = UISearchBar()
-//        sb.backgroundColor = .red
-//        sb.sizeToFit()
-        sb.searchTextField.layer.cornerRadius = 20
-        sb.searchTextField.backgroundColor = UIColor.gray.withAlphaComponent(0.7)
-        sb.searchTextField.clipsToBounds = true
-//        sb.searchTextField.textColor = UIColor.blue
-//                            if let backgroundview = sb.searchTextField.subviews.first {
-//                                // Background color
-//                                backgroundview.backgroundColor = UIColor.red
-//                                // Rounded corner
-//                                backgroundview.layer.cornerRadius = 14;
-//                                backgroundview.clipsToBounds = true;
-//                            }
-        sb.barTintColor = UIColor.clear
-        sb.backgroundColor = UIColor.clear
-        sb.isTranslucent = true
-        sb.setBackgroundImage(UIImage(), for: .any, barMetrics: .default)
-//        sb.searchTextField.layer.masksToBounds = true
-        return sb
-    }()
-    
     //MARK: - View Life Cycles
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -101,7 +78,6 @@ class LikesVC: UIViewController{
         view.addSubview(playerPlaceholderView)
         view.addSubview(tableView)
         tableView.addSubview(refreshControl)
-        view.addSubview(searchBar)
     }
     
     override func viewDidLayoutSubviews() {
@@ -117,10 +93,6 @@ class LikesVC: UIViewController{
         //tableViewのcontentに対するinset設定は、collectionViewやscrollViewと違い、うまく効かない。よって、
         //左右についてはtableView自体のconstraintでinsetを表現し、また、topについてはheaderVeiewをdelegateで
         //設定する事でinsetの代わりとした。
-        
-        searchBar.centerX(inView: self.view)
-        searchBar.setDimensions(height: 40, width: self.view.frame.width*0.7)
-        searchBar.bottomAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.bottomAnchor, constant: -3).isActive = true
         
     }
     

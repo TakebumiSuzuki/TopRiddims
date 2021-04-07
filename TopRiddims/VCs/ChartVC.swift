@@ -132,7 +132,8 @@ class ChartVC: UIViewController{
     }
     
     private func showAlertForFirstLaunch(newUserList: [String]){
-        let alert = UIAlertController(title: "ようこそ\(user.name)さん！\nまずはプラスボタンを押して新しい国を登録してください。\nチャートが見れるようになりますよ！", message: "", preferredStyle: .alert)
+        let text = String(format: NSLocalizedString("Hi, %@! Welcome to TopRiddims. First, tap the plus button and select countries whose music chart you like to see.", comment: ""), user.name)
+        let alert = UIAlertController(title: text.localized(), message: "", preferredStyle: .alert)
         let action = UIAlertAction(title: "ok", style: .default) { [weak self](action) in
             guard let self = self else{return}
             self.userDefaults.setValue(newUserList, forKey: "userList")

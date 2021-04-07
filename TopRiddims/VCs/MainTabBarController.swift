@@ -131,20 +131,20 @@ class MainTabBarController: UITabBarController {
         
         let chartVC = ChartVC(user: user)
         let chartNav = generateNavController(rootVC: chartVC,
-                                             title: "charts",
+                                             title: "charts".localized(),
                                              selectedImage: UIImage(systemName: "bolt.fill", withConfiguration: configuration)!,
                                              unselectedImage: UIImage(systemName: "bolt", withConfiguration: configuration)!)
         
         let likesVC = LikesVC(user: user) //この段階では空のlikedSongsでページを作る
         let likesNav = generateNavController(rootVC: likesVC,
-                                             title: "likes",
+                                             title: "likes".localized(),
                                              selectedImage: UIImage(systemName: "suit.heart.fill", withConfiguration: configuration)!,
                                              unselectedImage: UIImage(systemName: "suit.heart", withConfiguration: configuration)!)
         likesVC.loadLikedSongs()
         
         let settingVC = SettingVC(user: user)
         let settingNav = generateNavController(rootVC: settingVC,
-                                               title: "account",
+                                               title: "account".localized(),
                                                selectedImage: UIImage(systemName: "person.fill", withConfiguration: configuration)!,
                                                unselectedImage: UIImage(systemName: "person", withConfiguration: configuration)!)
         

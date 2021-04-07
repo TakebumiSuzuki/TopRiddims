@@ -72,7 +72,7 @@ class SettingVC: UIViewController {
     }()
 
     private let blurredView: UIVisualEffectView = {
-        let blurEffect = UIBlurEffect(style: .systemThinMaterial)
+        let blurEffect = UIBlurEffect(style: .systemMaterial)
         let bv = UIVisualEffectView(effect: blurEffect)
         bv.clipsToBounds = true
         return bv
@@ -81,41 +81,37 @@ class SettingVC: UIViewController {
     private lazy var dateLabel: UILabel = {
        let lb = UILabel()
         lb.font = UIFont.systemFont(ofSize: 14, weight: .regular)
-        lb.textColor = UIColor.white.withAlphaComponent(0.95)
+        lb.textColor = UIColor.label.withAlphaComponent(0.3)
         
         let date = user.registrationDate.dateValue()
         let dateString = CustomDateFormatter.formatter.string(from: date)
-        lb.text = "Joined on \(dateString) "
+        lb.text = "Joined on ".localized() + dateString
         
         return lb
     }()
     
     private lazy var nameTextField: CustomTextField = {
         let tf = CustomTextField(placeholder: "Enter new name here..")
-        tf.backgroundColor = .systemFill
+        tf.backgroundColor = UIColor.separator.withAlphaComponent(0.2)
         tf.textColor = UIColor.white.withAlphaComponent(0.95)
         return tf
     }()
     
     private lazy var emailTextField: CustomTextField = {
         let tf = CustomTextField(placeholder: "Enter new email here..")
-        tf.backgroundColor = .systemFill
+        tf.backgroundColor = UIColor.separator.withAlphaComponent(0.2)
         tf.textColor = UIColor.white.withAlphaComponent(0.95)
         return tf
     }()
     
     private lazy var cancelButton: CustomButton = {
         let bn = CustomButton(type: .system)
-        bn.setUp(title: "Cancel")
-        bn.isEnabled = true
-        bn.alpha = 0.5
+        bn.setUp(title: "Cancel".localized())
         return bn
     }()
     private lazy var saveButton: CustomButton = {
         let bn = CustomButton(type: .system)
-        bn.setUp(title: "Save")
-        bn.isEnabled = true
-        bn.alpha = 0.5
+        bn.setUp(title: "Save".localized())
         bn.addTarget(self, action: #selector(saveButtonTapped), for: .touchUpInside)
         return bn
     }()
@@ -126,12 +122,13 @@ class SettingVC: UIViewController {
         setupNavBar()
         setupViews()
         setupStreams()
+        
     }
     
     private func setupNavBar(){
         navigationItem.title = "Account"
         
-        let logoutButton = UIBarButtonItem(title: "Logout", style: .plain, target: self, action: #selector(logoutButtonPressed))
+        let logoutButton = UIBarButtonItem(title: "Logout".localized(), style: .plain, target: self, action: #selector(logoutButtonPressed))
         navigationItem.rightBarButtonItem = logoutButton
     }
     
@@ -146,6 +143,8 @@ class SettingVC: UIViewController {
         blurredView.contentView.addSubview(dateLabel)
         blurredView.contentView.addSubview(nameTextField)
         blurredView.contentView.addSubview(emailTextField)
+        
+        view.bringSubviewToFront(blurredView)  //alert表示ボックスがvideoPlayerの下に隠れてしまうのを避けるため。
     }
     
     override func viewDidLayoutSubviews() {
@@ -201,9 +200,9 @@ class SettingVC: UIViewController {
         }
         
         textFieldsObservable.startWith(true).bind(to: saveButton.rx.isEnabled).disposed(by: disposeBag)
-        textFieldsObservable.startWith(true).map{ $0 ? 0.7 : 0.3 }.bind(to: saveButton.rx.alpha).disposed(by: disposeBag)
+        textFieldsObservable.startWith(true).map{ $0 ? 0.6 : 0.3 }.bind(to: saveButton.rx.alpha).disposed(by: disposeBag)
         textFieldsObservable.startWith(false).bind(to: cancelButton.rx.isEnabled).disposed(by: disposeBag)
-        textFieldsObservable.startWith(false).map{ $0 ? 0.7 : 0.3 }.bind(to: cancelButton.rx.alpha).disposed(by: disposeBag)
+        textFieldsObservable.startWith(false).map{ $0 ? 0.6 : 0.3 }.bind(to: cancelButton.rx.alpha).disposed(by: disposeBag)
         
         cancelButton.rx.tap.subscribe { [weak self] (_) in
             guard let self = self else {return}
@@ -243,6 +242,8 @@ class SettingVC: UIViewController {
             let validatedEmail = try ValidationService.validateEmail(email: newEmail)
             
             hud.show(in: self.view)
+            view.bringSubviewToFront(hud) //hudのボックスがvideoPlayerの下に隠れてしまうのを避けるため。
+            
             K.FSCollectionUsers.document(user.uid).setData(["name": validatedName, "email": validatedEmail], merge: true) { [weak self](error) in
                 guard let self = self else { return }
                 if let error = error{
@@ -281,15 +282,8 @@ class SettingVC: UIViewController {
                 }
                 self.user.name = validatedName
                 if validatedEmail == self.user.email{
-                    alert.showSimpleAlert(title: "Saved successfully.Your displayName is \(validatedName) now.", message: "", style: .actionSheet)
-                    self.hud.dismiss()
-                    self.view.endEditing(true)
-                    self.cancelButton.isEnabled = false
-                    self.saveButton.isEnabled = false
-                    self.cancelButton.alpha = 0.3
-                    self.saveButton.alpha = 0.3
-                    self.nameTextField.resignFirstResponder()
-                    self.emailTextField.resignFirstResponder()
+                    self.setUIBackAfterSavingUserInfo()
+                    
                 }else{
                     self.saveEmail(validatedName: validatedName, validatedEmail: validatedEmail)
                 }
@@ -312,21 +306,26 @@ class SettingVC: UIViewController {
                 return
             }
             self.user.email = validatedEmail
-            alert.showSimpleAlert(title: "Saved successfully.Your displayName is \(validatedName) and your email is \(validatedEmail) now.", message: "", style: .actionSheet)
-            self.hud.dismiss()
-            self.view.endEditing(true)
-            self.cancelButton.isEnabled = false
-            self.saveButton.isEnabled = false
-            self.cancelButton.alpha = 0.3
-            self.saveButton.alpha = 0.3
-            self.nameTextField.resignFirstResponder()
-            self.emailTextField.resignFirstResponder()
+            self.setUIBackAfterSavingUserInfo()
         }
     }
     
+    private func setUIBackAfterSavingUserInfo(){
+        self.hud.dismiss()
+        let alert = UIAlertController(title: "Saved successfully.Now Your name is test and your email is test.", message: "", preferredStyle: .alert)
+        let action = UIAlertAction(title: "ok", style: .default) { (action) in
+            //これらをalertの外部(self.pesentのラインの後)に置いたら、うまく機能しなかったのでここに。
+            self.nameTextField.resignFirstResponder()
+            self.emailTextField.resignFirstResponder()
+        }
+        alert.addAction(action)
+        self.present(alert, animated: true, completion: nil)
+    }
+    
+    
     @objc func logoutButtonPressed(){
         let alert = AlertService(vc: self)
-        alert.showAlertWithCancelation(title: "Would you really like to log out?", message: "", style: .actionSheet) {
+        alert.showAlertWithCancelation(title: "Would you really like to log out?".localized(), message: "", style: .alert) {
             
             LoginManager().logOut()  //facebookのログアウト
             

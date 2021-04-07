@@ -24,7 +24,7 @@ class LoginVC: UIViewController{
     let facebookLoginService = FacebookLoginService()
     let hud: JGProgressHUD = {
         let hud = JGProgressHUD()
-        hud.textLabel.text = "Loading"
+        hud.textLabel.text = "Loading".localized()
         hud.style = JGProgressHUDStyle.dark
         return hud
     }()
@@ -73,25 +73,25 @@ class LoginVC: UIViewController{
         lb.font = UIFont.systemFont(ofSize: 26, weight: .light)
         lb.textColor = UIColor.white.withAlphaComponent(0.9)
         lb.textAlignment = .center
-        lb.text = "Let's Dive into island Music!"
+        lb.text = "Let's Dive into island Music!".localized()
         lb.adjustsFontSizeToFitWidth = true
         return lb
     }()
     
     private lazy var emailTextField: CustomTextField = {
-        let tf = CustomTextField(placeholder: "Enter email")
+        let tf = CustomTextField(placeholder: "Enter email".localized())
         return tf
     }()
     
     private lazy var passwordTextField: CustomTextField = {
-        let tf = CustomTextField(placeholder: "Enter password")
+        let tf = CustomTextField(placeholder: "Enter password".localized())
         tf.isSecureTextEntry = true
         return tf
     }()
     
     private lazy var forgotPasswordButton: UIButton = {
         let bn = UIButton(type: .system)
-        bn.setTitle("Forgot password?", for: .normal)
+        bn.setTitle("Forgot password?".localized(), for: .normal)
         bn.titleLabel?.font = UIFont.systemFont(ofSize: 16, weight: .medium)
         bn.tintColor = UIColor.white.withAlphaComponent(0.9)
         bn.addTarget(self, action: #selector(forgotPasswordTapped), for: .touchUpInside)
@@ -102,14 +102,14 @@ class LoginVC: UIViewController{
         let bn = CustomButton(type: .system)
         
         bn.backgroundColor = .blue
-        bn.setUp(title: "Login")
+        bn.setUp(title: "Login".localized())
         bn.addTarget(self, action: #selector(loginButtonTapped), for: .touchUpInside)
         return bn
     }()
     
     private let connectLabel: UILabel = {
         let lb = UILabel()
-        lb.text = "or connect with..."
+        lb.text = "or connect with...".localized()
         lb.font = UIFont.systemFont(ofSize: 16, weight: .medium)
         lb.textColor = UIColor.white.withAlphaComponent(0.9)
         return lb
@@ -174,8 +174,8 @@ class LoginVC: UIViewController{
     
     private func setupNavBar(){
         navigationController?.navigationBar.tintColor = .label
-        navigationItem.title = "Login"
-        let rightButton = UIBarButtonItem(title: "Sign Up", style: .done, target: self, action: #selector(signUpButtonTapped))
+        navigationItem.title = "Login".localized()
+        let rightButton = UIBarButtonItem(title: "Sign Up".localized(), style: .done, target: self, action: #selector(signUpButtonTapped))
         rightButton.setTitleTextAttributes([.foregroundColor: UIColor.white.withAlphaComponent(0.7), .font: UIFont.systemFont(ofSize: 16, weight: .regular)], for: .normal)
         navigationItem.rightBarButtonItem = rightButton
         

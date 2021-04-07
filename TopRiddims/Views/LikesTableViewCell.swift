@@ -56,7 +56,7 @@ class LikesTableViewCell: UITableViewCell {
             if heartButtonOnOff{
                 let image = UIImage(systemName: "suit.heart.fill", withConfiguration: config)
                 heartButton.setImage(image, for: .normal)
-                heartButton.tintColor = #colorLiteral(red: 0.8549019694, green: 0.250980407, blue: 0.4784313738, alpha: 1).withAlphaComponent(0.9)
+                heartButton.tintColor = #colorLiteral(red: 0.8549019694, green: 0.250980407, blue: 0.4784313738, alpha: 1).withAlphaComponent(0.85)
             }else{
                 let image = UIImage(systemName: "suit.heart", withConfiguration: config)
                 heartButton.setImage(image, for: .normal)
@@ -71,7 +71,7 @@ class LikesTableViewCell: UITableViewCell {
             if checkButtonOnOff{
                 let image = UIImage(systemName: "checkmark.circle.fill", withConfiguration: config)
                 checkButton.setImage(image, for: .normal)
-                checkButton.tintColor = #colorLiteral(red: 0.4666666687, green: 0.7647058964, blue: 0.2666666806, alpha: 1).withAlphaComponent(0.9)
+                checkButton.tintColor = #colorLiteral(red: 0.4666666687, green: 0.7647058964, blue: 0.2666666806, alpha: 1).withAlphaComponent(0.85)
             }else{
                 let image = UIImage(systemName: "checkmark.circle", withConfiguration: config)
                 checkButton.setImage(image, for: .normal)
@@ -149,7 +149,7 @@ class LikesTableViewCell: UITableViewCell {
     
     private let dateLabel: UILabel = {
        let lb = UILabel()
-        lb.font = UIFont.systemFont(ofSize: 12, weight: .light)
+        lb.font = UIFont.systemFont(ofSize: 11, weight: .light)
         lb.tintColor = .systemGray5
         return lb
     }()

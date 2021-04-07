@@ -14,4 +14,12 @@ extension String{
         let emailPred = NSPredicate(format:"SELF MATCHES %@", emailRegEx)
         return emailPred.evaluate(with: self)
     }
+    
+    func localized() -> String{
+        return NSLocalizedString(self, tableName: "Localizable", bundle: .main, value: self, comment: self)
+    }
+    
+    func localizeWithFormat(arguments: CVarArg...) -> String{
+            return String(format: self.localized(), arguments: arguments)
+         }
 }
