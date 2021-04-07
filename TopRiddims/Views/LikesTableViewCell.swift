@@ -14,7 +14,6 @@ protocol LikesTableViewCellDelegate: class{
     func heartButtonTapped(cell: LikesTableViewCell, buttonState: Bool)
     func checkButtonTapped(cell: LikesTableViewCell, buttonState: Bool)
     func changeVideoPlayState(cell: LikesTableViewCell, playState: Song.PlayState)
-    
 }
 
 class LikesTableViewCell: UITableViewCell {

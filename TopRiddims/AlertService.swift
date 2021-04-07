@@ -14,9 +14,9 @@ class AlertService{
     init(vc: UIViewController) {
         self.vc = vc
     }
-    deinit {
-        print("Alert is being deinitialized")
-    }
+//    deinit {
+//        print("Alert is being deinitialized")
+//    }
     
     func showSimpleAlert(title: String, message: String, style: UIAlertController.Style){
         
@@ -25,7 +25,6 @@ class AlertService{
         let action = UIAlertAction(title: "ok", style: .default) { [weak self] (action) in
             guard let self = self else {return}
             self.vc.dismiss(animated: true, completion: nil)
-            print("dismissing")
         }
         alert.addAction(action)
         vc.present(alert, animated: true, completion: nil)

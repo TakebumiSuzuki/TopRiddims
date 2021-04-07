@@ -15,7 +15,7 @@ import Firebase
 class ChartVC: UIViewController{
     
     //MARK: - Initialization
-    
+    let userDefaults = UserDefaults.standard
     var user: User!
     var uid: String{
         guard let currentUserId = Auth.auth().currentUser?.uid else {
@@ -25,6 +25,7 @@ class ChartVC: UIViewController{
     init(user: User) {
         super.init(nibName: nil, bundle: nil)
         self.user = user
+        print("ChartVC was Initialized \(self)")
     }
     required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
     
@@ -108,24 +109,36 @@ class ChartVC: UIViewController{
     //MARK: - View Life Cycles
     override func viewDidLoad() {
         super.viewDidLoad()
-        
         setupNavBar()
         setupViews()
         setupObservers()
-        
-        
-//        let userDefaults = UserDefaults.standard
-//        guard let id = userDefaults.object(forKey: "loggedInUser") as? String else{
-//            let alert = AlertService(vc: self)
-//            alert.showSimpleAlert(title: "Welcome \(user.name)!!プラスボタンから国を選んでください", message: "", style: .alert)
-//            userDefaults.register(defaults: ["loggedInUser": "default"])
-//            userDefaults.setValue(user.uid, forKey: "loggedInUser")
-//            return
-//        }
-//        if id == uid{
-//            let alert = AlertService(vc: self)
-//            alert.showSimpleAlert(title: "Welcome back\(user.name)!!", message: "", style: .alert)
-//        }
+        handleFirstTimeAppLaunch()
+    }
+    
+    
+    
+    private func handleFirstTimeAppLaunch(){
+        if let userList = userDefaults.array(forKey: "userList") as? [String]{
+            if userList.contains(uid){
+                return
+            }else{
+                var newUserList = userList
+                newUserList.append(uid)
+                showAlertForFirstLaunch(newUserList: newUserList)
+            }
+        }else{
+            showAlertForFirstLaunch(newUserList: [uid])
+        }
+    }
+    
+    private func showAlertForFirstLaunch(newUserList: [String]){
+        let alert = UIAlertController(title: "ようこそ\(user.name)さん！\nまずはプラスボタンを押して新しい国を登録してください。\nチャートが見れるようになりますよ！", message: "", preferredStyle: .alert)
+        let action = UIAlertAction(title: "ok", style: .default) { [weak self](action) in
+            guard let self = self else{return}
+            self.userDefaults.setValue(newUserList, forKey: "userList")
+        }
+        alert.addAction(action)
+        self.present(alert, animated: true, completion: nil)
     }
     
     
@@ -157,6 +170,9 @@ class ChartVC: UIViewController{
     override func viewWillAppear(_ animated: Bool) {  //毎回このタブに移る時にreloadDataしてcollectionViewの表示をアップデートする
         super.viewWillAppear(true)
         chartCollectionView.reloadData()
+    }
+    deinit {
+        print("ChartVC is being deinitialized \(self)")
     }
     
     

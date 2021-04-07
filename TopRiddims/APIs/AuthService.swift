@@ -18,6 +18,7 @@ class AuthService{
     func createUser(name: String, email: String, password: String, completion: @escaping (Error?) -> Void){
         
         Auth.auth().createUser(withEmail: email, password: password) { (authDataResult, error) in
+            
             if let error = error {
                 print("DEBUG: Failed to create user in FirebaseAuth: \(error.localizedDescription)")
                 completion(error)

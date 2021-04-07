@@ -21,6 +21,7 @@ class LikesVC: UIViewController{
     init(user: User) {
         super.init(nibName: nil, bundle: nil)
         self.user = user
+        print("LikesVC was Initialized")
     }
     required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
     
@@ -63,6 +64,29 @@ class LikesVC: UIViewController{
         return rc
     }()
     
+    private let searchBar: UISearchBar = {
+        let sb = UISearchBar()
+//        sb.backgroundColor = .red
+//        sb.sizeToFit()
+        sb.searchTextField.layer.cornerRadius = 20
+        sb.searchTextField.backgroundColor = UIColor.gray.withAlphaComponent(0.7)
+        sb.searchTextField.clipsToBounds = true
+//        sb.searchTextField.textColor = UIColor.blue
+//                            if let backgroundview = sb.searchTextField.subviews.first {
+//                                // Background color
+//                                backgroundview.backgroundColor = UIColor.red
+//                                // Rounded corner
+//                                backgroundview.layer.cornerRadius = 14;
+//                                backgroundview.clipsToBounds = true;
+//                            }
+        sb.barTintColor = UIColor.clear
+        sb.backgroundColor = UIColor.clear
+        sb.isTranslucent = true
+        sb.setBackgroundImage(UIImage(), for: .any, barMetrics: .default)
+//        sb.searchTextField.layer.masksToBounds = true
+        return sb
+    }()
+    
     //MARK: - View Life Cycles
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -77,7 +101,7 @@ class LikesVC: UIViewController{
         view.addSubview(playerPlaceholderView)
         view.addSubview(tableView)
         tableView.addSubview(refreshControl)
-//        refreshControl.endRefreshing()
+        view.addSubview(searchBar)
     }
     
     override func viewDidLayoutSubviews() {
@@ -94,11 +118,22 @@ class LikesVC: UIViewController{
         //左右についてはtableView自体のconstraintでinsetを表現し、また、topについてはheaderVeiewをdelegateで
         //設定する事でinsetの代わりとした。
         
+        searchBar.centerX(inView: self.view)
+        searchBar.setDimensions(height: 40, width: self.view.frame.width*0.7)
+        searchBar.bottomAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.bottomAnchor, constant: -3).isActive = true
+        
     }
     
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(true)
         loadLikedSongs()
+    }
+    
+    override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
+        view.endEditing(true)
+    }
+    deinit {
+        print("LikesVC is being deinitialized")
     }
     
     
@@ -108,7 +143,7 @@ class LikesVC: UIViewController{
     }
     
     func loadLikedSongs(){  //起動時に、空の状態でいったんイニシャライズされた後、tabBarから呼ばれる。またrefreshとViewWillAppearからも。
-        self.firestoreService.fetchLikedSongs(uid: uid) { [weak self](result) in
+        self.firestoreService.fetchLikedSongs(uid: uid, paginate: false) { [weak self](result) in
             guard let self = self else {return}
             self.refreshControl.endRefreshing()
             switch result{
@@ -117,6 +152,8 @@ class LikesVC: UIViewController{
                 alert.showSimpleAlert(title: "Song Database error.Please try reopen the app. Sorry!!", message: "", style: .alert)
             case .success(let likedSongs):
                 self.likedSongs = likedSongs
+                self.tableView.reloadData()
+                //ここで一旦リロードしないと、次のcheckEachVideoでcurrentPlayingTrackIDがnilの時リターンされるケースがあるので。
                 DispatchQueue.main.async {
                     self.chekEachVideoPlayState()
                 }
@@ -127,7 +164,6 @@ class LikesVC: UIViewController{
     private func chekEachVideoPlayState(){  //毎回likedSongsをロードした時に必ず呼ばれる。videoPlayStateを書き込む。
         guard let tabbar = tabBarController as? MainTabBarController else {return}
         guard let currentPlayingTrackID = tabbar.currentTrackID else {return}
-        
         for i in 0..<likedSongs.count{
             if likedSongs[i].trackID == currentPlayingTrackID{
                 tabbar.videoPlayer.playerState { [weak self](state, error) in
@@ -219,6 +255,29 @@ extension LikesVC: UITableViewDelegate{
         let inset = view.frame.width*(1-K.chartCellWidthMultiplier)/2
         return inset
     }
+    
+    func scrollViewDidEndDragging(_ scrollView: UIScrollView, willDecelerate decelerate: Bool) {
+        let tableViewVisibleAreaHeight = tableView.frame.height-(tabBarController?.tabBar.frame.height)!
+        let targetBoundY = tableView.contentSize.height-tableViewVisibleAreaHeight
+        if tableView.bounds.origin.y > targetBoundY+20{ //20を足しているのはページネーション発動を少し緩くするため
+            self.firestoreService.fetchLikedSongs(uid: uid, paginate: true) { [weak self] (result) in
+                guard let self = self else {return}
+//                self.refreshControl.endRefreshing()
+                switch result{
+                case .failure(_):
+                    let alert = AlertService(vc:self)
+                    alert.showSimpleAlert(title: "Song Database error.Please try reopen the app. Sorry!!", message: "", style: .alert)
+                case .success(let likedSongs):
+                    self.likedSongs.append(contentsOf: likedSongs)
+                    self.tableView.reloadData()
+                    DispatchQueue.main.async {
+                        self.chekEachVideoPlayState()
+                    }
+                }
+            }
+        }
+    }
+    
 
 }
 

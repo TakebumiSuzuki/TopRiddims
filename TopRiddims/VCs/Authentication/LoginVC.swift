@@ -151,13 +151,12 @@ class LoginVC: UIViewController{
         setupNavBar()
         setupViews()
         setupNotifications()
-        setupObservers()
+        setupStreams()
     }
     
-    private func setupObservers(){
-        let emalFieldObservable = emailTextField.rx.text.orEmpty.asObservable()
-        let passwordFieldObservable = passwordTextField.rx.text.orEmpty.asObservable()
-        let textFieldsObservable: Observable<Bool> = Observable.combineLatest(emalFieldObservable, passwordFieldObservable){ (email, password) -> Bool in
+    private func setupStreams(){
+        
+        let textFieldsObservable: Observable<Bool> = Observable.combineLatest(emailTextField.rx.text.orEmpty, passwordTextField.rx.text.orEmpty){ (email, password) -> Bool in
             return (email.count > 0 && password.count > 0)
         }
         textFieldsObservable.bind(to: loginButton.rx.isEnabled).disposed(by: disposeBag)

@@ -19,11 +19,8 @@ class MainTabBarController: UITabBarController {
     var authListener: AuthStateDidChangeListenerHandle!
     let firestoreService = FirestoreService()
     var uid: String!  //まずこれをゲットして、
-    var user: User?{//Userに代入。この中にはallChartDataも完全に含まれる。
-        didSet{
-            print("userに新しい値がセットされました")
-        }
-    }
+    var user: User? //Userに代入。この中にはallChartDataも完全に含まれる。
+    
     var allChartData = [(country: String, songs:[Song], updated: Timestamp)]()  //初期値はまっさらな空
     var likedSongs = [Song]()
     var currentTrackID: String?  //プレイヤー用
@@ -73,7 +70,6 @@ class MainTabBarController: UITabBarController {
     //MARK: - ViewLifeCycles
     override func viewDidLoad() {
         super.viewDidLoad()
-        
     }
     
     override func viewWillAppear(_ animated: Bool) {
@@ -88,6 +84,7 @@ class MainTabBarController: UITabBarController {
                 let nav = UINavigationController(rootViewController: vc)
                 nav.modalPresentationStyle = .fullScreen
                 self.present(nav, animated: false, completion: nil)
+//                self.viewControllers = []
                 return
             }
             
@@ -118,7 +115,6 @@ class MainTabBarController: UITabBarController {
     }
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(true)
-        print("View willDisappearがいつ呼ばれるか。このTabBarVCでは呼ばれることはない!?")
 //        Auth.auth().removeStateDidChangeListener(authListener)
     }
     

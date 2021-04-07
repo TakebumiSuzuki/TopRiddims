@@ -108,10 +108,10 @@ class SignUpVC: UIViewController {
         setupNav()
         setupViews()
         setupNotifications()
-        setupObservers()
+        setupStreams()
     }
     
-    private func setupObservers(){
+    private func setupStreams(){
         let nameFieldObservable = nameTextField.rx.text.orEmpty.asObservable()
         let emalFieldObservable = emailTextField.rx.text.orEmpty.asObservable()
         let passwordFieldObservable = passwordTextField.rx.text.orEmpty.asObservable()

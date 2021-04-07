@@ -22,6 +22,7 @@ class SettingVC: UIViewController {
     init(user: User) {
         super.init(nibName: nil, bundle: nil)
         self.user = user
+        print("SettingVC was Initialized")
     }
     required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
     
@@ -92,7 +93,6 @@ class SettingVC: UIViewController {
     private lazy var nameTextField: CustomTextField = {
         let tf = CustomTextField(placeholder: "Enter new name here..")
         tf.backgroundColor = .systemFill
-//        tf.alpha = 0.8
         tf.textColor = UIColor.white.withAlphaComponent(0.95)
         return tf
     }()
@@ -100,7 +100,6 @@ class SettingVC: UIViewController {
     private lazy var emailTextField: CustomTextField = {
         let tf = CustomTextField(placeholder: "Enter new email here..")
         tf.backgroundColor = .systemFill
-//        tf.alpha = 0.6
         tf.textColor = UIColor.white.withAlphaComponent(0.95)
         return tf
     }()
@@ -110,7 +109,6 @@ class SettingVC: UIViewController {
         bn.setUp(title: "Cancel")
         bn.isEnabled = true
         bn.alpha = 0.5
-        bn.addTarget(self, action: #selector(cancelButtonTapped), for: .touchUpInside)
         return bn
     }()
     private lazy var saveButton: CustomButton = {
@@ -127,6 +125,7 @@ class SettingVC: UIViewController {
         super.viewDidLoad()
         setupNavBar()
         setupViews()
+        setupStreams()
     }
     
     private func setupNavBar(){
@@ -147,7 +146,6 @@ class SettingVC: UIViewController {
         blurredView.contentView.addSubview(dateLabel)
         blurredView.contentView.addSubview(nameTextField)
         blurredView.contentView.addSubview(emailTextField)
-        
     }
     
     override func viewDidLayoutSubviews() {
@@ -183,37 +181,59 @@ class SettingVC: UIViewController {
         
         
 //        blurredView.bottomAnchor.constraint(equalTo: stackView.bottomAnchor, constant: K.placeholderInsets).isActive = true
-        
     }
     
-    override func viewWillAppear(_ animated: Bool) {
-        super.viewWillAppear(true)
-        nameTextField.text = user.name
-        emailTextField.text = user.email
+    
+    private func setupStreams(){
         
-        let nameFieldsObservable = nameTextField.rx.text.orEmpty.asObservable()
-        let emailFieldsObservable = emailTextField.rx.text.orEmpty.asObservable()
-        let textFieldsObservable = Observable.combineLatest(nameFieldsObservable, emailFieldsObservable){ [weak self](name, email)-> Bool in
+        let nameRelay = BehaviorRelay<String>(value: user.name)
+        nameRelay.bind(to: nameTextField.rx.text).disposed(by: disposeBag)  //この行を下の行より先に書かないとuser.nameが空欄で書き換えられてしまう
+        nameTextField.rx.text.orEmpty.bind(to: nameRelay).disposed(by: disposeBag)
+        
+        let emailRelay = BehaviorRelay<String>(value: user.email)
+        emailRelay.bind(to: emailTextField.rx.text).disposed(by: disposeBag)   //この行を下の行より先に書かないとuser.nameが空欄で書き換えられてしまう
+        emailTextField.rx.text.orEmpty.bind(to: emailRelay).disposed(by: disposeBag)
+        
+        
+        let textFieldsObservable = Observable.combineLatest(nameRelay, emailRelay){ [weak self](name, email)-> Bool in
             guard let self = self else {return false}
             return (name != self.user.name || email != self.user.email)
         }
+        
         textFieldsObservable.startWith(true).bind(to: saveButton.rx.isEnabled).disposed(by: disposeBag)
         textFieldsObservable.startWith(true).map{ $0 ? 0.7 : 0.3 }.bind(to: saveButton.rx.alpha).disposed(by: disposeBag)
         textFieldsObservable.startWith(false).bind(to: cancelButton.rx.isEnabled).disposed(by: disposeBag)
         textFieldsObservable.startWith(false).map{ $0 ? 0.7 : 0.3 }.bind(to: cancelButton.rx.alpha).disposed(by: disposeBag)
+        
+        cancelButton.rx.tap.subscribe { [weak self] (_) in
+            guard let self = self else {return}
+            nameRelay.accept(self.user.name)
+            emailRelay.accept(self.user.email)
+            self.nameTextField.resignFirstResponder()
+            self.emailTextField.resignFirstResponder()
+        }.disposed(by: disposeBag)
+        
+        self.rx.sentMessage(#selector(viewWillDisappear(_:))).subscribe { [weak self](_) in
+            guard let self = self else {return}
+            nameRelay.accept(self.user.name)
+            emailRelay.accept(self.user.email)
+            self.nameTextField.resignFirstResponder()
+            self.emailTextField.resignFirstResponder()
+        }.disposed(by: disposeBag)
     }
+    
     
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
         view.endEditing(true)
     }
     
-    
-    //MARK: - Button Handlings
-    @objc private func cancelButtonTapped(){
-        nameTextField.text = user.name
-        emailTextField.text = user.email
+    deinit {
+        print("SettingVC is being deinitialized")
     }
     
+    
+    //MARK: - Button Handlings
+
     @objc private func saveButtonTapped(){
         guard let newName = nameTextField.text else {return}
         guard let newEmail = emailTextField.text else {return}
@@ -319,3 +339,5 @@ class SettingVC: UIViewController {
         }
     }
 }
+
+

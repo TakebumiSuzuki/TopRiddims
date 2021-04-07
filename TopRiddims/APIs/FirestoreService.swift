@@ -140,9 +140,24 @@ class FirestoreService{
     }
     
     
+    var lastDLDoc: DocumentSnapshot?
     
-    func fetchLikedSongs(uid: String, completion: @escaping (Result<[Song], Error>) -> Void){
-        K.FSCollectionUsers.document(uid).collection("tracks").whereField("liked", isEqualTo: true).order(by: "likedStateUpdateDate", descending: true).limit(to: 25).getDocuments { (snapshot, error) in
+    func fetchLikedSongs(uid: String, paginate: Bool, completion: @escaping (Result<[Song], Error>) -> Void){
+        
+        let query: Query
+        let numberOfDownloadsPerPage = 10
+        if paginate{
+            if let lastDLDoc = lastDLDoc{
+                query = K.FSCollectionUsers.document(uid).collection("tracks").whereField("liked", isEqualTo: true).order(by: "likedStateUpdateDate", descending: true).limit(to: numberOfDownloadsPerPage).start(afterDocument: lastDLDoc)
+            }else{
+                return
+            }
+        }else{
+            query = K.FSCollectionUsers.document(uid).collection("tracks").whereField("liked", isEqualTo: true).order(by: "likedStateUpdateDate", descending: true).limit(to: numberOfDownloadsPerPage)
+        }
+        
+        
+        query.getDocuments { (snapshot, error) in
             
             if let error = error{
                 print("DEBUG: Error occured fetching liked tracks from Firestore: \(error.localizedDescription)")
@@ -155,6 +170,9 @@ class FirestoreService{
                 return
             }
             let documents = snapshot.documents
+            
+            self.lastDLDoc = documents.last
+            
             var likedSongs = [Song]()
             documents.forEach {
                 let trackID = $0["trackID"] as? String ?? ""
