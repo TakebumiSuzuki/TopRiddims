@@ -19,7 +19,7 @@ pod 'FBSDKLoginKit'
 pod 'JGProgressHUD'
 pod 'RxSwift'
 pod 'RxCocoa'
-
+pod 'Gecco'
 
 
 end

@@ -20,6 +20,7 @@ class MainTabBarController: UITabBarController {
     let firestoreService = FirestoreService()
     var uid: String!  //まずこれをゲットして、
     var user: User? //Userに代入。この中にはallChartDataも完全に含まれる。
+    var loginProvider: LoginProvider!
     
     var allChartData = [(country: String, songs:[Song], updated: Timestamp)]()  //初期値はまっさらな空
     var likedSongs = [Song]()
@@ -70,16 +71,28 @@ class MainTabBarController: UITabBarController {
     //MARK: - ViewLifeCycles
     override func viewDidLoad() {
         super.viewDidLoad()
+        print("MainTabBarのViewDidLoad")
+//        NotificationCenter.default.addObserver(forName: NSNotification.Name("accountUpdated"), object: nil, queue: nil) { (notification) in
+//            print("alert Called")
+//            let alert = UIAlertController(title: "Your account has been updated.", message: "", preferredStyle: .alert)
+//            let action = UIAlertAction(title: "ok", style: .default) { (action) in
+//
+//            }
+//            alert.addAction(action)
+//
+//        }
     }
     
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(true)
-        
+        print("MainTabBarのViewWillAppearです")
+        if authListener != nil {return} //この一文でログアウト→新規登録した時のListener重複を解決
         authListener = Auth.auth().addStateDidChangeListener { [weak self](auth, user) in
             guard let self = self else{return}
             
-            guard let uid = auth.currentUser?.uid else{
+            guard let uid = auth.currentUser?.uid, let userIsAnonymous = auth.currentUser?.isAnonymous else{
                 //未ログインの場合
+                print("Listenerがuidはnilになっている事を検知したのでLoginVCを表示します")
                 let vc = LoginVC()
                 let nav = UINavigationController(rootViewController: vc)
                 nav.modalPresentationStyle = .fullScreen
@@ -88,7 +101,24 @@ class MainTabBarController: UITabBarController {
                 return
             }
             
+            
             //ここでデータを全て初期化する必要ありuser/allCountryData。ここで一旦各Tabのビューコントローラを呼ぶべきか。。
+            print("Listenerがログインされた事を検知しました")
+            if userIsAnonymous{
+                self.loginProvider = .anonymous
+            }else{
+                switch Auth.auth().currentUser?.providerData[0].providerID {
+                case "facebook.com":
+                    self.loginProvider = .facebook
+                case "twitter.com":
+                    self.loginProvider = .twitter
+                case "password":
+                    self.loginProvider = .password
+                default:
+                    print("DEBUG: Error occured. Coudn't get login provider enum value.")
+                }
+            }
+            
             self.uid = uid
             self.dismiss(animated: true, completion: nil)
             self.selectedIndex = 0
@@ -108,6 +138,7 @@ class MainTabBarController: UITabBarController {
                 }
             }
         }
+        
     }
     
     override func viewDidLayoutSubviews() {
@@ -115,7 +146,11 @@ class MainTabBarController: UITabBarController {
     }
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(true)
-//        Auth.auth().removeStateDidChangeListener(authListener)
+//        print("Auth Listenerがdeinitされました")
+//        Auth.auth().removeStateDidChangeListener(authListener) //必要ない
+    }
+    deinit {
+        print("メインタブバーがdeinitされました")
     }
     
     
@@ -129,20 +164,20 @@ class MainTabBarController: UITabBarController {
         let configuration = UIImage.SymbolConfiguration(weight: .thin)
         
         
-        let chartVC = ChartVC(user: user)
+        let chartVC = ChartVC(user: user, loginProvider: loginProvider)
         let chartNav = generateNavController(rootVC: chartVC,
                                              title: "charts".localized(),
                                              selectedImage: UIImage(systemName: "bolt.fill", withConfiguration: configuration)!,
                                              unselectedImage: UIImage(systemName: "bolt", withConfiguration: configuration)!)
         
-        let likesVC = LikesVC(user: user) //この段階では空のlikedSongsでページを作る
+        let likesVC = LikesVC(user: user, loginProvider: loginProvider) //この段階では空のlikedSongsでページを作る
         let likesNav = generateNavController(rootVC: likesVC,
                                              title: "likes".localized(),
                                              selectedImage: UIImage(systemName: "suit.heart.fill", withConfiguration: configuration)!,
                                              unselectedImage: UIImage(systemName: "suit.heart", withConfiguration: configuration)!)
         likesVC.loadLikedSongs()
         
-        let settingVC = SettingVC(user: user)
+        let settingVC = SettingVC(user: user, loginProvider: loginProvider)
         let settingNav = generateNavController(rootVC: settingVC,
                                                title: "account".localized(),
                                                selectedImage: UIImage(systemName: "person.fill", withConfiguration: configuration)!,
@@ -193,6 +228,7 @@ class MainTabBarController: UITabBarController {
         
         spinner.center(inView: blackImageView)
         spinner.setDimensions(height: 46, width: 46)
+        
     }
     
     //MARK: - Video再生コントロール

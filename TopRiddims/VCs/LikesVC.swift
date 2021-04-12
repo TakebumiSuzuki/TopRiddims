@@ -13,14 +13,16 @@ class LikesVC: UIViewController{
     
     //MARK: - Initialization
     var user: User!
+    var loginProvider: LoginProvider!
     var uid: String{
         guard let currentUserId = Auth.auth().currentUser?.uid else {
             print("DEBUG: Error! uid is nil right now. Returning empty string for uid.."); return ""}
         return currentUserId
     }
-    init(user: User) {
+    init(user: User, loginProvider: LoginProvider) {
         super.init(nibName: nil, bundle: nil)
         self.user = user
+        self.loginProvider = loginProvider
         print("LikesVC was Initialized")
     }
     required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }

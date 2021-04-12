@@ -15,6 +15,25 @@ enum CustomFirestoreError: Error{
 
 class FirestoreService{
     
+    func saveUserInfoUpdatingFromAnonymous(uid: String, name: String, email: String, completion: @escaping (Error?) -> Void){
+        
+        var data = [String : Any]()
+        data = ["name": name,
+                "email": email,
+                "isNewUser": false,
+                "lastLogInDate": Timestamp()]
+        K.FSCollectionUsers.document(uid).setData(data, merge: true) { (error) in
+            if let error = error{
+                print("DEBUG: Error occured saving user data to Firestore: \(error.localizedDescription)")
+                completion(error)
+                return
+            }
+            completion(nil)
+        }
+    }
+    
+    
+    
     //毎回ログインした時にもlastLoginを更新する為に呼ばれる。既存のallChartDataにはタッチしない。
     func saveUserInfoWithAuthResult(authResult: AuthDataResult, completion: @escaping (Error?) -> Void){
         

@@ -9,6 +9,8 @@
 /* Begin PBXBuildFile section */
 		097808DF858EBE3BF9436367 /* Pods_TopRiddims.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7FDF02ADAE7D1C6484A80E4B /* Pods_TopRiddims.framework */; };
 		0C204D28261E3CBD00B5AA62 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = 0C204D2A261E3CBD00B5AA62 /* Localizable.strings */; };
+		0C204D992621666600B5AA62 /* PlusButtonCoachMarkVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0C204D982621666600B5AA62 /* PlusButtonCoachMarkVC.swift */; };
+		0C204D9D262301D800B5AA62 /* SignUpFromAnonymousVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0C204D9C262301D800B5AA62 /* SignUpFromAnonymousVC.swift */; };
 		0C2262E726165C6F00792E10 /* CustomStackView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0C2262E626165C6F00792E10 /* CustomStackView.swift */; };
 		0C22630B2616663D00792E10 /* Extension + UIButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0C22630A2616663D00792E10 /* Extension + UIButton.swift */; };
 		0C226310261679EB00792E10 /* CustomUIButtonForReload.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0C22630F261679EB00792E10 /* CustomUIButtonForReload.swift */; };
@@ -56,6 +58,8 @@
 		0C204D23261E3C2400B5AA62 /* ja */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ja; path = ja.lproj/LaunchScreen.strings; sourceTree = "<group>"; };
 		0C204D29261E3CBD00B5AA62 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/Localizable.strings; sourceTree = "<group>"; };
 		0C204D2C261E3CC600B5AA62 /* ja */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ja; path = ja.lproj/Localizable.strings; sourceTree = "<group>"; };
+		0C204D982621666600B5AA62 /* PlusButtonCoachMarkVC.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlusButtonCoachMarkVC.swift; sourceTree = "<group>"; };
+		0C204D9C262301D800B5AA62 /* SignUpFromAnonymousVC.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignUpFromAnonymousVC.swift; sourceTree = "<group>"; };
 		0C2262E626165C6F00792E10 /* CustomStackView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomStackView.swift; sourceTree = "<group>"; };
 		0C22630A2616663D00792E10 /* Extension + UIButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Extension + UIButton.swift"; sourceTree = "<group>"; };
 		0C22630F261679EB00792E10 /* CustomUIButtonForReload.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomUIButtonForReload.swift; sourceTree = "<group>"; };
@@ -116,12 +120,21 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		0C204D972621658C00B5AA62 /* CoachMarks */ = {
+			isa = PBXGroup;
+			children = (
+				0C204D982621666600B5AA62 /* PlusButtonCoachMarkVC.swift */,
+			);
+			path = CoachMarks;
+			sourceTree = "<group>";
+		};
 		0C375709260DB207007CC850 /* Authentication */ = {
 			isa = PBXGroup;
 			children = (
 				0C37570A260DB230007CC850 /* LoginVC.swift */,
 				0C68F5FB260F2CD1005BC185 /* SignUpVC.swift */,
 				0C37570D260DB260007CC850 /* ResetPasswordVC.swift */,
+				0C204D9C262301D800B5AA62 /* SignUpFromAnonymousVC.swift */,
 			);
 			path = Authentication;
 			sourceTree = "<group>";
@@ -203,6 +216,7 @@
 		0C9D6F0126024F7800252205 /* VCs */ = {
 			isa = PBXGroup;
 			children = (
+				0C204D972621658C00B5AA62 /* CoachMarks */,
 				0C375709260DB207007CC850 /* Authentication */,
 				0C62B8C425FE919F00A203B2 /* MainTabBarController.swift */,
 				0C62B8C925FE930900A203B2 /* ChartVC.swift */,
@@ -358,6 +372,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				0C204D9D262301D800B5AA62 /* SignUpFromAnonymousVC.swift in Sources */,
 				0C68F65F261274FF005BC185 /* DateFormattingService.swift in Sources */,
 				0C37570B260DB230007CC850 /* LoginVC.swift in Sources */,
 				0C68F616260FD9BD005BC185 /* FirestoreService.swift in Sources */,
@@ -388,6 +403,7 @@
 				0C68F604260F5BAB005BC185 /* Extension + UIImageView.swift in Sources */,
 				0CB575682601C9E500DE22F9 /* Extension + UIView.swift in Sources */,
 				0CAC7E0D2605CCFE00582E3A /* AlertService.swift in Sources */,
+				0C204D992621666600B5AA62 /* PlusButtonCoachMarkVC.swift in Sources */,
 				0C62B8C525FE919F00A203B2 /* MainTabBarController.swift in Sources */,
 				0C68F613260FBDFE005BC185 /* FacebookLoginService.swift in Sources */,
 				0C62B8CA25FE930900A203B2 /* ChartVC.swift in Sources */,

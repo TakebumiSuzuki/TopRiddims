@@ -14,14 +14,35 @@ import RxCocoa
 import JGProgressHUD
 
 
+enum LoginProvider{
+    case facebook
+    case twitter
+    case password
+    case anonymous
+    
+    var text: String{
+        switch self {
+        case .facebook:
+            return "Logging in with Facebook"
+        case .twitter:
+            return "Logging in with Twitter"
+        case .password:
+            return "Your account info"
+        case .anonymous:
+            return "You've been signed in with a temporary profile.Please sign in from buttons below to keep your data."
+        }
+    }
+}
 
-class SettingVC: UIViewController {
+class SettingVC: UIViewController, SignUpFromAnonymousVCDelegate {
     
     //MARK: - Initialization
     var user: User!
-    init(user: User) {
+    var loginProvider: LoginProvider!
+    init(user: User, loginProvider: LoginProvider) {
         super.init(nibName: nil, bundle: nil)
         self.user = user
+        self.loginProvider = loginProvider
         print("SettingVC was Initialized")
     }
     required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
@@ -30,13 +51,15 @@ class SettingVC: UIViewController {
     //MARK: - Properties
     let disposeBag = DisposeBag()
     let authService = AuthService()
-    
+    let twitterProvider = OAuthProvider(providerID: "twitter.com")
+    let facebookLoginService = FacebookLoginService()
+    let firestoreService = FirestoreService()
     
     //MARK: - UI Components
     
     private let hud: JGProgressHUD = {
         let hud = JGProgressHUD()
-        hud.textLabel.text = "Saving"
+        hud.textLabel.text = "Updating account information"
         hud.style = JGProgressHUDStyle.dark
         return hud
     }()
@@ -78,17 +101,28 @@ class SettingVC: UIViewController {
         return bv
     }()
     
-    private lazy var dateLabel: UILabel = {
-       let lb = UILabel()
-        lb.font = UIFont.systemFont(ofSize: 14, weight: .regular)
+    private lazy var providerInfoLabel: UILabel = {
+        let lb = UILabel()
+        lb.font = UIFont.systemFont(ofSize: 16, weight: .regular)
         lb.textColor = UIColor.label.withAlphaComponent(0.3)
+        lb.numberOfLines = 0
         
-        let date = user.registrationDate.dateValue()
-        let dateString = CustomDateFormatter.formatter.string(from: date)
-        lb.text = "Joined on ".localized() + dateString
         
+        lb.text = loginProvider.text
         return lb
     }()
+    
+//    private lazy var dateLabel: UILabel = {
+//       let lb = UILabel()
+//        lb.font = UIFont.systemFont(ofSize: 12, weight: .regular)
+//        lb.textColor = UIColor.label.withAlphaComponent(0.3)
+//
+//        let date = user.registrationDate.dateValue()
+//        let dateString = CustomDateFormatter.formatter.string(from: date)
+//        lb.text = "Joined on ".localized() + dateString
+//
+//        return lb
+//    }()
     
     private lazy var nameTextField: CustomTextField = {
         let tf = CustomTextField(placeholder: "Enter new name here..")
@@ -116,20 +150,136 @@ class SettingVC: UIViewController {
         return bn
     }()
     
+    private lazy var signUpButton: CustomButton = {
+        let bn = CustomButton(type: .system)
+        bn.setUp(title: "Sign Up".localized())
+        bn.titleLabel?.font = UIFont.systemFont(ofSize: 18, weight: .medium)
+        bn.alpha = 0.8
+        bn.addTarget(self, action: #selector(signUpButtonTapped), for: .touchUpInside)
+        bn.addTarget(self, action: #selector(signUpButtonStateChanged), for: .allEvents)
+        return bn
+    }()
+    private let signUpButtonImageView: UIImageView = {
+       let iv = UIImageView()
+        let config = UIImage.SymbolConfiguration(pointSize: 28, weight: .medium, scale: .medium)
+        let image = UIImage(systemName: "pencil.and.outline")?.applyingSymbolConfiguration(config)
+        iv.image = image
+        iv.contentMode = .scaleAspectFit
+        iv.tintColor = .white
+        return iv
+    }()
+    @objc private func signUpButtonStateChanged(){
+        signUpButtonImageView.alpha = signUpButton.state == .normal ? 1.0 : 0.2
+    }
+    
+    
+    private lazy var facebookButton: CustomButton = {
+        let bn = CustomButton(type: .system)
+        bn.setUp(title: "Login with Facebook".localized())
+        bn.titleLabel?.font = UIFont.systemFont(ofSize: 18, weight: .medium)
+        bn.backgroundColor = UIColor(hexaRGBA: "3B5998")
+        bn.alpha = 0.8
+        bn.addTarget(self, action: #selector(facebookButtonTapped), for: .touchUpInside)
+        bn.addTarget(self, action: #selector(facebookButtonStateChanged), for: .allEvents)
+        return bn
+    }()
+    private let facebookImageView: UIImageView = {
+       let iv = UIImageView()
+        iv.image = UIImage(named: "FacebookIcon")
+        iv.contentMode = .scaleAspectFit
+        iv.tintColor = .white
+        return iv
+    }()
+    @objc private func facebookButtonStateChanged(){
+        facebookImageView.alpha = facebookButton.state == .normal ? 1.0 : 0.2
+    }
+    
+    private lazy var twitterButton: CustomButton = {
+        let bn = CustomButton(type: .system)
+        bn.setUp(title: "Login with Twitter".localized())
+        bn.titleLabel?.font = UIFont.systemFont(ofSize: 18, weight: .medium)
+        bn.backgroundColor = UIColor(hexaRGBA: "00ACEE")
+        bn.alpha = 0.8
+        bn.addTarget(self, action: #selector(twitterButtonTapped), for: .touchUpInside)
+        bn.addTarget(self, action: #selector(twitterButtonStateChanged), for: .allEvents)
+        return bn
+    }()
+    private let twitterImageView: UIImageView = {
+       let iv = UIImageView()
+        iv.image = UIImage(named: "TwitterIcon")
+        iv.contentMode = .scaleAspectFit
+        iv.tintColor = .white
+        return iv
+    }()
+    @objc private func twitterButtonStateChanged(){
+        twitterImageView.alpha = twitterButton.state == .normal ? 1.0 : 0.2
+    }
+    
+    
     //MARK: - View Life Cycles
     override func viewDidLoad() {
         super.viewDidLoad()
         setupNavBar()
         setupViews()
-        setupStreams()
-        
+        switchUIComponents()
     }
     
     private func setupNavBar(){
         navigationItem.title = "Account"
-        
         let logoutButton = UIBarButtonItem(title: "Logout".localized(), style: .plain, target: self, action: #selector(logoutButtonPressed))
         navigationItem.rightBarButtonItem = logoutButton
+        
+    }
+    
+    private func switchUIComponents(){
+        switch loginProvider{
+        case .facebook:
+            cancelButton.isHidden = true
+            saveButton.isHidden = true
+            signUpButton.isHidden = true
+            facebookButton.isHidden = true
+            twitterButton.isHidden = true
+            nameTextField.isHidden = false
+            emailTextField.isHidden = false
+            nameTextField.isUserInteractionEnabled = false
+            emailTextField.isUserInteractionEnabled = false
+            nameTextField.text = Auth.auth().currentUser?.providerData[0].displayName
+            emailTextField.text = Auth.auth().currentUser?.providerData[0].email
+        case .twitter:
+            cancelButton.isHidden = true
+            saveButton.isHidden = true
+            signUpButton.isHidden = true
+            facebookButton.isHidden = true
+            twitterButton.isHidden = true
+            nameTextField.isHidden = false
+            emailTextField.isHidden = true
+            nameTextField.isUserInteractionEnabled = false
+            nameTextField.text = Auth.auth().currentUser?.providerData[0].displayName
+        case .password:
+            cancelButton.isHidden = false
+            saveButton.isHidden = false
+            signUpButton.isHidden = true
+            facebookButton.isHidden = true
+            twitterButton.isHidden = true
+            nameTextField.isHidden = false
+            emailTextField.isHidden = false
+            nameTextField.isUserInteractionEnabled = true
+            emailTextField.isUserInteractionEnabled = true
+            nameTextField.text = Auth.auth().currentUser?.providerData[0].displayName
+            emailTextField.text = Auth.auth().currentUser?.providerData[0].email
+            setupStreams()
+        case .anonymous:
+            cancelButton.isHidden = true
+            saveButton.isHidden = true
+            signUpButton.isHidden = false
+            facebookButton.isHidden = false
+            twitterButton.isHidden = false
+            nameTextField.isHidden = true
+            emailTextField.isHidden = true
+        default:
+            print("DEBUG: Sign in provider error. There is no record how the user logging in.")
+            return
+        }
     }
     
     private func setupViews(){
@@ -140,48 +290,19 @@ class SettingVC: UIViewController {
         view.addSubview(imageContainerView)
         imageContainerView.addSubview(bgImageView)
         view.addSubview(blurredView)
-        blurredView.contentView.addSubview(dateLabel)
+        blurredView.contentView.addSubview(providerInfoLabel)
+//        blurredView.contentView.addSubview(dateLabel)
         blurredView.contentView.addSubview(nameTextField)
         blurredView.contentView.addSubview(emailTextField)
+        blurredView.contentView.addSubview(signUpButton)
+        signUpButton.addSubview(signUpButtonImageView)
+        blurredView.contentView.addSubview(facebookButton)
+        facebookButton.addSubview(facebookImageView)
+        blurredView.contentView.addSubview(twitterButton)
+        twitterButton.addSubview(twitterImageView)
         
         view.bringSubviewToFront(blurredView)  //alert表示ボックスがvideoPlayerの下に隠れてしまうのを避けるため。
     }
-    
-    override func viewDidLayoutSubviews() {
-        super.viewDidLayoutSubviews()
-        
-        let floatingPlayerHeight = view.frame.width*K.floatingPlayerWidthMultiplier/16*9
-        
-        playerPlaceholderView.anchor(top: view.safeAreaLayoutGuide.topAnchor, left: view.leftAnchor, right: view.rightAnchor, height: floatingPlayerHeight+K.floatingPlayerTopBottomInsets*2)
-        
-        
-        let inset = view.frame.width*(1-K.chartCellWidthMultiplier)/2
-        imageContainerView.anchor(top: playerPlaceholderView.bottomAnchor, left: view.leftAnchor, bottom: view.bottomAnchor, right: view.rightAnchor, paddingTop: inset)
-        bgImageView.fillSuperview()
-        
-        dummySecondaryBackgroundView.anchor(top: playerPlaceholderView.bottomAnchor, left: view.leftAnchor, bottom: view.bottomAnchor, right: view.rightAnchor)
-        
-        blurredView.anchor(top: playerPlaceholderView.bottomAnchor, left: view.leftAnchor, bottom: view.bottomAnchor, right: view.rightAnchor, paddingTop: inset)
-        
-        dateLabel.anchor(top: blurredView.topAnchor, right: blurredView.rightAnchor, paddingTop: K.placeholderInsets, paddingRight: K.placeholderInsets)
-        
-        nameTextField.anchor(top: dateLabel.bottomAnchor, left: blurredView.leftAnchor, right: blurredView.rightAnchor, paddingTop: 6, paddingLeft: K.placeholderInsets, paddingRight: K.placeholderInsets)
-        
-        emailTextField.anchor(top: nameTextField.bottomAnchor, left: nameTextField.leftAnchor, right: nameTextField.rightAnchor, paddingTop: K.verticalSpace)
-        
-        cancelButton.setWidth(view.frame.width*0.25)
-        saveButton.setWidth(view.frame.width*0.25)
-        let stackView = UIStackView(arrangedSubviews: [cancelButton, saveButton])
-        stackView.axis = .horizontal
-        stackView.distribution = .fillEqually
-        stackView.spacing = 40
-        blurredView.contentView.addSubview(stackView)
-        stackView.centerX(inView: blurredView, topAnchor: emailTextField.bottomAnchor, paddingTop: K.verticalSpace)
-        
-        
-//        blurredView.bottomAnchor.constraint(equalTo: stackView.bottomAnchor, constant: K.placeholderInsets).isActive = true
-    }
-    
     
     private func setupStreams(){
         
@@ -219,6 +340,63 @@ class SettingVC: UIViewController {
             self.nameTextField.resignFirstResponder()
             self.emailTextField.resignFirstResponder()
         }.disposed(by: disposeBag)
+        
+    }
+    
+    
+    
+    override func viewDidLayoutSubviews() {
+        super.viewDidLayoutSubviews()
+        
+        let floatingPlayerHeight = view.frame.width*K.floatingPlayerWidthMultiplier/16*9
+        
+        playerPlaceholderView.anchor(top: view.safeAreaLayoutGuide.topAnchor, left: view.leftAnchor, right: view.rightAnchor, height: floatingPlayerHeight+K.floatingPlayerTopBottomInsets*2)
+        
+        
+        let inset = view.frame.width*(1-K.chartCellWidthMultiplier)/2
+        imageContainerView.anchor(top: playerPlaceholderView.bottomAnchor, left: view.leftAnchor, bottom: view.bottomAnchor, right: view.rightAnchor, paddingTop: inset)
+        bgImageView.fillSuperview()
+        
+        dummySecondaryBackgroundView.anchor(top: playerPlaceholderView.bottomAnchor, left: view.leftAnchor, bottom: view.bottomAnchor, right: view.rightAnchor)
+        
+        blurredView.anchor(top: playerPlaceholderView.bottomAnchor, left: view.leftAnchor, bottom: view.bottomAnchor, right: view.rightAnchor, paddingTop: inset)
+        
+        providerInfoLabel.anchor(top: blurredView.topAnchor, left: blurredView.leftAnchor, right: blurredView.rightAnchor, paddingTop: K.placeholderInsets, paddingLeft: K.placeholderInsets, paddingRight: K.placeholderInsets)
+        
+//        dateLabel.anchor(right: blurredView.rightAnchor, paddingRight: K.placeholderInsets)
+//        dateLabel.firstBaselineAnchor.constraint(equalTo: providerInfoLabel.firstBaselineAnchor).isActive = true
+        
+        if loginProvider != .anonymous{  //anonymous以外
+            nameTextField.anchor(top: providerInfoLabel.bottomAnchor, left: blurredView.leftAnchor, right: blurredView.rightAnchor, paddingTop: 16, paddingLeft: K.placeholderInsets, paddingRight: K.placeholderInsets)
+            
+            emailTextField.anchor(top: nameTextField.bottomAnchor, left: nameTextField.leftAnchor, right: nameTextField.rightAnchor, paddingTop: K.verticalSpace)
+            
+            cancelButton.setWidth(view.frame.width*0.25)
+            saveButton.setWidth(view.frame.width*0.25)
+            let stackView = UIStackView(arrangedSubviews: [cancelButton, saveButton])
+            stackView.axis = .horizontal
+            stackView.distribution = .fillEqually
+            stackView.spacing = 40
+            blurredView.contentView.addSubview(stackView)
+            stackView.centerX(inView: blurredView, topAnchor: emailTextField.bottomAnchor, paddingTop: K.verticalSpace)
+            
+        }else{  //anonymousの時のみ
+            signUpButton.anchor(top: providerInfoLabel.bottomAnchor, left: blurredView.leftAnchor, right: blurredView.rightAnchor, paddingTop: 16, paddingLeft: K.placeholderInsets, paddingRight: K.placeholderInsets)
+            signUpButtonImageView.setDimensions(height: 23, width: 23)
+            signUpButtonImageView.centerXAnchor.constraint(equalTo: facebookImageView.centerXAnchor).isActive = true
+            signUpButtonImageView.centerY(inView: signUpButton)
+            
+            facebookButton.anchor(top: signUpButton.bottomAnchor, left: signUpButton.leftAnchor, right: signUpButton.rightAnchor, paddingTop: K.verticalSpace)
+            
+            facebookImageView.setDimensions(height: 20, width: 20)
+            facebookImageView.rightAnchor.constraint(equalTo: facebookButton.titleLabel!.leftAnchor,constant: -15).isActive = true
+            facebookImageView.centerY(inView: facebookButton)
+            
+            twitterButton.anchor(top: facebookButton.bottomAnchor, left: signUpButton.leftAnchor, right: signUpButton.rightAnchor, paddingTop: K.verticalSpace)
+            twitterImageView.setDimensions(height: 20, width: 20)
+            twitterImageView.centerXAnchor.constraint(equalTo: facebookImageView.centerXAnchor).isActive = true
+            twitterImageView.centerY(inView: twitterButton)
+        }
     }
     
     
@@ -323,9 +501,94 @@ class SettingVC: UIViewController {
     }
     
     
-    @objc func logoutButtonPressed(){
+    @objc private func signUpButtonTapped(){
+        
+        let vc = SignUpFromAnonymousVC()
+        vc.delegate = self
+        let nav = UINavigationController(rootViewController: vc)
+        present(nav, animated: true, completion: { [weak self] in
+            guard let self = self else {return}
+            self.signUpButtonImageView.alpha = 1.0
+        })
+    }
+    
+    func getCredentialForPasswordSignIn(name: String, email: String, password: String){  //delegateで呼ばれる
+        hud.show(in: self.view)
+        let credential = EmailAuthProvider.credential(withEmail: email, password: password)
+        guard let uid = Auth.auth().currentUser?.uid else {return}
+        firestoreService.saveUserInfoUpdatingFromAnonymous(uid: uid, name: name, email: email) {[weak self] (error) in
+            guard let self = self else{return}
+            if let _ = error{
+                let alert = AlertService(vc: self)
+                alert.showSimpleAlert(title: "Error occured. Please try it again later.Sorry!", message: "", style: .alert)
+                return
+            }
+            self.linkAccounts(credential: credential)
+        }
+    }
+    
+    @objc private func facebookButtonTapped(){
+        hud.show(in: self.view)
+        facebookLoginService.logUserInFacebook(permissions: [.publicProfile,.email], vc: self) { [weak self](error) in
+            guard let self = self else{return}
+            self.facebookImageView.alpha = 1.0
+            if let error = error{
+                self.hud.dismiss()
+                let alert = AlertService(vc: self)
+                alert.showSimpleAlert(title: "Facebookでの承認が失敗しました:\(error.localizedDescription)", message: "", style: .alert)
+                return
+            }
+            //FB側からのアクセストークンはこの時点でゲット済み
+            guard let authenticationToken = AccessToken.current?.tokenString else { self.hud.dismiss(); return }
+            let credential = FacebookAuthProvider.credential(withAccessToken: authenticationToken)
+            self.linkAccounts(credential: credential)
+        }
+    }
+    
+    @objc private func twitterButtonTapped(){
+        hud.show(in: self.view)
+        twitterProvider.getCredentialWith(nil) { [weak self] credential, error in
+            guard let self = self else{return}
+            self.twitterImageView.alpha = 1.0
+            if let error = error{
+                self.hud.dismiss()
+                print("DEBUG: ログインエラーです \(error.localizedDescription)")
+                let alert = AlertService(vc: self)
+                alert.showSimpleAlert(title: "Twitterでの承認が失敗しました:\(error.localizedDescription)", message: "", style: .alert)
+                return
+            }
+            guard let credential = credential else{print("DEBUG: credentialがnilです");self.hud.dismiss(); return}
+            self.linkAccounts(credential: credential)
+        }
+    }
+    
+    private func linkAccounts(credential: AuthCredential){
+        guard let currentUser = Auth.auth().currentUser else{hud.dismiss(); return}
+        currentUser.link(with: credential) { (authDataResult, error) in
+            self.hud.dismiss()
+            if let error = error{
+                print("DEBUG: Failed to link two accounts: \(error.localizedDescription)")
+                let alert = AlertService(vc: self)
+                alert.showSimpleAlert(title: "新規アカウント作成に失敗しました。:\(error.localizedDescription)", message: "", style: .alert)
+                return
+            }
+            guard let tabbar = self.tabBarController as? MainTabBarController else{return}
+            tabbar.authListener = nil  //これら２行はauthListenerを強引にinvokeさせ、画面を強制アップデートするため
+            tabbar.viewWillAppear(true)
+            NotificationCenter.default.post(name: NSNotification.Name(rawValue: "accountUpdated"), object: nil, userInfo: nil)
+        }
+    }
+    
+    @objc private func logoutButtonPressed(){
+        var text = ""
+        if loginProvider == .anonymous{
+            text = "If you log out, all your account information will be lost permanently. To keep your data, sign up or login from the buttons below. Are you still would like to log out?"
+        }else{
+            text = "Would you really like to log out?".localized()
+        }
+        
         let alert = AlertService(vc: self)
-        alert.showAlertWithCancelation(title: "Would you really like to log out?".localized(), message: "", style: .alert) {
+        alert.showAlertWithCancelation(title: text, message: "", style: .alert) {
             
             LoginManager().logOut()  //facebookのログアウト
             

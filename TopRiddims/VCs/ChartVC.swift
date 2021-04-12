@@ -17,14 +17,16 @@ class ChartVC: UIViewController{
     //MARK: - Initialization
     let userDefaults = UserDefaults.standard
     var user: User!
+    var loginProvider: LoginProvider!
     var uid: String{
         guard let currentUserId = Auth.auth().currentUser?.uid else {
             print("DEBUG: Error! uid is nil right now. Returning empty string for uid.."); return ""}
         return currentUserId
     }
-    init(user: User) {
+    init(user: User, loginProvider: LoginProvider) {
         super.init(nibName: nil, bundle: nil)
         self.user = user
+        self.loginProvider = loginProvider
         print("ChartVC was Initialized \(self)")
     }
     required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
@@ -113,6 +115,8 @@ class ChartVC: UIViewController{
         setupViews()
         setupObservers()
         handleFirstTimeAppLaunch()
+        
+        
     }
     
     
@@ -122,24 +126,24 @@ class ChartVC: UIViewController{
             if userList.contains(uid){
                 return
             }else{
-                var newUserList = userList
-                newUserList.append(uid)
-                showAlertForFirstLaunch(newUserList: newUserList)
+//                var newUserList = userList
+//                newUserList.append(uid)
+//                showAlertForFirstLaunch(newUserList: newUserList)
             }
         }else{
-            showAlertForFirstLaunch(newUserList: [uid])
+//            showAlertForFirstLaunch(newUserList: [uid])
         }
     }
     
     private func showAlertForFirstLaunch(newUserList: [String]){
-        let text = String(format: NSLocalizedString("Hi, %@! Welcome to TopRiddims. First, tap the plus button and select countries whose music chart you like to see.", comment: ""), user.name)
-        let alert = UIAlertController(title: text.localized(), message: "", preferredStyle: .alert)
-        let action = UIAlertAction(title: "ok", style: .default) { [weak self](action) in
-            guard let self = self else{return}
-            self.userDefaults.setValue(newUserList, forKey: "userList")
-        }
-        alert.addAction(action)
-        self.present(alert, animated: true, completion: nil)
+//        let text = String(format: NSLocalizedString("Hi, %@! Welcome to TopRiddims. First, tap the plus button and select countries whose music chart you like to see.", comment: ""), user.name)
+//        let alert = UIAlertController(title: text.localized(), message: "", preferredStyle: .alert)
+//        let action = UIAlertAction(title: "ok", style: .default) { [weak self](action) in
+//            guard let self = self else{return}
+////            self.userDefaults.setValue(newUserList, forKey: "userList")  //テストのためとりあえずここはコメントアウト
+//        }
+//        alert.addAction(action)
+//        self.present(alert, animated: true, completion: nil)
     }
     
     
@@ -171,6 +175,8 @@ class ChartVC: UIViewController{
     override func viewWillAppear(_ animated: Bool) {  //毎回このタブに移る時にreloadDataしてcollectionViewの表示をアップデートする
         super.viewWillAppear(true)
         chartCollectionView.reloadData()
+        
+        
     }
     deinit {
         print("ChartVC is being deinitialized \(self)")

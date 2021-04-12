@@ -14,6 +14,37 @@ enum CustomAPIError: Error{
 
 class AuthService{
     
+    func handleAnonymousLogIn(completion: @escaping (Error?) -> Void){
+        
+        Auth.auth().signInAnonymously {(authDataResult, error) in
+            if let error = error{
+                print("DEBUG: Error occured siging in Anonymously via Firebase Auth: \(error.localizedDescription)")
+                completion(error)
+                return
+            }
+            guard let uid = authDataResult?.user.uid else {
+                print("DEBUG: Error occured siging in Anonymously via Firebase Auth. AuthResult is Nil!!")
+                completion(CustomAPIError.authResultIsNil)
+                return
+            }
+            let data: [String: Any] = ["uid": uid,
+                                       "name": "",
+                                       "email": "",
+                                       "isNewUser": true,
+                                       "registrationDate": Timestamp(),
+                                       "lastLogInDate": Timestamp()]
+            
+            K.FSCollectionUsers.document(uid).setData(data) { (error) in
+                if let error = error{
+                    print("DEBUG: Failed to save userData in Firestore: \(error.localizedDescription)")
+                    completion(error)
+                }
+                completion(nil)
+            }
+        }
+   }
+    
+    
     //新規登録。allChartDataは未タッチだが、これはUserをMainTabBarで作る時に、空の物が生成される。
     func createUser(name: String, email: String, password: String, completion: @escaping (Error?) -> Void){
         

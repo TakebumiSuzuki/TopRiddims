@@ -30,6 +30,8 @@ class LoginVC: UIViewController{
     }()
     
     //MARK: - UI Elements
+    
+    
     private let imageContainerView: UIView = {
         let view = UIView()
         view.backgroundColor = .systemBackground
@@ -65,6 +67,32 @@ class LoginVC: UIViewController{
         view.clipsToBounds = true
         view.backgroundColor = .black
         view.alpha = 0.5
+        return view
+    }()
+    
+    private let AnonymousLabel: UILabel = {
+       let lb = UILabel()
+        lb.font = UIFont.systemFont(ofSize: 26, weight: .light)
+        lb.textColor = UIColor.white.withAlphaComponent(0.9)
+        lb.textAlignment = .center
+        lb.text = "New to the app?".localized()
+        lb.adjustsFontSizeToFitWidth = true
+        return lb
+    }()
+    
+    private lazy var AnonymousButton: CustomButton = {
+        let bn = CustomButton(type: .system)
+        
+        bn.backgroundColor = .blue
+        bn.setUp(title: "Try it without sign up!".localized())
+        bn.alpha = 0.8
+        bn.addTarget(self, action: #selector(anonymousButtonTapped), for: .touchUpInside)
+        return bn
+    }()
+    
+    private let seperator: UIView = {
+        let view = UIView()
+        view.backgroundColor = UIColor.white.withAlphaComponent(0.9)
         return view
     }()
     
@@ -194,6 +222,9 @@ class LoginVC: UIViewController{
         view.addSubview(clearScrollingView)
         clearScrollingView.addSubview(clearPlaceholderView)
         clearPlaceholderView.addSubview(darkView)
+        clearPlaceholderView.addSubview(AnonymousLabel)
+        clearPlaceholderView.addSubview(AnonymousButton)
+        clearPlaceholderView.addSubview(seperator)
         clearPlaceholderView.addSubview(letsLabel)
         clearPlaceholderView.addSubview(emailTextField)
         clearPlaceholderView.addSubview(passwordTextField)
@@ -216,18 +247,27 @@ class LoginVC: UIViewController{
         
         clearPlaceholderView.anchor(left: clearScrollingView.leftAnchor, right: clearScrollingView.rightAnchor, paddingLeft: K.placeholderLeftRightPadding, paddingRight: K.placeholderLeftRightPadding)
         
-        letsLabel.anchor(top: clearPlaceholderView.topAnchor, left: clearPlaceholderView.leftAnchor, right: clearPlaceholderView.rightAnchor, paddingTop: K.placeholderInsets-5, paddingLeft: K.placeholderInsets, paddingRight: K.placeholderInsets)
+        
+        AnonymousLabel.anchor(top: clearPlaceholderView.topAnchor, left: clearPlaceholderView.leftAnchor, right: clearPlaceholderView.rightAnchor, paddingTop: K.placeholderInsets-5, paddingLeft: K.placeholderInsets, paddingRight: K.placeholderInsets)
+        
+        AnonymousButton.anchor(top: AnonymousLabel.bottomAnchor, left: clearPlaceholderView.leftAnchor, right: clearPlaceholderView.rightAnchor, paddingTop: K.verticalSpace, paddingLeft: K.placeholderInsets, paddingRight: K.placeholderInsets)
+        
+        seperator.anchor(top: AnonymousButton.bottomAnchor, left: AnonymousButton.leftAnchor, right: AnonymousButton.rightAnchor, paddingTop: K.verticalSpace, height: 1)
         
         
-        emailTextField.anchor(top: letsLabel.bottomAnchor, left: clearPlaceholderView.leftAnchor, right: clearPlaceholderView.rightAnchor, paddingTop: K.verticalSpace, paddingLeft: K.placeholderInsets, paddingRight: K.placeholderInsets)
         
-        passwordTextField.anchor(top: emailTextField.bottomAnchor, left: emailTextField.leftAnchor, right: emailTextField.rightAnchor, paddingTop: K.verticalSpace)
-        
-        
-        forgotPasswordButton.anchor(top: passwordTextField.bottomAnchor, right: emailTextField.rightAnchor, paddingTop: 0, paddingRight: 0)
+        letsLabel.anchor(top: seperator.bottomAnchor, left: AnonymousButton.leftAnchor, right: AnonymousButton.rightAnchor, paddingTop: K.verticalSpace, paddingLeft: K.placeholderInsets, paddingRight: K.placeholderInsets)
         
         
-        loginButton.anchor(top: forgotPasswordButton.bottomAnchor, left: emailTextField.leftAnchor, right: emailTextField.rightAnchor, paddingTop: 3)
+        emailTextField.anchor(top: letsLabel.bottomAnchor, left: AnonymousButton.leftAnchor, right: AnonymousButton.rightAnchor, paddingTop: K.verticalSpace)
+        
+        passwordTextField.anchor(top: emailTextField.bottomAnchor, left: AnonymousButton.leftAnchor, right: AnonymousButton.rightAnchor, paddingTop: K.verticalSpace)
+        
+        
+        forgotPasswordButton.anchor(top: passwordTextField.bottomAnchor, right: AnonymousButton.rightAnchor, paddingTop: 0, paddingRight: 0)
+        
+        
+        loginButton.anchor(top: forgotPasswordButton.bottomAnchor, left: AnonymousButton.leftAnchor, right: AnonymousButton.rightAnchor, paddingTop: 3)
         
         connectLabel.centerX(inView: clearPlaceholderView, topAnchor: loginButton.bottomAnchor, paddingTop: K.verticalSpace)
         
@@ -283,6 +323,20 @@ class LoginVC: UIViewController{
         navigationController?.pushViewController(vc, animated: true)
     }
     
+    //MARK: - Firebase AnonymousLogin
+    @objc func anonymousButtonTapped(){
+        
+        hud.show(in: self.view)
+        authService.handleAnonymousLogIn { (error) in
+            self.hud.dismiss()
+            if error != nil {
+                let alert = AlertService(vc: self)
+                alert.showSimpleAlert(title: "Error occured please try later agin. Sorry!", message: "", style: .alert)
+                return
+            }
+            //アノニマスログイン成功。何もしなくて良いかと。
+        }
+    }
     
     //MARK: - Firebase 通常のLogin
     @objc private func loginButtonTapped(){
