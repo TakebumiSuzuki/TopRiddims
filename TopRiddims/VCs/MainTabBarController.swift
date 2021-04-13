@@ -69,7 +69,8 @@ class MainTabBarController: UITabBarController {
     }()
     
     private var plusButtonCoachMarkVC: PlusButtonCoachMarkVC?
-    
+    private var mapPageCoachMarkVC: MapPageCoachMarkVC?
+    private var afterFetchingChartCoachMarkVC: AfterFetchingChartCoachMarkVC?
     var isFirstTimeLaunch: Bool = false
     
     
@@ -89,16 +90,28 @@ class MainTabBarController: UITabBarController {
 //        }
         NotificationCenter.default.addObserver(forName: NSNotification.Name("ChartVCCoachMark"), object: nil, queue: nil) { [weak self] (notification) in
             guard let self = self else{return}
+            
             let alert = UIAlertController(title: "Welcome to TopRiddims!! First let's choose countries from a map to get music charts for.", message: "", preferredStyle: .alert)
             let action = UIAlertAction(title: "ok", style: .default) { (action) in
-                self.plusButtonCoachMarkVC = PlusButtonCoachMarkVC()
-                self.plusButtonCoachMarkVC!.alpha = 0.4
+                guard let info = notification.userInfo else{return}
+                guard let frameInWindow = info["frameInfo"] as? CGRect else{return}
+                self.plusButtonCoachMarkVC = PlusButtonCoachMarkVC(frame: frameInWindow)
                 self.present(self.plusButtonCoachMarkVC!, animated: true, completion: nil)
             }
             alert.addAction(action)
             self.present(alert, animated: true, completion: nil)
         }
+        
+        NotificationCenter.default.addObserver(forName: NSNotification.Name("AfterFetchingChartCoachMarkVC"), object: nil, queue: nil) { [weak self] (notification) in
+            guard let self = self else{return}
+            
+            guard let info = notification.userInfo else{return}
+            guard let centerPointsInWindow = info["centerPointsInfo"] as? [CGPoint] else{return}
+            self.afterFetchingChartCoachMarkVC = AfterFetchingChartCoachMarkVC(centerPoints: centerPointsInWindow)
+            self.present(self.afterFetchingChartCoachMarkVC!, animated: true, completion: nil)
+        }
     }
+    
     
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(true)

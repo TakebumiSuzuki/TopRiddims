@@ -43,6 +43,8 @@
 		0C8A313D2602021E003AF166 /* ChartCollectionFooterView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0C8A313C2602021E003AF166 /* ChartCollectionFooterView.swift */; };
 		0C8A314526020DFC003AF166 /* WebpageScraper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0C8A314426020DFC003AF166 /* WebpageScraper.swift */; };
 		0C8A314826020E52003AF166 /* Song.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0C8A314726020E52003AF166 /* Song.swift */; };
+		0C99DC2F2625694E00DB09AC /* MapPageCoachMarkVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0C99DC2E2625694E00DB09AC /* MapPageCoachMarkVC.swift */; };
+		0C99DC322625A99C00DB09AC /* AfterFetchingChartCoachMarkVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0C99DC312625A99C00DB09AC /* AfterFetchingChartCoachMarkVC.swift */; };
 		0CABD1722614C8670093F97E /* ValidationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0CABD1712614C8660093F97E /* ValidationService.swift */; };
 		0CABD1752614C8D40093F97E /* Extension + String.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0CABD1742614C8D40093F97E /* Extension + String.swift */; };
 		0CAC7E0D2605CCFE00582E3A /* AlertService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0CAC7E0C2605CCFE00582E3A /* AlertService.swift */; };
@@ -94,6 +96,8 @@
 		0C8A313C2602021E003AF166 /* ChartCollectionFooterView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChartCollectionFooterView.swift; sourceTree = "<group>"; };
 		0C8A314426020DFC003AF166 /* WebpageScraper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebpageScraper.swift; sourceTree = "<group>"; };
 		0C8A314726020E52003AF166 /* Song.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Song.swift; sourceTree = "<group>"; };
+		0C99DC2E2625694E00DB09AC /* MapPageCoachMarkVC.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MapPageCoachMarkVC.swift; sourceTree = "<group>"; };
+		0C99DC312625A99C00DB09AC /* AfterFetchingChartCoachMarkVC.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AfterFetchingChartCoachMarkVC.swift; sourceTree = "<group>"; };
 		0CABD1712614C8660093F97E /* ValidationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ValidationService.swift; sourceTree = "<group>"; };
 		0CABD1742614C8D40093F97E /* Extension + String.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Extension + String.swift"; sourceTree = "<group>"; };
 		0CAC7E0C2605CCFE00582E3A /* AlertService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlertService.swift; sourceTree = "<group>"; };
@@ -124,6 +128,8 @@
 			isa = PBXGroup;
 			children = (
 				0C204D982621666600B5AA62 /* PlusButtonCoachMarkVC.swift */,
+				0C99DC2E2625694E00DB09AC /* MapPageCoachMarkVC.swift */,
+				0C99DC312625A99C00DB09AC /* AfterFetchingChartCoachMarkVC.swift */,
 			);
 			path = CoachMarks;
 			sourceTree = "<group>";
@@ -402,8 +408,10 @@
 				0C62B8B025FE8F7300A203B2 /* SceneDelegate.swift in Sources */,
 				0C68F604260F5BAB005BC185 /* Extension + UIImageView.swift in Sources */,
 				0CB575682601C9E500DE22F9 /* Extension + UIView.swift in Sources */,
+				0C99DC322625A99C00DB09AC /* AfterFetchingChartCoachMarkVC.swift in Sources */,
 				0CAC7E0D2605CCFE00582E3A /* AlertService.swift in Sources */,
 				0C204D992621666600B5AA62 /* PlusButtonCoachMarkVC.swift in Sources */,
+				0C99DC2F2625694E00DB09AC /* MapPageCoachMarkVC.swift in Sources */,
 				0C62B8C525FE919F00A203B2 /* MainTabBarController.swift in Sources */,
 				0C68F613260FBDFE005BC185 /* FacebookLoginService.swift in Sources */,
 				0C62B8CA25FE930900A203B2 /* ChartVC.swift in Sources */,

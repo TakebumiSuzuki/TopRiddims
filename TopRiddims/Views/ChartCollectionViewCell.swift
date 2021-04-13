@@ -56,6 +56,8 @@ class ChartCollectionViewCell: UICollectionViewCell {
     var currentPageIndexNum: Int = 0{ //videoCollectionViewの中でいくつめ(順位)のビデオを中央前面に出すか
         didSet{
             setLabelInfo()
+            leftArrow.isHidden = currentPageIndexNum == 0 ? true : false
+            rightArrow.isHidden = currentPageIndexNum == songs.count-1 ? true : false
 //            videoCollectionView.reloadData()  //ここにreloadDataを入れると表示がカクツク
         }
     }
@@ -129,7 +131,7 @@ class ChartCollectionViewCell: UICollectionViewCell {
         return lb
     }()
     
-    private lazy var checkButton: UIButton = {
+    lazy var checkButton: UIButton = {  //spotlightで使うのでprivateはつけない
         let bn = UIButton(type: .system)
         let config = UIImage.SymbolConfiguration(pointSize: 18, weight: .thin, scale: .medium)
         let image = UIImage(systemName: "checkmark.circle", withConfiguration: config)
@@ -139,7 +141,7 @@ class ChartCollectionViewCell: UICollectionViewCell {
         return bn
     }()
     
-    private lazy var heartButton: UIButton = {
+    lazy var heartButton: UIButton = { //spotlightで使うのでprivateはつけない
         let bn = UIButton(type: .system)
         let config = UIImage.SymbolConfiguration(pointSize: 18, weight: .thin, scale: .medium)
         let image = UIImage(systemName: "suit.heart", withConfiguration: config)

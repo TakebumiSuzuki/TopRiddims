@@ -58,19 +58,6 @@ class MapVC: UIViewController{
         super.viewDidLoad()
         setupNav()
         setupViews()
-        checkFirstTimeLaunchOrNot()
-    }
-    
-    
-    private func checkFirstTimeLaunchOrNot(){
-        
-        guard let tabBar = presentingViewController as? MainTabBarController else{return}
-        if tabBar.isFirstTimeLaunch{
-//            NotificationCenter.default.post(name: Notification.Name.init("ChartVCCoachMark"), object: nil, userInfo: nil)
-            let plusButtonCoachMarkVC = PlusButtonCoachMarkVC()
-            plusButtonCoachMarkVC.alpha = 0.3
-            self.present(plusButtonCoachMarkVC, animated: true, completion: nil)
-        }
     }
     
     
@@ -148,10 +135,9 @@ class MapVC: UIViewController{
             case .guadeloupe:
                 box.anchor(top: mapImageView.topAnchor, right: mapImageView.rightAnchor, paddingTop: mapHeight*0.58, paddingRight: mapWidth*0.16)
             }
-        
         }
-        
     }
+    
     private func fillCheckButtons(){
         var countries = [String]()
         allChartData.forEach{ countries.append($0.country) } //allChartDataから国名だけ取り出したcountries arrayを作る
@@ -161,6 +147,38 @@ class MapVC: UIViewController{
                 selectedCountries.append($0.countryName)
             }
         }
+    }
+    
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(true)
+        handleMapVCSpotlighting()
+    }
+    
+    private var shouldShowSpotlights = true //spotlight表示の無限ループに陥らないためのスイッチ
+    
+    private func handleMapVCSpotlighting(){
+        //詳細不明だがpresentingVCで得られるのはnavigationControllerを飛び越えて、大元のtabBar
+        guard let tabBar = presentingViewController as? MainTabBarController else{return}
+        var centerPoints = [CGPoint]()
+        if tabBar.isFirstTimeLaunch && shouldShowSpotlights{
+            allCheckButtons.forEach { (button) in
+                if button.countryName == "Jamaica" || button.countryName == "Miami" || button.countryName == "Haiti" {
+                    guard let centerPointInWindow = button.checkBox.superview?.convert(button.checkBox.center, to: self.view) else{return}
+                    centerPoints.append(centerPointInWindow)
+                }
+            }
+            let rightBarButtonItem = self.navigationItem.rightBarButtonItem
+            if let rightBarButton = rightBarButtonItem?.value(forKey: "view") as? UIView {
+                        guard let centerPointInWindow = rightBarButton.superview?.convert(rightBarButton.center, to: self.view) else{return}
+                        centerPoints.append(centerPointInWindow)
+            }
+            let mapPageCoachMarkVC = MapPageCoachMarkVC(centerPoints: centerPoints)
+            present(mapPageCoachMarkVC, animated: true, completion: nil)
+            
+            shouldShowSpotlights = false
+            
+        }
+        
     }
     
     @objc private func cancelButtonTapped(){

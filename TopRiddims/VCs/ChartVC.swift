@@ -113,15 +113,9 @@ class ChartVC: UIViewController{
         setupNavBar()
         setupViews()
         setupObservers()
-        checkFirstTimeLaunchOrNot() //アカウント変更時には新しいVCへの入れ替えが起こるのでmainTabBarではなく、このVCを起点とさせる。
     }
     
-    private func checkFirstTimeLaunchOrNot(){
-        guard let tabBarController = tabBarController as? MainTabBarController else{return}
-        if tabBarController.isFirstTimeLaunch{
-            NotificationCenter.default.post(name: Notification.Name.init("ChartVCCoachMark"), object: nil, userInfo: nil)
-        }
-    }
+    
     
     
     private func setupNavBar(){
@@ -153,9 +147,52 @@ class ChartVC: UIViewController{
         super.viewWillAppear(true)
         chartCollectionView.reloadData()
         
-        
+    }
+    override func viewDidAppear(_ animated: Bool) {  //footerViewのdequeueはviewWillAppearではtoo earlyなようなのでここへ。
+        super.viewDidAppear(true)
+        handlePlusButtonSpotlighting()
     }
     
+    private var shouldShowPlusButtonSpotlight = true //spotlight表示の無限ループに陥らないためのスイッチ
+    var shouldShowAfterFetchingChartSpotlight = true
+    private func handlePlusButtonSpotlighting(){
+        
+        //アカウント変更時には新しいVCへの入れ替えが起こるのでmainTabBarではなく、このVCを起点とさせる。
+        guard let tabBarController = tabBarController as? MainTabBarController else{return}
+        if tabBarController.isFirstTimeLaunch && shouldShowPlusButtonSpotlight{
+            guard user.allChartData.count == 0 else{return} //plusボタンが見えないと次の行の[0]でクラッシュするのでここでそうなる可能性をゼロにしている
+            guard let footerView = chartCollectionView.visibleSupplementaryViews(ofKind: UICollectionView.elementKindSectionFooter)[0] as? ChartCollectionFooterView else{return}
+            guard let frameInWindow = footerView.plusButton.superview?.convert(footerView.plusButton.frame, to: nil) else{return}
+            
+           NotificationCenter.default.post(name: Notification.Name.init("ChartVCCoachMark"),
+                                           object: nil, userInfo: ["frameInfo" : frameInWindow])
+            shouldShowPlusButtonSpotlight = false
+        }
+    }
+    
+    private func handleSpotlightingAfterFetchingChart(){
+        DispatchQueue.main.async { [weak self] in  //globalキューから呼ばれるのでこれがないとエラーになる。
+            guard let self = self else{return}
+            guard let tabBarController = self.tabBarController as? MainTabBarController else{return}
+            if tabBarController.isFirstTimeLaunch && self.shouldShowAfterFetchingChartSpotlight{
+                
+                var visibleIndexPaths = self.chartCollectionView.indexPathsForVisibleItems
+                visibleIndexPaths.sort { (i1, i2) -> Bool in return i1.row < i2.row }
+                guard let cell = self.chartCollectionView.cellForItem(at: visibleIndexPaths[0]) as? ChartCollectionViewCell else{return}
+                guard let heartButtonCenter = cell.heartButton.superview?.convert(cell.heartButton.center, to: nil) else{return}
+                guard let checkButtonCenter = cell.checkButton.superview?.convert(cell.checkButton.center, to: nil) else{return}
+                let rightBarButtonItem = self.navigationItem.rightBarButtonItem
+                guard let rightBarButton = rightBarButtonItem?.value(forKey: "view") as? UIView else{return}
+                guard let rightBarButtonCenter = rightBarButton.superview?.convert(rightBarButton.center, to: nil) else{return}
+                
+               let centerPoints = [heartButtonCenter, checkButtonCenter, rightBarButtonCenter]
+                
+                NotificationCenter.default.post(name: Notification.Name.init("AfterFetchingChartCoachMarkVC"),
+                                               object: nil, userInfo: ["centerPointsInfo" : centerPoints])
+                self.shouldShowAfterFetchingChartSpotlight = false
+            }
+        }
+    }
     
     deinit {
         print("ChartVC is being deinitialized \(self)")
@@ -304,6 +341,13 @@ extension ChartVC: MapVCDelegate{
             return
         }
         
+        //ここで初回起動時のspotlight表示一連の流れの中でのalertを表示する
+        guard let tabBarController = tabBarController as? MainTabBarController else{return}
+        if tabBarController.isFirstTimeLaunch {
+            let alert = AlertService(vc: self)
+            alert.showSimpleAlert(title: "Now gathering chart data. It usually takes 7-10 seconds. Please wait..", message: "", style: .alert)
+        }
+        
         //単純なString配列のnewEntriesを新しいデータ構造に変換し、allChartDataの末尾に加える
         var newCountryData = [(country: String, songs:[Song], updated: Timestamp)]()
         newEntries.forEach{  //国名のみ、その他はsample1曲のみのチャートデータを新しい国ごとに作っている。
@@ -389,6 +433,7 @@ extension ChartVC: ScrapingManagerDelegate{
     
     //以下の2つのうちどちらかが必ず呼ばれる。
     func fetchingDataAllDone(){
+        self.handleSpotlightingAfterFetchingChart()
         scrapingManager = nil //これによりfetching関連で作ったインスタンスを消去
         reloadingOnOff.toggle()
         stopAllLoaders()
@@ -399,6 +444,7 @@ extension ChartVC: ScrapingManagerDelegate{
                 //ここでエラーになった場合でも成功した場合でも特にユーザーに伝える必要はないかと。このまま何もせずにok
             }
             self.globalDispatchGroup = nil
+            
         }
     }
     

@@ -18,7 +18,7 @@ class ChartCollectionFooterView: UICollectionReusableView{
     
     weak var delegate: ChartCollectionFooterViewDelegate?
     
-    private lazy var plusButton: UIButton = {
+    lazy var plusButton: UIButton = {  //spotlightのためにframeをChartVCからゲットするのでprivateは使わない
         let bn = UIButton(type: .system)
         let config = UIImage.SymbolConfiguration(pointSize: K.ChartCollectionFooterPlusPointSize, weight: .ultraLight, scale: .default)
         let plusImage = UIImage(systemName: "plus.circle", withConfiguration: config)
@@ -31,12 +31,12 @@ class ChartCollectionFooterView: UICollectionReusableView{
     
     override init(frame: CGRect) {
         super.init(frame: frame)
-        
         backgroundColor = .secondarySystemBackground
         self.addSubview(plusButton)
         
         plusButton.centerX(inView: self, topAnchor: self.topAnchor, paddingTop: 17)
         plusButton.layer.cornerRadius = plusButton.intrinsicContentSize.width / 2
+        
     }
     
     
