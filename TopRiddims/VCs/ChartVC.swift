@@ -15,7 +15,6 @@ import Firebase
 class ChartVC: UIViewController{
     
     //MARK: - Initialization
-    let userDefaults = UserDefaults.standard
     var user: User!
     var loginProvider: LoginProvider!
     var uid: String{
@@ -114,36 +113,14 @@ class ChartVC: UIViewController{
         setupNavBar()
         setupViews()
         setupObservers()
-        handleFirstTimeAppLaunch()
-        
-        
+        checkFirstTimeLaunchOrNot() //アカウント変更時には新しいVCへの入れ替えが起こるのでmainTabBarではなく、このVCを起点とさせる。
     }
     
-    
-    
-    private func handleFirstTimeAppLaunch(){
-        if let userList = userDefaults.array(forKey: "userList") as? [String]{
-            if userList.contains(uid){
-                return
-            }else{
-//                var newUserList = userList
-//                newUserList.append(uid)
-//                showAlertForFirstLaunch(newUserList: newUserList)
-            }
-        }else{
-//            showAlertForFirstLaunch(newUserList: [uid])
+    private func checkFirstTimeLaunchOrNot(){
+        guard let tabBarController = tabBarController as? MainTabBarController else{return}
+        if tabBarController.isFirstTimeLaunch{
+            NotificationCenter.default.post(name: Notification.Name.init("ChartVCCoachMark"), object: nil, userInfo: nil)
         }
-    }
-    
-    private func showAlertForFirstLaunch(newUserList: [String]){
-//        let text = String(format: NSLocalizedString("Hi, %@! Welcome to TopRiddims. First, tap the plus button and select countries whose music chart you like to see.", comment: ""), user.name)
-//        let alert = UIAlertController(title: text.localized(), message: "", preferredStyle: .alert)
-//        let action = UIAlertAction(title: "ok", style: .default) { [weak self](action) in
-//            guard let self = self else{return}
-////            self.userDefaults.setValue(newUserList, forKey: "userList")  //テストのためとりあえずここはコメントアウト
-//        }
-//        alert.addAction(action)
-//        self.present(alert, animated: true, completion: nil)
     }
     
     
@@ -178,6 +155,8 @@ class ChartVC: UIViewController{
         
         
     }
+    
+    
     deinit {
         print("ChartVC is being deinitialized \(self)")
     }

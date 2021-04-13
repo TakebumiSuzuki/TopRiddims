@@ -8,6 +8,7 @@
 import UIKit
 import M13Checkbox
 import Firebase
+import Gecco
 
 protocol MapVCDelegate: class{
     func newCountrySelectionDone(selectedCountries: [String])
@@ -57,7 +58,21 @@ class MapVC: UIViewController{
         super.viewDidLoad()
         setupNav()
         setupViews()
+        checkFirstTimeLaunchOrNot()
     }
+    
+    
+    private func checkFirstTimeLaunchOrNot(){
+        
+        guard let tabBar = presentingViewController as? MainTabBarController else{return}
+        if tabBar.isFirstTimeLaunch{
+//            NotificationCenter.default.post(name: Notification.Name.init("ChartVCCoachMark"), object: nil, userInfo: nil)
+            let plusButtonCoachMarkVC = PlusButtonCoachMarkVC()
+            plusButtonCoachMarkVC.alpha = 0.3
+            self.present(plusButtonCoachMarkVC, animated: true, completion: nil)
+        }
+    }
+    
     
     private func setupNav(){
         navigationItem.title = "Select Areas".localized()

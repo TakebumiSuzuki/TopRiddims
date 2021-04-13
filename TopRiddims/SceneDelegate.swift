@@ -19,7 +19,7 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         window?.rootViewController = MainTabBarController()
         window?.makeKeyAndVisible()
         
-        
+        window?.tintColor = UIColor(named: "Black_Yellow")  //これでUIAlertControllerのテキスト色を一括変更
         
         
         

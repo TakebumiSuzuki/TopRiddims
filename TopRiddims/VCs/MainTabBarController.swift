@@ -9,6 +9,7 @@ import UIKit
 import youtube_ios_player_helper
 import NVActivityIndicatorView
 import Firebase
+import Gecco
 //import FBSDKLoginKit
 
 
@@ -21,7 +22,8 @@ class MainTabBarController: UITabBarController {
     var uid: String!  //まずこれをゲットして、
     var user: User? //Userに代入。この中にはallChartDataも完全に含まれる。
     var loginProvider: LoginProvider!
-    
+    let userDefaults = UserDefaults.standard
+
     var allChartData = [(country: String, songs:[Song], updated: Timestamp)]()  //初期値はまっさらな空
     var likedSongs = [Song]()
     var currentTrackID: String?  //プレイヤー用
@@ -66,6 +68,10 @@ class MainTabBarController: UITabBarController {
         return spinner
     }()
     
+    private var plusButtonCoachMarkVC: PlusButtonCoachMarkVC?
+    
+    var isFirstTimeLaunch: Bool = false
+    
     
     
     //MARK: - ViewLifeCycles
@@ -81,6 +87,17 @@ class MainTabBarController: UITabBarController {
 //            alert.addAction(action)
 //
 //        }
+        NotificationCenter.default.addObserver(forName: NSNotification.Name("ChartVCCoachMark"), object: nil, queue: nil) { [weak self] (notification) in
+            guard let self = self else{return}
+            let alert = UIAlertController(title: "Welcome to TopRiddims!! First let's choose countries from a map to get music charts for.", message: "", preferredStyle: .alert)
+            let action = UIAlertAction(title: "ok", style: .default) { (action) in
+                self.plusButtonCoachMarkVC = PlusButtonCoachMarkVC()
+                self.plusButtonCoachMarkVC!.alpha = 0.4
+                self.present(self.plusButtonCoachMarkVC!, animated: true, completion: nil)
+            }
+            alert.addAction(action)
+            self.present(alert, animated: true, completion: nil)
+        }
     }
     
     override func viewWillAppear(_ animated: Bool) {
@@ -122,6 +139,7 @@ class MainTabBarController: UITabBarController {
             self.uid = uid
             self.dismiss(animated: true, completion: nil)
             self.selectedIndex = 0
+            self.determineFirstTimeLaunchOrNot()
             
             self.firestoreService.fetchUserInfoWithUid(uid: uid) { (result) in
                 switch result{
@@ -139,6 +157,13 @@ class MainTabBarController: UITabBarController {
             }
         }
         
+    }
+    
+    private func determineFirstTimeLaunchOrNot(){
+        if let userList = userDefaults.array(forKey: "userList") as? [String]{
+            if userList.contains(uid){ return }
+        }
+        isFirstTimeLaunch = true
     }
     
     override func viewDidLayoutSubviews() {
