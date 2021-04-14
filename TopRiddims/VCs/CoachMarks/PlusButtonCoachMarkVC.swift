@@ -10,6 +10,7 @@ import Gecco
 
 class PlusButtonCoachMarkVC: SpotlightViewController {
     
+    //MARK: - Initialization
     var frame: CGRect!
     init(frame: CGRect) {
         super.init(nibName: nil, bundle: nil)
@@ -18,10 +19,12 @@ class PlusButtonCoachMarkVC: SpotlightViewController {
     required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
+    deinit { print("PlusButtonCoachMarkVC is being deinitialized: \(self)") }
     
-    
+    //MARK: - Properties
     private var stepIndex: Int = 0
     
+    //MARK: - UI Elements
     private let arrowImageViewForSpotlight: UIImageView = {
         let config = UIImage.SymbolConfiguration(pointSize: 30, weight: .light, scale: .medium)
         let iv = UIImageView()
@@ -37,6 +40,7 @@ class PlusButtonCoachMarkVC: SpotlightViewController {
         return lb
     }()
     
+    //MARK: - ViewLifeCycles
     override func viewDidLoad() {
         super.viewDidLoad()
         self.alpha = 0.5
@@ -51,9 +55,10 @@ class PlusButtonCoachMarkVC: SpotlightViewController {
         super.viewDidLayoutSubviews()
         arrowImageViewForSpotlight.centerX(inView: self.view, topAnchor: self.view.topAnchor, paddingTop: frame.maxY+10)
         tapHereLabelForSpotlight.centerX(inView: self.view, topAnchor: arrowImageViewForSpotlight.bottomAnchor, paddingTop: 0)
-        
     }
     
+    
+    //MARK: - Methods
     func next(_ labelAnimated: Bool) {
         
         switch stepIndex{
@@ -66,10 +71,12 @@ class PlusButtonCoachMarkVC: SpotlightViewController {
         default:
             print("DEBUG: Error stepIndex is more than 2!")
         }
-        
         stepIndex += 1
     }
 }
+
+
+//MARK: - Delegate Methods
 
 extension PlusButtonCoachMarkVC: SpotlightViewControllerDelegate{
     func spotlightViewControllerWillPresent(_ viewController: SpotlightViewController, animated: Bool) {
@@ -77,19 +84,13 @@ extension PlusButtonCoachMarkVC: SpotlightViewControllerDelegate{
     }
     
     func spotlightViewControllerWillDismiss(_ viewController: SpotlightViewController, animated: Bool) {
-        
+        spotlightView.disappear()
     }
     
     func spotlightViewControllerTapped(_ viewController: SpotlightViewController, tappedSpotlight: SpotlightType?) {
-        spotlightView.disappear()
-        self.dismiss(animated: true, completion: nil)
-        
+        next(false)
     }
-    
-    
 }
 
 extension PlusButtonCoachMarkVC: SpotlightViewDelegate{
-    
-    
 }

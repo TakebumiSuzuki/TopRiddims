@@ -10,18 +10,22 @@ import Gecco
 
 class MapPageCoachMarkVC: SpotlightViewController {
     
+    //MARK: - Initialization
     var centerPoints: [CGPoint]!
     init(centerPoints: [CGPoint]) {
-        print("イニシャライズされました")
         super.init(nibName: nil, bundle: nil)
         self.centerPoints = centerPoints
     }
     required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
+    deinit { print("MapPageCoachMarkVC is being deinitialized: \(self)") }
     
+    
+    //MARK: - Properties
     private var stepIndex: Int = 0
     
+    //MARK: - UI Elements
     private var textLabel: UILabel = {
         let lb = UILabel()
         lb.text = "Select any countries/areas you like and tap Done button. Don't forget you can scroll this map horizontally!"
@@ -31,7 +35,7 @@ class MapPageCoachMarkVC: SpotlightViewController {
         return lb
     }()
     
-    
+    //MARK: - ViewLifeCycles
     override func viewDidLoad() {
         super.viewDidLoad()
         self.alpha = 0.6
@@ -46,6 +50,7 @@ class MapPageCoachMarkVC: SpotlightViewController {
     }
     
     
+    //MARK: - Methods
     func next(_ labelAnimated: Bool) {
         
         let doneButtonX = centerPoints[3].x
@@ -69,7 +74,7 @@ class MapPageCoachMarkVC: SpotlightViewController {
     }
 }
 
-
+//MARK: - DelegateMethods
 extension MapPageCoachMarkVC: SpotlightViewControllerDelegate{
     func spotlightViewControllerWillPresent(_ viewController: SpotlightViewController, animated: Bool) {
         next(false)
@@ -84,9 +89,6 @@ extension MapPageCoachMarkVC: SpotlightViewControllerDelegate{
     }
 }
 
-
 extension MapPageCoachMarkVC: SpotlightViewDelegate{
-    
-    
 }
 

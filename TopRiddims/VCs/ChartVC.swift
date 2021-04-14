@@ -15,11 +15,12 @@ import Firebase
 class ChartVC: UIViewController{
     
     //MARK: - Initialization
+    
+    var loginProvider: LoginProvider! //使っていないが念のためinjectしておく
     var user: User!
-    var loginProvider: LoginProvider!
     var uid: String{
         guard let currentUserId = Auth.auth().currentUser?.uid else {
-            print("DEBUG: Error! uid is nil right now. Returning empty string for uid.."); return ""}
+            print("DEBUG: Error! ChartVC's uid is nil! Returning empty string for uid.."); return ""}
         return currentUserId
     }
     init(user: User, loginProvider: LoginProvider) {
@@ -29,6 +30,7 @@ class ChartVC: UIViewController{
         print("ChartVC was Initialized \(self)")
     }
     required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
+    deinit { print("ChartVC is being deinitialized: \(self)") }
     
     
     //MARK: - Properties
@@ -42,12 +44,13 @@ class ChartVC: UIViewController{
     
     private var reloadingOnOff: Bool = false  //navBar内のreloadボタンの管理。これがOnの間はジェスチャーできないようにしている
     
-    private lazy var pageNumbers: [Int] = {
+    private lazy var pageNumbers: [Int] = { //国ごとのビデオランキング(ページ)を管理
         var array = [Int]()
         user.allChartData.forEach { _ in array.append(0) }
         return array
     }()
-    private lazy var countryRowsToShowLoader: [Bool] = { //チャートをフェッチする時の国ごとのローダー表示命令を管理
+    
+    private lazy var countryRowsToShowLoader: [Bool] = {  //チャートをfetchする時の国ごとのローダー表示命令を管理
         var array: [Bool] = []
         user.allChartData.forEach { _ in array.append(false) }
         return array
@@ -108,6 +111,7 @@ class ChartVC: UIViewController{
     
     
     //MARK: - View Life Cycles
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         setupNavBar()
@@ -115,12 +119,8 @@ class ChartVC: UIViewController{
         setupObservers()
     }
     
-    
-    
-    
     private func setupNavBar(){
         navigationItem.title = "Charts"
-        
         let rightButton = UIBarButtonItem()
         rightButton.customView = dummyButton
         dummyButton.addSubview(smallCircleImageView)
@@ -148,38 +148,54 @@ class ChartVC: UIViewController{
         chartCollectionView.reloadData()
         
     }
-    override func viewDidAppear(_ animated: Bool) {  //footerViewのdequeueはviewWillAppearではtoo earlyなようなのでここへ。
+    override func viewDidAppear(_ animated: Bool) {  //footerViewのdequeueはviewWillAppearではまだ早すぎるようなのでここへ。
         super.viewDidAppear(true)
         handlePlusButtonSpotlighting()
     }
     
+    //MARK: - Handling Spotlight 初回起動のコーチマーク関連
     private var shouldShowPlusButtonSpotlight = true //spotlight表示の無限ループに陥らないためのスイッチ
-    var shouldShowAfterFetchingChartSpotlight = true
-    private func handlePlusButtonSpotlighting(){
-        
-        //アカウント変更時には新しいVCへの入れ替えが起こるのでmainTabBarではなく、このVCを起点とさせる。
+    private var shouldShowAfterFetchingChartSpotlight = true //spotlight表示の無限ループに陥らないためのスイッチ
+    
+    private func handlePlusButtonSpotlighting(){  //一番最初のコーチマーク
+        //アカウント変更時には新しいVCへの総入れ替えが起こるのでmainTabBarではなく、このVCを起点とさせる。
         guard let tabBarController = tabBarController as? MainTabBarController else{return}
         if tabBarController.isFirstTimeLaunch && shouldShowPlusButtonSpotlight{
             guard user.allChartData.count == 0 else{return} //plusボタンが見えないと次の行の[0]でクラッシュするのでここでそうなる可能性をゼロにしている
             guard let footerView = chartCollectionView.visibleSupplementaryViews(ofKind: UICollectionView.elementKindSectionFooter)[0] as? ChartCollectionFooterView else{return}
             guard let frameInWindow = footerView.plusButton.superview?.convert(footerView.plusButton.frame, to: nil) else{return}
-            
-           NotificationCenter.default.post(name: Notification.Name.init("ChartVCCoachMark"),
-                                           object: nil, userInfo: ["frameInfo" : frameInWindow])
+            //このVC上でFooterのplusButtonのフレームを検出し、notificationでMainTabBar上からspotlightを起動
+            NotificationCenter.default.post(name: Notification.Name.init("ChartVCCoachMark"),
+                                            object: nil, userInfo: ["frameInfo" : frameInWindow])
             shouldShowPlusButtonSpotlight = false
         }
     }
     
-    private func handleSpotlightingAfterFetchingChart(){
+    private func handleSpotlightingAfterFetchingChart(){  //チャート取得完了後のコーチマーク
+        print(chartCollectionView.contentOffset.y)
         DispatchQueue.main.async { [weak self] in  //globalキューから呼ばれるのでこれがないとエラーになる。
             guard let self = self else{return}
             guard let tabBarController = self.tabBarController as? MainTabBarController else{return}
             if tabBarController.isFirstTimeLaunch && self.shouldShowAfterFetchingChartSpotlight{
-                
+                //この瞬間に表示されているcellの内、最も上にあるcellのリファレンスをゲットする
                 var visibleIndexPaths = self.chartCollectionView.indexPathsForVisibleItems
                 visibleIndexPaths.sort { (i1, i2) -> Bool in return i1.row < i2.row }
-                guard let cell = self.chartCollectionView.cellForItem(at: visibleIndexPaths[0]) as? ChartCollectionViewCell else{return}
-                guard let heartButtonCenter = cell.heartButton.superview?.convert(cell.heartButton.center, to: nil) else{return}
+                var cell: ChartCollectionViewCell
+                var heartButtonCenter: CGPoint
+                
+                guard let cellOfIndex0 = self.chartCollectionView.cellForItem(at: visibleIndexPaths[0]) as? ChartCollectionViewCell else{return}
+                cell = cellOfIndex0
+                guard let heartButtonCenterOfIndex0 = cell.heartButton.superview?.convert(cell.heartButton.center, to: nil) else{return}
+                heartButtonCenter = heartButtonCenterOfIndex0
+                
+                guard let centerPointInCollectionView = cell.heartButton.superview?.convert(cell.heartButton.center, to: self.chartCollectionView) else{return}
+                if centerPointInCollectionView.y-20 < self.chartCollectionView.contentOffset.y{
+                    guard let cellOfIndex1 = self.chartCollectionView.cellForItem(at: visibleIndexPaths[1]) as? ChartCollectionViewCell else{return}
+                    cell = cellOfIndex1
+                    guard let heartButtonCenterOfIndex1 = cell.heartButton.superview?.convert(cell.heartButton.center, to: nil) else{return}
+                    heartButtonCenter = heartButtonCenterOfIndex1
+                }
+                
                 guard let checkButtonCenter = cell.checkButton.superview?.convert(cell.checkButton.center, to: nil) else{return}
                 let rightBarButtonItem = self.navigationItem.rightBarButtonItem
                 guard let rightBarButton = rightBarButtonItem?.value(forKey: "view") as? UIView else{return}
@@ -192,10 +208,6 @@ class ChartVC: UIViewController{
                 self.shouldShowAfterFetchingChartSpotlight = false
             }
         }
-    }
-    
-    deinit {
-        print("ChartVC is being deinitialized \(self)")
     }
     
     
@@ -542,9 +554,9 @@ extension ChartVC: UICollectionViewDataSource{
         //順番が大切。songsの後にこのcurrentPageIndexを入れないとsongNameなど作成中にエラーが生じる。
         
         cell.videoCollectionView.scrollToItem(at: pageNumbers[indexPath.row], animated: false)
-        
         return cell
     }
+    
     func collectionView(_ collectionView: UICollectionView, viewForSupplementaryElementOfKind kind: String, at indexPath: IndexPath) -> UICollectionReusableView {
         switch kind{
         case UICollectionView.elementKindSectionFooter:

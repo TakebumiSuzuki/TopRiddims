@@ -25,6 +25,7 @@ class MapVC: UIViewController{
         self.allChartData = allChartData
     }
     required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
+    deinit { print("MapVC is being deinitialized: \(self)") }
     
     
     //MARK: - Properties
@@ -149,6 +150,8 @@ class MapVC: UIViewController{
         }
     }
     
+    //MARK: - Handling spotlighting コーチマーク関連
+    //spotlightのVCの表示はこのMapVCから直接行う(つまりNotificationでMainTabBarに送っていない)
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(true)
         handleMapVCSpotlighting()
@@ -157,7 +160,7 @@ class MapVC: UIViewController{
     private var shouldShowSpotlights = true //spotlight表示の無限ループに陥らないためのスイッチ
     
     private func handleMapVCSpotlighting(){
-        //詳細不明だがpresentingVCで得られるのはnavigationControllerを飛び越えて、大元のtabBar
+        //詳細不明だがpresentingVCメソッドで得られるのはnavigationControllerを飛び越えて、大元のtabBar
         guard let tabBar = presentingViewController as? MainTabBarController else{return}
         var centerPoints = [CGPoint]()
         if tabBar.isFirstTimeLaunch && shouldShowSpotlights{
@@ -169,18 +172,18 @@ class MapVC: UIViewController{
             }
             let rightBarButtonItem = self.navigationItem.rightBarButtonItem
             if let rightBarButton = rightBarButtonItem?.value(forKey: "view") as? UIView {
-                        guard let centerPointInWindow = rightBarButton.superview?.convert(rightBarButton.center, to: self.view) else{return}
-                        centerPoints.append(centerPointInWindow)
+                guard let centerPointInWindow = rightBarButton.superview?.convert(rightBarButton.center, to: self.view) else{return}
+                centerPoints.append(centerPointInWindow)
             }
             let mapPageCoachMarkVC = MapPageCoachMarkVC(centerPoints: centerPoints)
             present(mapPageCoachMarkVC, animated: true, completion: nil)
             
             shouldShowSpotlights = false
-            
         }
-        
     }
     
+    
+    //MARK: - Button Handlings
     @objc private func cancelButtonTapped(){
         dismiss(animated: true, completion: nil)
     }
@@ -193,19 +196,16 @@ class MapVC: UIViewController{
 //MARK: - CheckBox Delegate
 extension MapVC: MapCheckBoxDelegate{
     func checkButtonIsOn(_ checkBox: MapCheckBox) {
-//        let box = checkBox
-        print("checkButton ON")
         if !selectedCountries.contains(checkBox.countryName){
             selectedCountries.append(checkBox.countryName)
         }
     }
     func checkButtonIsOff(_ checkBox: MapCheckBox) {
-//        let box = checkBox
-        print("checkButton OFF")
         selectedCountries = selectedCountries.filter{ $0 != checkBox.countryName }
     }
 }
 
+//MARK: - UIWindowExtension
 extension UIWindow {  //上のsetupViewsの中で、scrollViewのcontentSizeを求めるのに必要。(NavBarの座標を求めるので)
     static var key: UIWindow? {
         if #available(iOS 13, *) {

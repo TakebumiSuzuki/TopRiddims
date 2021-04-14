@@ -12,21 +12,25 @@ import Firebase
 import Gecco
 //import FBSDKLoginKit
 
-
 class MainTabBarController: UITabBarController {
     
     //MARK: - Properties
     
     var authListener: AuthStateDidChangeListenerHandle!
     let firestoreService = FirestoreService()
-    var uid: String!  //まずこれをゲットして、
+    var uid: String!  //起動時まずこれをゲットして、
     var user: User? //Userに代入。この中にはallChartDataも完全に含まれる。
     var loginProvider: LoginProvider!
     let userDefaults = UserDefaults.standard
 
-    var allChartData = [(country: String, songs:[Song], updated: Timestamp)]()  //初期値はまっさらな空
+    var allChartData = [(country: String, songs:[Song], updated: Timestamp)]()  //初期値がまっさらな空配列を作っておく
     var likedSongs = [Song]()
     var currentTrackID: String?  //プレイヤー用
+    
+    private var plusButtonCoachMarkVC: PlusButtonCoachMarkVC?
+    private var afterFetchingChartCoachMarkVC: AfterFetchingChartCoachMarkVC?
+    var isFirstTimeLaunch: Bool = false
+    
     
     //MARK: - UI Components
     lazy var videoPlayer: YTPlayerView = {
@@ -68,17 +72,14 @@ class MainTabBarController: UITabBarController {
         return spinner
     }()
     
-    private var plusButtonCoachMarkVC: PlusButtonCoachMarkVC?
-    private var mapPageCoachMarkVC: MapPageCoachMarkVC?
-    private var afterFetchingChartCoachMarkVC: AfterFetchingChartCoachMarkVC?
-    var isFirstTimeLaunch: Bool = false
-    
-    
     
     //MARK: - ViewLifeCycles
     override func viewDidLoad() {
         super.viewDidLoad()
-        print("MainTabBarのViewDidLoad")
+        setupNotificationsForCoachMarks()
+        userDefaults.setValue([String](), forKey: "userList")
+        
+        
 //        NotificationCenter.default.addObserver(forName: NSNotification.Name("accountUpdated"), object: nil, queue: nil) { (notification) in
 //            print("alert Called")
 //            let alert = UIAlertController(title: "Your account has been updated.", message: "", preferredStyle: .alert)
@@ -88,10 +89,13 @@ class MainTabBarController: UITabBarController {
 //            alert.addAction(action)
 //
 //        }
+    }
+    
+    private func setupNotificationsForCoachMarks(){
         NotificationCenter.default.addObserver(forName: NSNotification.Name("ChartVCCoachMark"), object: nil, queue: nil) { [weak self] (notification) in
             guard let self = self else{return}
             
-            let alert = UIAlertController(title: "Welcome to TopRiddims!! First let's choose countries from a map to get music charts for.", message: "", preferredStyle: .alert)
+            let alert = UIAlertController(title: "Welcome to TopRiddims!! First let's choose countries from a map for music charts.", message: "", preferredStyle: .alert)
             let action = UIAlertAction(title: "ok", style: .default) { (action) in
                 guard let info = notification.userInfo else{return}
                 guard let frameInWindow = info["frameInfo"] as? CGRect else{return}
@@ -108,14 +112,22 @@ class MainTabBarController: UITabBarController {
             guard let info = notification.userInfo else{return}
             guard let centerPointsInWindow = info["centerPointsInfo"] as? [CGPoint] else{return}
             self.afterFetchingChartCoachMarkVC = AfterFetchingChartCoachMarkVC(centerPoints: centerPointsInWindow)
-            self.present(self.afterFetchingChartCoachMarkVC!, animated: true, completion: nil)
+            self.present(self.afterFetchingChartCoachMarkVC!, animated: true, completion: {
+                if let userList = self.userDefaults.array(forKey: "userList") as? [String]{
+                    var newList = userList
+                    newList.append(self.uid)
+                    self.userDefaults.setValue(newList, forKey: "userList")
+                }else{
+                    self.userDefaults.setValue([self.uid], forKey: "userList")
+                }
+            })
         }
     }
     
     
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(true)
-        print("MainTabBarのViewWillAppearです")
+        
         if authListener != nil {return} //この一文でログアウト→新規登録した時のListener重複を解決
         authListener = Auth.auth().addStateDidChangeListener { [weak self](auth, user) in
             guard let self = self else{return}
@@ -127,13 +139,12 @@ class MainTabBarController: UITabBarController {
                 let nav = UINavigationController(rootViewController: vc)
                 nav.modalPresentationStyle = .fullScreen
                 self.present(nav, animated: false, completion: nil)
-//                self.viewControllers = []
                 return
             }
             
             
             //ここでデータを全て初期化する必要ありuser/allCountryData。ここで一旦各Tabのビューコントローラを呼ぶべきか。。
-            print("Listenerがログインされた事を検知しました")
+            print("Listenerがユーザーのログイン済み状態を検知しました")
             if userIsAnonymous{
                 self.loginProvider = .anonymous
             }else{
@@ -169,7 +180,6 @@ class MainTabBarController: UITabBarController {
                 }
             }
         }
-        
     }
     
     private func determineFirstTimeLaunchOrNot(){
@@ -179,17 +189,7 @@ class MainTabBarController: UITabBarController {
         isFirstTimeLaunch = true
     }
     
-    override func viewDidLayoutSubviews() {
-        super.viewDidLayoutSubviews()
-    }
-    override func viewWillDisappear(_ animated: Bool) {
-        super.viewWillDisappear(true)
-//        print("Auth Listenerがdeinitされました")
-//        Auth.auth().removeStateDidChangeListener(authListener) //必要ない
-    }
-    deinit {
-        print("メインタブバーがdeinitされました")
-    }
+    deinit { print("MainTabBar is being Deinitialized: \(self)") }
     
     
     //MARK: - 各タブ設定
@@ -321,12 +321,7 @@ class MainTabBarController: UITabBarController {
                                                                "autoplay": 0,
                                                                "disablekb": 1,
                                                                "iv_load_policy": 3])
-       
     }
-    
-    
-    
-    
 }
 
 
@@ -335,7 +330,6 @@ extension MainTabBarController: YTPlayerViewDelegate{
     
     func playerViewDidBecomeReady(_ playerView: YTPlayerView) {
         playerView.playVideo()
-        
     }
     
     func playerView(_ playerView: YTPlayerView, didChangeTo state: YTPlayerState) {
@@ -363,7 +357,6 @@ extension MainTabBarController: YTPlayerViewDelegate{
                 self.spinner.stopAnimating()
             }
             
-            
         //後半の二つは、ChartVCのnavBarのjump機能の為につけた。
         //            let dict = ["playerObject": playerView, "chartCellIndex": chartCollectionCellIndex, "videoCellIndex": cellIndexNumber] as [String : Any]
         //            NotificationCenter.default.post(name: Notification.Name(rawValue:"videoAboutToPlayNotification"), object: nil, userInfo: dict)
@@ -387,7 +380,6 @@ extension MainTabBarController: YTPlayerViewDelegate{
             print("-----default")
         }
     }
-    
     
     func playerView(_ playerView: YTPlayerView, didChangeTo quality: YTPlaybackQuality) {
         print("Quality changed")
