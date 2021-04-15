@@ -189,7 +189,7 @@ class ChartVC: UIViewController{
                 heartButtonCenter = heartButtonCenterOfIndex0
                 
                 guard let centerPointInCollectionView = cell.heartButton.superview?.convert(cell.heartButton.center, to: self.chartCollectionView) else{return}
-                if centerPointInCollectionView.y-20 < self.chartCollectionView.contentOffset.y{
+                if centerPointInCollectionView.y-40 < self.chartCollectionView.contentOffset.y{
                     guard let cellOfIndex1 = self.chartCollectionView.cellForItem(at: visibleIndexPaths[1]) as? ChartCollectionViewCell else{return}
                     cell = cellOfIndex1
                     guard let heartButtonCenterOfIndex1 = cell.heartButton.superview?.convert(cell.heartButton.center, to: nil) else{return}
@@ -357,7 +357,7 @@ extension ChartVC: MapVCDelegate{
         guard let tabBarController = tabBarController as? MainTabBarController else{return}
         if tabBarController.isFirstTimeLaunch {
             let alert = AlertService(vc: self)
-            alert.showSimpleAlert(title: "Now gathering chart data. It usually takes 7-10 seconds. Please wait..", message: "", style: .alert)
+            alert.showSimpleAlert(title: "Gathering chart data. It takes some time. Please wait..", message: "", style: .alert)
         }
         
         //単純なString配列のnewEntriesを新しいデータ構造に変換し、allChartDataの末尾に加える

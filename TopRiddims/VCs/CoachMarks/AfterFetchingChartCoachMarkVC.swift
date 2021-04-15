@@ -56,9 +56,9 @@ class AfterFetchingChartCoachMarkVC: SpotlightViewController {
         
         switch stepIndex{
         case 0:
-            spotlightView.appear([Spotlight.Oval(center: centerPoints[0], diameter: 50)])
+            spotlightView.appear([Spotlight.Oval(center: centerPoints[0], diameter: 40)])
         case 1:
-            spotlightView.move(Spotlight.Oval(center: centerPoints[1], diameter: 50), duration: 0.3, moveType: .direct)
+            spotlightView.move(Spotlight.Oval(center: centerPoints[1], diameter: 40), duration: 0.3, moveType: .direct)
         case 2:
             spotlightView.move(Spotlight.Oval(center: centerPoints[2], diameter: 50), duration: 0.3, moveType: .direct)
         case 3:

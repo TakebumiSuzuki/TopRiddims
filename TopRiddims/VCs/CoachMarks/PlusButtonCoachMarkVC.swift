@@ -25,17 +25,17 @@ class PlusButtonCoachMarkVC: SpotlightViewController {
     private var stepIndex: Int = 0
     
     //MARK: - UI Elements
-    private let arrowImageViewForSpotlight: UIImageView = {
-        let config = UIImage.SymbolConfiguration(pointSize: 30, weight: .light, scale: .medium)
-        let iv = UIImageView()
-        iv.image = UIImage(systemName: "arrow.up")?.applyingSymbolConfiguration(config)
-        iv.tintColor = .white
-        return iv
-    }()
+//    private let arrowImageViewForSpotlight: UIImageView = {
+//        let config = UIImage.SymbolConfiguration(pointSize: 30, weight: .light, scale: .medium)
+//        let iv = UIImageView()
+//        iv.image = UIImage(systemName: "arrow.up")?.applyingSymbolConfiguration(config)
+//        iv.tintColor = .white
+//        return iv
+//    }()
     private let tapHereLabelForSpotlight: UILabel = {
         let lb = UILabel()
-        lb.text = "Tap Plus Button!"
-        lb.font = UIFont.systemFont(ofSize: 28, weight: .light)
+        lb.text = "Tap the button"
+        lb.font = UIFont.systemFont(ofSize: 20, weight: .light)
         lb.textColor = .white
         return lb
     }()
@@ -47,14 +47,15 @@ class PlusButtonCoachMarkVC: SpotlightViewController {
         delegate = self
         spotlightView.delegate = self
         
-        view.addSubview(arrowImageViewForSpotlight)
+//        view.addSubview(arrowImageViewForSpotlight)
         view.addSubview(tapHereLabelForSpotlight)
     }
     
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
-        arrowImageViewForSpotlight.centerX(inView: self.view, topAnchor: self.view.topAnchor, paddingTop: frame.maxY+10)
-        tapHereLabelForSpotlight.centerX(inView: self.view, topAnchor: arrowImageViewForSpotlight.bottomAnchor, paddingTop: 0)
+//        arrowImageViewForSpotlight.centerX(inView: self.view, topAnchor: self.view.topAnchor, paddingTop: frame.maxY+10)
+//        tapHereLabelForSpotlight.centerX(inView: self.view, topAnchor: arrowImageViewForSpotlight.bottomAnchor, paddingTop: 0)
+        tapHereLabelForSpotlight.centerX(inView: self.view, topAnchor: self.view.topAnchor, paddingTop: frame.maxY+15)
     }
     
     

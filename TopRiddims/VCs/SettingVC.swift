@@ -29,7 +29,7 @@ enum LoginProvider{
         case .password:
             return "Your account info"
         case .anonymous:
-            return "You've been signed in with a temporary profile.Please sign in from buttons below to keep your data."
+            return "You've been signed in with a temporary guest account. Please sign in from buttons below so that you can keep your data."
         }
     }
 }
@@ -39,10 +39,12 @@ class SettingVC: UIViewController, SignUpFromAnonymousVCDelegate {
     //MARK: - Initialization
     var user: User!
     var loginProvider: LoginProvider!
-    init(user: User, loginProvider: LoginProvider) {
+    var showAccountUpdatedAlert: Bool!
+    init(user: User, loginProvider: LoginProvider, showAccountUpdatedAlert: Bool) {
         super.init(nibName: nil, bundle: nil)
         self.user = user
         self.loginProvider = loginProvider
+        self.showAccountUpdatedAlert = showAccountUpdatedAlert
         print("SettingVC was Initialized")
     }
     required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
@@ -112,17 +114,6 @@ class SettingVC: UIViewController, SignUpFromAnonymousVCDelegate {
         return lb
     }()
     
-//    private lazy var dateLabel: UILabel = {
-//       let lb = UILabel()
-//        lb.font = UIFont.systemFont(ofSize: 12, weight: .regular)
-//        lb.textColor = UIColor.label.withAlphaComponent(0.3)
-//
-//        let date = user.registrationDate.dateValue()
-//        let dateString = CustomDateFormatter.formatter.string(from: date)
-//        lb.text = "Joined on ".localized() + dateString
-//
-//        return lb
-//    }()
     
     private lazy var nameTextField: CustomTextField = {
         let tf = CustomTextField(placeholder: "Enter new name here..")
@@ -154,7 +145,7 @@ class SettingVC: UIViewController, SignUpFromAnonymousVCDelegate {
         let bn = CustomButton(type: .system)
         bn.setUp(title: "Sign Up".localized())
         bn.titleLabel?.font = UIFont.systemFont(ofSize: 18, weight: .medium)
-        bn.alpha = 0.8
+        bn.alpha = 0.7
         bn.addTarget(self, action: #selector(signUpButtonTapped), for: .touchUpInside)
         bn.addTarget(self, action: #selector(signUpButtonStateChanged), for: .allEvents)
         return bn
@@ -178,7 +169,7 @@ class SettingVC: UIViewController, SignUpFromAnonymousVCDelegate {
         bn.setUp(title: "Login with Facebook".localized())
         bn.titleLabel?.font = UIFont.systemFont(ofSize: 18, weight: .medium)
         bn.backgroundColor = UIColor(hexaRGBA: "3B5998")
-        bn.alpha = 0.8
+        bn.alpha = 0.7
         bn.addTarget(self, action: #selector(facebookButtonTapped), for: .touchUpInside)
         bn.addTarget(self, action: #selector(facebookButtonStateChanged), for: .allEvents)
         return bn
@@ -199,7 +190,7 @@ class SettingVC: UIViewController, SignUpFromAnonymousVCDelegate {
         bn.setUp(title: "Login with Twitter".localized())
         bn.titleLabel?.font = UIFont.systemFont(ofSize: 18, weight: .medium)
         bn.backgroundColor = UIColor(hexaRGBA: "00ACEE")
-        bn.alpha = 0.8
+        bn.alpha = 0.7
         bn.addTarget(self, action: #selector(twitterButtonTapped), for: .touchUpInside)
         bn.addTarget(self, action: #selector(twitterButtonStateChanged), for: .allEvents)
         return bn
@@ -222,6 +213,7 @@ class SettingVC: UIViewController, SignUpFromAnonymousVCDelegate {
         setupNavBar()
         setupViews()
         switchUIComponents()
+        checkAcountUpdated()  //アカウントアップデート時にViewDidAppearが上手く起動しないようなので、ここに置いた。
     }
     
     private func setupNavBar(){
@@ -340,7 +332,6 @@ class SettingVC: UIViewController, SignUpFromAnonymousVCDelegate {
             self.nameTextField.resignFirstResponder()
             self.emailTextField.resignFirstResponder()
         }.disposed(by: disposeBag)
-        
     }
     
     
@@ -399,6 +390,15 @@ class SettingVC: UIViewController, SignUpFromAnonymousVCDelegate {
         }
     }
     
+    private func checkAcountUpdated(){
+        if showAccountUpdatedAlert{
+            let alert = UIAlertController(title: "Your account was updated.", message: "", preferredStyle: .alert)
+            let action = UIAlertAction(title: "ok", style: .default) { (action) in
+            }
+            alert.addAction(action)
+            present(alert, animated: true, completion: nil)
+        }
+    }
     
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
         view.endEditing(true)
@@ -419,8 +419,7 @@ class SettingVC: UIViewController, SignUpFromAnonymousVCDelegate {
             let validatedName = try ValidationService.validateName(name: newName)
             let validatedEmail = try ValidationService.validateEmail(email: newEmail)
             
-            hud.show(in: self.view)
-            view.bringSubviewToFront(hud) //hudのボックスがvideoPlayerの下に隠れてしまうのを避けるため。
+            hud.show(in: blurredView.contentView)
             
             K.FSCollectionUsers.document(user.uid).setData(["name": validatedName, "email": validatedEmail], merge: true) { [weak self](error) in
                 guard let self = self else { return }
@@ -490,7 +489,7 @@ class SettingVC: UIViewController, SignUpFromAnonymousVCDelegate {
     
     private func setUIBackAfterSavingUserInfo(){
         self.hud.dismiss()
-        let alert = UIAlertController(title: "Saved successfully.Now Your name is test and your email is test.", message: "", preferredStyle: .alert)
+        let alert = UIAlertController(title: "Your account info was updated.", message: "", preferredStyle: .alert)
         let action = UIAlertAction(title: "ok", style: .default) { (action) in
             //これらをalertの外部(self.pesentのラインの後)に置いたら、うまく機能しなかったのでここに。
             self.nameTextField.resignFirstResponder()
@@ -505,15 +504,19 @@ class SettingVC: UIViewController, SignUpFromAnonymousVCDelegate {
         
         let vc = SignUpFromAnonymousVC()
         vc.delegate = self
-        let nav = UINavigationController(rootViewController: vc)
-        present(nav, animated: true, completion: { [weak self] in
+        vc.modalPresentationStyle = .overFullScreen
+        present(vc, animated: true, completion: { [weak self] in
             guard let self = self else {return}
-            self.signUpButtonImageView.alpha = 1.0
+            self.signUpButtonImageView.alpha = 1.0  //タップ後にalphaが戻らないバグ？を取り除くため。
         })
     }
     
     func getCredentialForPasswordSignIn(name: String, email: String, password: String){  //delegateで呼ばれる
-        hud.show(in: self.view)
+        //Viewの描画が間に合わず、hudの位置が最初の一瞬ずれる現象があるので、それを解消するために０.5秒遅らす
+        DispatchQueue.main.asyncAfter(deadline: .now()+0.5) {[weak self] in
+            guard let self = self else{return}
+            self.hud.show(in: self.blurredView.contentView)
+        }
         let credential = EmailAuthProvider.credential(withEmail: email, password: password)
         guard let uid = Auth.auth().currentUser?.uid else {return}
         firestoreService.saveUserInfoUpdatingFromAnonymous(uid: uid, name: name, email: email) {[weak self] (error) in
@@ -528,7 +531,7 @@ class SettingVC: UIViewController, SignUpFromAnonymousVCDelegate {
     }
     
     @objc private func facebookButtonTapped(){
-        hud.show(in: self.view)
+        
         facebookLoginService.logUserInFacebook(permissions: [.publicProfile,.email], vc: self) { [weak self](error) in
             guard let self = self else{return}
             self.facebookImageView.alpha = 1.0
@@ -538,6 +541,7 @@ class SettingVC: UIViewController, SignUpFromAnonymousVCDelegate {
                 alert.showSimpleAlert(title: "Facebookでの承認が失敗しました:\(error.localizedDescription)", message: "", style: .alert)
                 return
             }
+            self.hud.show(in: self.blurredView.contentView)
             //FB側からのアクセストークンはこの時点でゲット済み
             guard let authenticationToken = AccessToken.current?.tokenString else { self.hud.dismiss(); return }
             let credential = FacebookAuthProvider.credential(withAccessToken: authenticationToken)
@@ -546,7 +550,7 @@ class SettingVC: UIViewController, SignUpFromAnonymousVCDelegate {
     }
     
     @objc private func twitterButtonTapped(){
-        hud.show(in: self.view)
+        hud.show(in: blurredView.contentView)
         twitterProvider.getCredentialWith(nil) { [weak self] credential, error in
             guard let self = self else{return}
             self.twitterImageView.alpha = 1.0
@@ -572,10 +576,10 @@ class SettingVC: UIViewController, SignUpFromAnonymousVCDelegate {
                 alert.showSimpleAlert(title: "新規アカウント作成に失敗しました。:\(error.localizedDescription)", message: "", style: .alert)
                 return
             }
+            NotificationCenter.default.post(name: NSNotification.Name(rawValue: "accountUpdated"), object: nil, userInfo: nil)
             guard let tabbar = self.tabBarController as? MainTabBarController else{return}
             tabbar.authListener = nil  //これら２行はauthListenerを強引にinvokeさせ、画面を強制アップデートするため
             tabbar.viewWillAppear(true)
-            NotificationCenter.default.post(name: NSNotification.Name(rawValue: "accountUpdated"), object: nil, userInfo: nil)
         }
     }
     

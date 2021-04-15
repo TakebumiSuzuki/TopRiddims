@@ -72,7 +72,7 @@ class MainTabBarController: UITabBarController {
         return spinner
     }()
     
-    
+    var accountUpdatedNotificationReceived: Bool = false
     //MARK: - ViewLifeCycles
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -80,23 +80,18 @@ class MainTabBarController: UITabBarController {
         userDefaults.setValue([String](), forKey: "userList")
         
         
-//        NotificationCenter.default.addObserver(forName: NSNotification.Name("accountUpdated"), object: nil, queue: nil) { (notification) in
-//            print("alert Called")
-//            let alert = UIAlertController(title: "Your account has been updated.", message: "", preferredStyle: .alert)
-//            let action = UIAlertAction(title: "ok", style: .default) { (action) in
-//
-//            }
-//            alert.addAction(action)
-//
-//        }
+        NotificationCenter.default.addObserver(forName: NSNotification.Name("accountUpdated"), object: nil, queue: nil) { [weak self](notification) in
+            guard let self = self else{return}
+            self.accountUpdatedNotificationReceived = true
+        }
     }
     
     private func setupNotificationsForCoachMarks(){
         NotificationCenter.default.addObserver(forName: NSNotification.Name("ChartVCCoachMark"), object: nil, queue: nil) { [weak self] (notification) in
             guard let self = self else{return}
             
-            let alert = UIAlertController(title: "Welcome to TopRiddims!! First let's choose countries from a map for music charts.", message: "", preferredStyle: .alert)
-            let action = UIAlertAction(title: "ok", style: .default) { (action) in
+            let alert = UIAlertController(title: "Congrats with your first launch to the app! First let's choose countries for the music charts.", message: "", preferredStyle: .alert)
+            let action = UIAlertAction(title: "OK", style: .default) { (action) in
                 guard let info = notification.userInfo else{return}
                 guard let frameInWindow = info["frameInfo"] as? CGRect else{return}
                 self.plusButtonCoachMarkVC = PlusButtonCoachMarkVC(frame: frameInWindow)
@@ -162,7 +157,7 @@ class MainTabBarController: UITabBarController {
             
             self.uid = uid
             self.dismiss(animated: true, completion: nil)
-            self.selectedIndex = 0
+            self.selectedIndex = self.accountUpdatedNotificationReceived ? 2 : 0
             self.determineFirstTimeLaunchOrNot()
             
             self.firestoreService.fetchUserInfoWithUid(uid: uid) { (result) in
@@ -215,11 +210,13 @@ class MainTabBarController: UITabBarController {
                                              unselectedImage: UIImage(systemName: "suit.heart", withConfiguration: configuration)!)
         likesVC.loadLikedSongs()
         
-        let settingVC = SettingVC(user: user, loginProvider: loginProvider)
+        let settingVC = SettingVC(user: user, loginProvider: loginProvider, showAccountUpdatedAlert: self.accountUpdatedNotificationReceived)
         let settingNav = generateNavController(rootVC: settingVC,
                                                title: "account".localized(),
                                                selectedImage: UIImage(systemName: "person.fill", withConfiguration: configuration)!,
                                                unselectedImage: UIImage(systemName: "person", withConfiguration: configuration)!)
+        
+        self.accountUpdatedNotificationReceived = false
         
         self.viewControllers = [chartNav, likesNav, settingNav]
     }

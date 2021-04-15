@@ -72,10 +72,10 @@ class LoginVC: UIViewController{
     
     private let AnonymousLabel: UILabel = {
        let lb = UILabel()
-        lb.font = UIFont.systemFont(ofSize: 26, weight: .light)
+        lb.font = UIFont.systemFont(ofSize: 24, weight: .light)
         lb.textColor = UIColor.white.withAlphaComponent(0.9)
         lb.textAlignment = .center
-        lb.text = "New to the app?".localized()
+        lb.text = "Welcome to TopRiddims!!".localized()
         lb.adjustsFontSizeToFitWidth = true
         return lb
     }()
@@ -84,7 +84,7 @@ class LoginVC: UIViewController{
         let bn = CustomButton(type: .system)
         
         bn.backgroundColor = .blue
-        bn.setUp(title: "Try it without sign up!".localized())
+        bn.setUp(title: "Continue as Guest".localized())
         bn.alpha = 0.8
         bn.addTarget(self, action: #selector(anonymousButtonTapped), for: .touchUpInside)
         return bn
@@ -98,10 +98,10 @@ class LoginVC: UIViewController{
     
     private let letsLabel: UILabel = {
        let lb = UILabel()
-        lb.font = UIFont.systemFont(ofSize: 26, weight: .light)
+        lb.font = UIFont.systemFont(ofSize: 16, weight: .regular)
         lb.textColor = UIColor.white.withAlphaComponent(0.9)
         lb.textAlignment = .center
-        lb.text = "Let's Dive into island Music!".localized()
+        lb.text = "If you have account".localized()
         lb.adjustsFontSizeToFitWidth = true
         return lb
     }()
@@ -120,7 +120,7 @@ class LoginVC: UIViewController{
     private lazy var forgotPasswordButton: UIButton = {
         let bn = UIButton(type: .system)
         bn.setTitle("Forgot password?".localized(), for: .normal)
-        bn.titleLabel?.font = UIFont.systemFont(ofSize: 16, weight: .medium)
+        bn.titleLabel?.font = UIFont.systemFont(ofSize: 14, weight: .regular)
         bn.tintColor = UIColor.white.withAlphaComponent(0.9)
         bn.addTarget(self, action: #selector(forgotPasswordTapped), for: .touchUpInside)
         return bn
@@ -138,7 +138,7 @@ class LoginVC: UIViewController{
     private let connectLabel: UILabel = {
         let lb = UILabel()
         lb.text = "or connect with...".localized()
-        lb.font = UIFont.systemFont(ofSize: 16, weight: .medium)
+        lb.font = UIFont.systemFont(ofSize: 16, weight: .regular)
         lb.textColor = UIColor.white.withAlphaComponent(0.9)
         return lb
     }()
@@ -252,14 +252,14 @@ class LoginVC: UIViewController{
         
         AnonymousButton.anchor(top: AnonymousLabel.bottomAnchor, left: clearPlaceholderView.leftAnchor, right: clearPlaceholderView.rightAnchor, paddingTop: K.verticalSpace, paddingLeft: K.placeholderInsets, paddingRight: K.placeholderInsets)
         
-        seperator.anchor(top: AnonymousButton.bottomAnchor, left: AnonymousButton.leftAnchor, right: AnonymousButton.rightAnchor, paddingTop: K.verticalSpace, height: 1)
+        seperator.anchor(top: AnonymousButton.bottomAnchor, left: AnonymousButton.leftAnchor, right: AnonymousButton.rightAnchor, paddingTop: K.verticalSpace+5, height: 1)
         
         
         
         letsLabel.anchor(top: seperator.bottomAnchor, left: AnonymousButton.leftAnchor, right: AnonymousButton.rightAnchor, paddingTop: K.verticalSpace, paddingLeft: K.placeholderInsets, paddingRight: K.placeholderInsets)
         
         
-        emailTextField.anchor(top: letsLabel.bottomAnchor, left: AnonymousButton.leftAnchor, right: AnonymousButton.rightAnchor, paddingTop: K.verticalSpace)
+        emailTextField.anchor(top: letsLabel.bottomAnchor, left: AnonymousButton.leftAnchor, right: AnonymousButton.rightAnchor, paddingTop: 5)
         
         passwordTextField.anchor(top: emailTextField.bottomAnchor, left: AnonymousButton.leftAnchor, right: AnonymousButton.rightAnchor, paddingTop: K.verticalSpace)
         
@@ -267,7 +267,7 @@ class LoginVC: UIViewController{
         forgotPasswordButton.anchor(top: passwordTextField.bottomAnchor, right: AnonymousButton.rightAnchor, paddingTop: 0, paddingRight: 0)
         
         
-        loginButton.anchor(top: forgotPasswordButton.bottomAnchor, left: AnonymousButton.leftAnchor, right: AnonymousButton.rightAnchor, paddingTop: 3)
+        loginButton.anchor(top: forgotPasswordButton.bottomAnchor, left: AnonymousButton.leftAnchor, right: AnonymousButton.rightAnchor, paddingTop: 0)
         
         connectLabel.centerX(inView: clearPlaceholderView, topAnchor: loginButton.bottomAnchor, paddingTop: K.verticalSpace)
         

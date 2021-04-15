@@ -26,7 +26,7 @@ class CustomTextField: UITextField{
         backgroundColor = UIColor.white.withAlphaComponent(0.5)
         tintColor = UIColor.white //カーソルの色
         
-        font = UIFont.systemFont(ofSize: 18, weight: .light)
+        font = UIFont.systemFont(ofSize: 18, weight: .regular)
         textColor = .white
         
         attributedPlaceholder = NSAttributedString(string: placeholder,
@@ -50,7 +50,7 @@ class CustomButton: UIButton{
     
     public func setUp(title: String){
         setTitle(title, for: .normal)
-        titleLabel?.font = UIFont.systemFont(ofSize: 18, weight: .bold)
+        titleLabel?.font = UIFont.systemFont(ofSize: 18, weight: .medium)
         
         setTitleColor(UIColor(white: 1, alpha: 1), for: .normal)
         backgroundColor = #colorLiteral(red: 1, green: 0.135659839, blue: 0.8787164696, alpha: 1).withAlphaComponent(1)

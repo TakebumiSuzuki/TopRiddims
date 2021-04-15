@@ -28,7 +28,7 @@ class MapPageCoachMarkVC: SpotlightViewController {
     //MARK: - UI Elements
     private var textLabel: UILabel = {
         let lb = UILabel()
-        lb.text = "Select any countries/areas you like and tap Done button. Don't forget you can scroll this map horizontally!"
+        lb.text = "Select countries/areas you like, then tap Done button. Don't forget you can scroll the map horizontally!"
         lb.textColor = .white
         lb.font = UIFont.systemFont(ofSize: 20, weight: .light)
         lb.numberOfLines = 0
@@ -46,7 +46,7 @@ class MapPageCoachMarkVC: SpotlightViewController {
     
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
-        textLabel.anchor(top: view.topAnchor, left: view.leftAnchor, right: view.rightAnchor, paddingTop: 130, paddingLeft: 25, paddingRight: 25)
+        textLabel.anchor(top: view.topAnchor, left: view.leftAnchor, right: view.rightAnchor, paddingTop: 130, paddingLeft: 30, paddingRight: 30)
     }
     
     

@@ -66,7 +66,7 @@ class ResetPasswordVC: UIViewController {
     
     private let resetPasswordLabel: UILabel = {
        let lb = UILabel()
-        lb.font = UIFont.systemFont(ofSize: 26, weight: .light)
+        lb.font = UIFont.systemFont(ofSize: 24, weight: .light)
         lb.textColor = UIColor.white.withAlphaComponent(0.9)
         lb.textAlignment = .center
         lb.text = "We'll send you reset email".localized()

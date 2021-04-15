@@ -11,36 +11,20 @@ import JGProgressHUD
 import RxSwift
 import RxCocoa
 
+
 protocol SignUpFromAnonymousVCDelegate: class{
     func getCredentialForPasswordSignIn(name: String, email: String, password: String)
 }
 
 class SignUpFromAnonymousVC: UIViewController {
     
-    
     //MARK: - Properties
-    private let imageAlpha: CGFloat = 0.8
-    
     let disposeBag = DisposeBag()
     let authService = AuthService()
     var delegate: SignUpFromAnonymousVCDelegate?
     
     //MARK: - UI Elements
-    private let imageContainerView: UIView = {
-        let view = UIView()
-        view.backgroundColor = .systemBackground  //imageのalphaを変更すると、ここの色が透けて見えることになる
-        return view
-    }()
-    private lazy var backgroundImageView: UIImageView = {  //変数imageAlphaを使う為にlazyにしている。
-        let iv = UIImageView()
-        let image = UIImage(named: "")  //とりあえず写真はなしで
-        iv.image = image
-        iv.alpha = imageAlpha
-        iv.clipsToBounds = true
-        iv.contentMode = .scaleAspectFill
-        return iv
-    }()
-    
+
     private let clearScrollingView: UIView = {
         let view = UIView()
         view.backgroundColor = .clear
@@ -55,21 +39,33 @@ class SignUpFromAnonymousVC: UIViewController {
         return view
     }()
     
-    private let darkView: UIView = {
-        let view = UIView()
-        view.layer.cornerRadius = 6
-        view.clipsToBounds = true
-        view.backgroundColor = .black
-        view.alpha = 0.5
-        return view
+    private let effectView: UIVisualEffectView = {
+        let blurEffect = UIBlurEffect(style: .systemUltraThinMaterial)
+        let bv = UIVisualEffectView(effect: blurEffect)
+        bv.clipsToBounds = true
+        return bv
     }()
     
-    private let welcomLabel: UILabel = {
+    private lazy var xButton: UIButton = {
+       let bn = UIButton()
+        let config = UIImage.SymbolConfiguration(pointSize: 16, weight: .light, scale: .medium)
+        let image = UIImage(systemName: "xmark")?.applyingSymbolConfiguration(config)
+        bn.tintColor = UIColor.white.withAlphaComponent(0.9)
+        bn.setImage(image, for: .normal)
+        bn.addTarget(self, action: #selector(xButtonTapped), for: .touchUpInside)
+        return bn
+    }()
+    
+    @objc private func xButtonTapped(){
+        dismiss(animated: true, completion: nil)
+    }
+    
+    private let signUpLabel: UILabel = {
         let lb = UILabel()
         lb.font = UIFont.systemFont(ofSize: 26, weight: .light)
         lb.textColor = UIColor.white.withAlphaComponent(0.9)
         lb.textAlignment = .center
-        lb.text = "Welcome to TopRiddims!".localized()
+        lb.text = "Sign Up".localized()
         lb.adjustsFontSizeToFitWidth = true
         return lb
     }()
@@ -101,7 +97,6 @@ class SignUpFromAnonymousVC: UIViewController {
     //MARK: - View Life Cycles
     override func viewDidLoad() {
         super.viewDidLoad()
-        setupNav()
         setupViews()
         setupNotifications()
         setupStreams()
@@ -116,7 +111,7 @@ class SignUpFromAnonymousVC: UIViewController {
             return (name.count > 0 && email.count > 0 && password.count > 0)
         }
         textFieldsObservable.bind(to: signUpButton.rx.isEnabled).disposed(by: disposeBag)
-        textFieldsObservable.map{$0 ? 0.8 : 0.5}.bind(to: signUpButton.rx.alpha).disposed(by: disposeBag)
+        textFieldsObservable.map{$0 ? 0.7 : 0.4}.bind(to: signUpButton.rx.alpha).disposed(by: disposeBag)
         
         nameTextField.rx.controlEvent(.editingDidEndOnExit).subscribe { [weak self](_) in
             guard let self = self else {return}
@@ -130,33 +125,16 @@ class SignUpFromAnonymousVC: UIViewController {
             guard let self = self else {return}
             self.passwordTextField.resignFirstResponder()
         }.disposed(by: disposeBag)
-        
-    }
-    
-    
-    private func setupNav(){
-        navigationItem.title = "Sign Up".localized()
-        navigationController?.navigationBar.tintColor = UIColor.white.withAlphaComponent(0.7) //一番左の戻るイメージ
-        
-        let appearance = UINavigationBarAppearance()
-        appearance.configureWithDefaultBackground()
-        appearance.backgroundEffect = UIBlurEffect(style: .systemUltraThinMaterial)
-        appearance.titleTextAttributes = [.foregroundColor: UIColor.white.withAlphaComponent(0.7), .font: UIFont.systemFont(ofSize: 20, weight: .regular)]
-        let backButtonAppearance = UIBarButtonItemAppearance()
-        backButtonAppearance.normal.titleTextAttributes = [.foregroundColor: UIColor.white.withAlphaComponent(0.7), .font: UIFont.systemFont(ofSize: 16, weight: .regular)]
-        appearance.backButtonAppearance = backButtonAppearance
-        navigationItem.standardAppearance = appearance
     }
     
     private func setupViews(){
-        view.addSubview(imageContainerView)
-        imageContainerView.addSubview(backgroundImageView)
+        view.backgroundColor = UIColor.black.withAlphaComponent(0.5)
         
         view.addSubview(clearScrollingView)
         clearScrollingView.addSubview(clearPlaceholderView)
-        
-        clearPlaceholderView.addSubview(darkView)
-        clearPlaceholderView.addSubview(welcomLabel)
+        clearPlaceholderView.addSubview(effectView)
+        clearPlaceholderView.addSubview(xButton)
+        clearPlaceholderView.addSubview(signUpLabel)
         clearPlaceholderView.addSubview(nameTextField)
         clearPlaceholderView.addSubview(emailTextField)
         clearPlaceholderView.addSubview(passwordTextField)
@@ -167,19 +145,17 @@ class SignUpFromAnonymousVC: UIViewController {
     //MARK: - Constraints
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
-        
-        imageContainerView.fillSuperview()
-        
-        let modifiedWidth = backgroundImageView.setImageViewSizeAndReturnModifiedWidth(view: view)
-        imageContainerView.bounds.origin.x = (modifiedWidth-view.frame.width)/2
-        
+
         clearScrollingView.fillSuperview()
+        clearScrollingView.backgroundColor = .clear
         
         clearPlaceholderView.anchor(left: clearScrollingView.leftAnchor, right: clearScrollingView.rightAnchor, paddingLeft: K.placeholderLeftRightPadding, paddingRight: K.placeholderLeftRightPadding)
         
-        welcomLabel.anchor(top: clearPlaceholderView.topAnchor, left: clearPlaceholderView.leftAnchor, right: clearPlaceholderView.rightAnchor, paddingTop: K.placeholderInsets-5, paddingLeft: K.placeholderInsets, paddingRight: K.placeholderInsets)
+        xButton.anchor(top: clearPlaceholderView.topAnchor, right: clearPlaceholderView.rightAnchor, paddingTop: 10, paddingRight: 13)
         
-        nameTextField.anchor(top: welcomLabel.bottomAnchor, left: clearPlaceholderView.leftAnchor, right: clearPlaceholderView.rightAnchor, paddingTop: K.verticalSpace, paddingLeft: K.placeholderInsets, paddingRight: K.placeholderInsets)
+        signUpLabel.anchor(top: clearPlaceholderView.topAnchor, left: clearPlaceholderView.leftAnchor, right: clearPlaceholderView.rightAnchor, paddingTop: K.placeholderInsets-5, paddingLeft: K.placeholderInsets, paddingRight: K.placeholderInsets)
+        
+        nameTextField.anchor(top: signUpLabel.bottomAnchor, left: clearPlaceholderView.leftAnchor, right: clearPlaceholderView.rightAnchor, paddingTop: K.verticalSpace, paddingLeft: K.placeholderInsets, paddingRight: K.placeholderInsets)
         
         emailTextField.anchor(top: nameTextField.bottomAnchor, left: nameTextField.leftAnchor, right: nameTextField.rightAnchor, paddingTop: K.verticalSpace)
         passwordTextField.anchor(top: emailTextField.bottomAnchor, left: nameTextField.leftAnchor, right: nameTextField.rightAnchor, paddingTop: K.verticalSpace)
@@ -187,9 +163,9 @@ class SignUpFromAnonymousVC: UIViewController {
         
         clearPlaceholderView.bottomAnchor.constraint(equalTo: signUpButton.bottomAnchor, constant: K.placeholderInsets).isActive = true
         
-        clearPlaceholderView.bottomAnchor.constraint(equalTo: clearScrollingView.bottomAnchor, constant: -view.frame.width*K.placeholderBottomMultiplier).isActive = true
+        clearPlaceholderView.centerY(inView: clearScrollingView)
         
-        darkView.fillSuperview()
+        effectView.fillSuperview()
     }
     
     //MARK: - Notifications キーボード関連
@@ -245,8 +221,6 @@ class SignUpFromAnonymousVC: UIViewController {
         }catch{
             return
         }
-        
-        
     }
     
 }
