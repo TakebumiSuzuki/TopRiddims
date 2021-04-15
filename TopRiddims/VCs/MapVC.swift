@@ -176,6 +176,7 @@ class MapVC: UIViewController{
                 centerPoints.append(centerPointInWindow)
             }
             let mapPageCoachMarkVC = MapPageCoachMarkVC(centerPoints: centerPoints)
+            mapPageCoachMarkVC.alpha = 0.6
             present(mapPageCoachMarkVC, animated: true, completion: nil)
             
             shouldShowSpotlights = false

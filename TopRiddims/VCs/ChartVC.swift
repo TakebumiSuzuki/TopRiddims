@@ -357,13 +357,13 @@ extension ChartVC: MapVCDelegate{
         guard let tabBarController = tabBarController as? MainTabBarController else{return}
         if tabBarController.isFirstTimeLaunch {
             let alert = AlertService(vc: self)
-            alert.showSimpleAlert(title: "Gathering chart data. It takes some time. Please wait..", message: "", style: .alert)
+            alert.showSimpleAlert(title: "Gathering chart data. It takes some time. Please wait..".localized(), message: "", style: .alert)
         }
         
         //単純なString配列のnewEntriesを新しいデータ構造に変換し、allChartDataの末尾に加える
         var newCountryData = [(country: String, songs:[Song], updated: Timestamp)]()
         newEntries.forEach{  //国名のみ、その他はsample1曲のみのチャートデータを新しい国ごとに作っている。
-            let data = (country: $0, songs: [Song(trackID: "trackID", songName: "Getting songs now!", artistName: "Please wait for a moment...", liked: false, checked: false)], updated: Timestamp())
+            let data = (country: $0, songs: [Song(trackID: "trackID", songName: "Getting songs now!".localized(), artistName: "Please wait for a moment...".localized(), liked: false, checked: false)], updated: Timestamp())
             
             newCountryData.append(data)
             pageNumbers.append(0)

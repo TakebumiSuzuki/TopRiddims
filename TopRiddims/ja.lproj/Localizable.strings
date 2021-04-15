@@ -1,32 +1,72 @@
-"charts" = "チャート";
-"likes" = "お気に入り";
-"account" = "アカウント";
-"Logout" = "ログアウト";
-"Cancel" = "キャンセル";
-"Save" = "セーブ";
-"Select Areas" = "地域選択";
-"Done" = "完了";
-"Would you really like to log out?" = "ログアウトしてよろしいですか?";
 
-"Login" = "ログイン";
-"Sign Up" = "サインアップ";
-"Let's Dive into island Music!" = "さあ、カリビアン音楽の世界へ！";
-"Enter email" = "emailを入力";
-"Enter password" = "パスワードを入力";
-"or connect with..." = "以下のアプリで登録";
-"Forgot password?" = "パスワードをお忘れですか?";
 
-"Welcome to TopRiddims!" = "TopRiddimsへようこそ！";
-"Enter name" = "名前を入力";
-"Register" = "登録";
-"Loading" = "ロード中です";
 
-"Reset Password" = "パスワードのリセット";
-"We'll send you reset email" = "リセットemailを送ります";
-
-"Hi, %@! Welcome to TopRiddims. First, tap the plus button and select countries whose music chart you like to see." = "ようこそ%@さん！\nまずはプラスボタンを押して新しい国を登録してください。\nチャートが見れるようになりますよ！";
-"Joined on " = "登録日:";
+//ValidationService
 "Email is not in correct format." = "emailが間違っているようです";
 "Password is too short." = "パスワードが短すぎます";
 "Name is too short." = "名前が短すぎます";
 "Name is too long." = "名前が長すぎます";
+
+//ResetPasswordVC
+"We'll send you reset email" = "リセットemailを送ります";
+"Reset Password" = "パスワードのリセット";
+
+//SignUpVC
+"Enter name" = "名前を入力";
+"Register" = "登録";
+
+//LoginVC
+"Loading" = "ロード中です";
+"Welcome to TopRiddims!!" = "TopRiddimsにようこそ！";
+"Continue as Guest" = "ゲストアカウントでログイン";
+"If you have account" = "アカウントを既にお持ちですか?";
+"Enter email" = "emailを入力";
+"Enter password" = "パスワードを入力";
+"Forgot password?" = "パスワードをお忘れですか?";
+"Login" = "ログイン";
+"or connect with..." = "以下のアプリでサインイン";
+"Sign Up" = "サインアップ";
+
+
+//ChartVC
+"Gathering chart data. It takes some time. Please wait.." = "チャートデータを収集しています。少々お待ちください。";
+"Getting songs now!" = "曲情報取得中";
+"Please wait for a moment..." = "お待ちください";
+
+//SettingVC
+"You're logging in with Facebook" = "Facebookでログインしています";
+"You're logging in with Twitter" = "Twitterでログインしています";
+"You're logging in with email and password" = "emailとpasswordでログインしています";
+"Currently you're logged in with a temporary guest account. Please sign in from buttons below so that you can keep your data." = "現在ゲストアカウントで一時的にログインしています。使用データを保持する為には下のボタンのどれかからサインインを行ってください";
+"Updating account information" = "アカウント情報のアップデート中";
+"Enter new name here.." = "新しい名前を入力";
+"Enter new email here.." = "新しいemailを入力";
+"Login with Facebook" = "Facebookでログイン";
+"Login with Twitter" = "Twitterでログイン";
+
+"Your account info was updated." = "アカウント情報がアップデートされました";
+"If you log out, all your account information will be lost permanently. To keep your data, sign up or login from the buttons below. Are you still would like to log out?" = "現在ゲストアカウントでログインしていますのでログアウトすると今までの情報は全て消えてしまいます。(下のボタンからサインアップ/ログインされますと情報をキープできます。)本当にログアウトしてよろしいですか? ";
+"Would you really like to log out?" = "ログアウトしてよろしいですか?";
+"Logout" = "ログアウト";
+"Cancel" = "キャンセル";
+"Save" = "セーブ";
+
+//PlusBttonCoachMarkVC
+"Tap plus button" = "プラスボタンをタップしてください";
+
+//MapPageCoachMarkVC
+"Select Areas" = "地域選択";
+"Done" = "完了";
+"Select countries/areas you like, then tap Done button. Don't forget you can scroll the map horizontally!" = "チャートに加える国を選んで完了ボタンをタップしてください。(この地図は左右にスクロールできます)";
+
+//AfterFetchingChartCoachMarkVC
+"Add likes to your favorites. \nThese songs will be listed in likes page." = "お気に入りに加えるにはlikeボタンをタップ";
+"Check mark can be used to remember \nif you've already checked the song." = "チェックマークは既にチェック済みの曲を\n記録するのにお使いいだだけます";
+"Tap this button to update the chart data." = "このボタンをタップするとチャートデータを更新できます。";
+
+//MainTabBarController
+"Thank you for downloading TopRiddims! First let's choose countries to get music charts." = "TopRiddimsをダウンロードいただきありがとうございます。まずはチャート情報を取得する為に国を選びましょう。";
+"charts" = "チャート";
+"likes" = "お気に入り";
+"account" = "アカウント";
+

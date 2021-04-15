@@ -29,9 +29,9 @@ class AfterFetchingChartCoachMarkVC: SpotlightViewController {
     //MARK: - UI Elements
     private var heartButtonText: UILabel = {
         let lb = UILabel()
-        lb.text = "Add likes to your favorites. \nThese songs will be listed in likes page."
+        lb.text = "Add likes to your favorites. \nThese songs will be listed in likes page.".localized()
         lb.textColor = .white
-        lb.font = UIFont.systemFont(ofSize: 18, weight: .light)
+        lb.font = UIFont.systemFont(ofSize: 20, weight: .light)
         lb.numberOfLines = 0
         lb.textAlignment = .right
         return lb
@@ -39,9 +39,9 @@ class AfterFetchingChartCoachMarkVC: SpotlightViewController {
     
     private var checkButtonText: UILabel = {
         let lb = UILabel()
-        lb.text = "Check mark can be used to remember \nif you've already checked the song."
+        lb.text = "Check mark can be used to remember \nif you've already checked the song.".localized()
         lb.textColor = .white
-        lb.font = UIFont.systemFont(ofSize: 18, weight: .light)
+        lb.font = UIFont.systemFont(ofSize: 20, weight: .light)
         lb.numberOfLines = 0
         lb.textAlignment = .right
         return lb
@@ -49,9 +49,9 @@ class AfterFetchingChartCoachMarkVC: SpotlightViewController {
     
     private var reloadButtonText: UILabel = {
         let lb = UILabel()
-        lb.text = "Tap this button to update the chart data."
+        lb.text = "Tap this button to update the chart data.".localized()
         lb.textColor = .white
-        lb.font = UIFont.systemFont(ofSize: 18, weight: .light)
+        lb.font = UIFont.systemFont(ofSize: 20, weight: .light)
         lb.numberOfLines = 0
         lb.textAlignment = .right
         return lb
@@ -60,8 +60,8 @@ class AfterFetchingChartCoachMarkVC: SpotlightViewController {
     //MARK: - ViewLifeCycles
     override func viewDidLoad() {
         super.viewDidLoad()
-        self.alpha = 0.8
         delegate = self
+        view.backgroundColor = UIColor(named: "SpotlightColor")
         spotlightView.delegate = self
         view.addSubview(heartButtonText)
         view.addSubview(checkButtonText)
@@ -76,6 +76,7 @@ class AfterFetchingChartCoachMarkVC: SpotlightViewController {
         
         let reloadButtonCenterY = centerPoints[2].y
         reloadButtonText.anchor(top: view.topAnchor, left: view.leftAnchor, right: view.rightAnchor, paddingTop: reloadButtonCenterY+25, paddingLeft: 30, paddingRight: 15)
+        
     }
     
     
@@ -86,9 +87,10 @@ class AfterFetchingChartCoachMarkVC: SpotlightViewController {
         
         switch stepIndex{
         case 0:
-            spotlightView.appear([Spotlight.Oval(center: centerPoints[0], diameter: 40)])
+            spotlightView.appear([Spotlight.Oval(center: centerPoints[0], diameter: 45)])
+            
         case 1:
-            spotlightView.move(Spotlight.Oval(center: centerPoints[1], diameter: 40), duration: 0.3, moveType: .direct)
+            spotlightView.move(Spotlight.Oval(center: centerPoints[1], diameter: 45), duration: 0.3, moveType: .direct)
         case 2:
             spotlightView.move(Spotlight.Oval(center: centerPoints[2], diameter: 50), duration: 0.3, moveType: .direct)
         case 3:

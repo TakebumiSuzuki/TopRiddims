@@ -10,6 +10,7 @@ import youtube_ios_player_helper
 import NVActivityIndicatorView
 import Firebase
 import Gecco
+import FBSDKLoginKit
 
 class MainTabBarController: UITabBarController {
     
@@ -70,7 +71,7 @@ class MainTabBarController: UITabBarController {
         super.viewDidLoad()
         setupNotificationsForCoachMarks()
         setupNotificationForAccountUpdate()
-        userDefaults.setValue([String](), forKey: "userList")  //開発用
+//        userDefaults.setValue([String](), forKey: "userList")  //開発用
     }
     
     var accountUpdatedNotificationReceived: Bool = false
@@ -85,11 +86,12 @@ class MainTabBarController: UITabBarController {
         NotificationCenter.default.addObserver(forName: NSNotification.Name("ChartVCCoachMark"), object: nil, queue: nil) { [weak self] (notification) in
             guard let self = self else{return}
             
-            let alert = UIAlertController(title: "Congrats with your first launch to the app! First let's choose countries for the music charts.", message: "", preferredStyle: .alert)
+            let alert = UIAlertController(title: "Thank you for downloading TopRiddims! First let's choose countries to get music charts.".localized(), message: "", preferredStyle: .alert)
             let action = UIAlertAction(title: "OK", style: .default) { (action) in
                 guard let info = notification.userInfo else{return}
                 guard let frameInWindow = info["frameInfo"] as? CGRect else{return}
                 self.plusButtonCoachMarkVC = PlusButtonCoachMarkVC(frame: frameInWindow)
+                self.plusButtonCoachMarkVC?.alpha = 0.7
                 self.present(self.plusButtonCoachMarkVC!, animated: true, completion: nil)
             }
             alert.addAction(action)
@@ -102,6 +104,9 @@ class MainTabBarController: UITabBarController {
             guard let info = notification.userInfo else{return}
             guard let centerPointsInWindow = info["centerPointsInfo"] as? [CGPoint] else{return}
             self.afterFetchingChartCoachMarkVC = AfterFetchingChartCoachMarkVC(centerPoints: centerPointsInWindow)
+            
+            self.afterFetchingChartCoachMarkVC?.alpha = 0.7
+            
             self.present(self.afterFetchingChartCoachMarkVC!, animated: true, completion: {
                 if let userList = self.userDefaults.array(forKey: "userList") as? [String]{
                     var newList = userList
@@ -110,6 +115,7 @@ class MainTabBarController: UITabBarController {
                 }else{
                     self.userDefaults.setValue([self.uid], forKey: "userList")
                 }
+                self.isFirstTimeLaunch = false
             })
         }
     }
@@ -157,9 +163,18 @@ class MainTabBarController: UITabBarController {
             
             self.firestoreService.fetchUserInfoWithUid(uid: uid) { (result) in
                 switch result{
+                //開発中にFirestoreの中にデータがなく且つlistenerに記録が残っている時にはここでエラーになるので強引にログアウトさせる
                 case .failure(_):
-                    let alert = AlertService(vc:self)
-                    alert.showSimpleAlert(title: "Login status error.Please try reopen the app. Sorry!!", message: "", style: .alert)
+                    LoginManager().logOut()  //facebookのログアウト
+                    
+                    let firebaseAuth = Auth.auth()
+                    do {
+                      try firebaseAuth.signOut()
+                    } catch let signOutError as NSError {
+                      print ("Error signing out: %@", signOutError)
+                    }
+//                    let alert = AlertService(vc:self)
+//                    alert.showSimpleAlert(title: "Login status error.Please try reopen the app. Sorry!!", message: "", style: .alert)
                     
                 case .success(let user):
                     self.user = user

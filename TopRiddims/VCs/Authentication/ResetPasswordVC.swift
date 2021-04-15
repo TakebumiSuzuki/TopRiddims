@@ -38,7 +38,6 @@ class ResetPasswordVC: UIViewController {
         iv.alpha = imageAlpha
         iv.clipsToBounds = true
         iv.contentMode = .scaleAspectFill
-        iv.alpha = imageAlpha
         return iv
     }()
     
@@ -73,7 +72,6 @@ class ResetPasswordVC: UIViewController {
         lb.adjustsFontSizeToFitWidth = true
         return lb
     }()
-    
     
     private let emailTextField: CustomTextField = {
         let tf = CustomTextField(placeholder: "Enter email".localized())

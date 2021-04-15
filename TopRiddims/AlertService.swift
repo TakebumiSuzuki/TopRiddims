@@ -14,13 +14,12 @@ class AlertService{
     init(vc: UIViewController) {
         self.vc = vc
     }
-//    deinit {
-//        print("Alert is being deinitialized")
-//    }
-    
+
     func showSimpleAlert(title: String, message: String, style: UIAlertController.Style){
-        
-        let alert = UIAlertController(title: title, message: message, preferredStyle: style)
+        let titleFont = [NSAttributedString.Key.font: UIFont.systemFont(ofSize: 17, weight: .medium)]
+        let titleAttrString = NSMutableAttributedString(string: title, attributes: titleFont)
+        let alert = UIAlertController(title: nil, message: message, preferredStyle: style)
+        alert.setValue(titleAttrString, forKey:"attributedTitle")
         
         let action = UIAlertAction(title: "ok", style: .default) { [weak self] (action) in
             guard let self = self else {return}
@@ -30,9 +29,13 @@ class AlertService{
         vc.present(alert, animated: true, completion: nil)
     }
     
+    
     func showAlertWithCancelation(title: String, message: String, style: UIAlertController.Style, completion: @escaping () -> Void){
         
-        let alert = UIAlertController(title: title, message: message, preferredStyle: style)
+        let titleFont = [NSAttributedString.Key.font: UIFont.systemFont(ofSize: 17, weight: .medium)]
+        let titleAttrString = NSMutableAttributedString(string: title, attributes: titleFont)
+        let alert = UIAlertController(title: nil, message: message, preferredStyle: style)
+        alert.setValue(titleAttrString, forKey:"attributedTitle")
         
         let action1 = UIAlertAction(title: "ok", style: .default) { (action) in
             completion()
@@ -44,8 +47,6 @@ class AlertService{
         
         vc.present(alert, animated: true, completion: nil)
     }
-    
-    
     
 }
 

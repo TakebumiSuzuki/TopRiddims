@@ -23,13 +23,13 @@ enum LoginProvider{
     var text: String{
         switch self {
         case .facebook:
-            return "Logging in with Facebook"
+            return "You're logging in with Facebook".localized()
         case .twitter:
-            return "Logging in with Twitter"
+            return "You're logging in with Twitter".localized()
         case .password:
-            return "Your account info"
+            return "You're logging in with email and password".localized()
         case .anonymous:
-            return "You've been signed in with a temporary guest account. Please sign in from buttons below so that you can keep your data."
+            return "Currently you're logged in with a temporary guest account. Please sign in from buttons below so that you can keep your data.".localized()
         }
     }
 }
@@ -61,7 +61,7 @@ class SettingVC: UIViewController, SignUpFromAnonymousVCDelegate {
     
     private let hud: JGProgressHUD = {
         let hud = JGProgressHUD()
-        hud.textLabel.text = "Updating account information"
+        hud.textLabel.text = "Updating account information".localized()
         hud.style = JGProgressHUDStyle.dark
         return hud
     }()
@@ -114,15 +114,15 @@ class SettingVC: UIViewController, SignUpFromAnonymousVCDelegate {
     
     
     private lazy var nameTextField: CustomTextField = {
-        let tf = CustomTextField(placeholder: "Enter new name here..")
-        tf.backgroundColor = UIColor.gray.withAlphaComponent(0.3)
+        let tf = CustomTextField(placeholder: "Enter new name here..".localized())
+        tf.backgroundColor = UIColor.gray.withAlphaComponent(0.25)
         tf.textColor = UIColor.white.withAlphaComponent(0.8)
         return tf
     }()
     
     private lazy var emailTextField: CustomTextField = {
-        let tf = CustomTextField(placeholder: "Enter new email here..")
-        tf.backgroundColor = UIColor.gray.withAlphaComponent(0.3)
+        let tf = CustomTextField(placeholder: "Enter new email here..".localized())
+        tf.backgroundColor = UIColor.gray.withAlphaComponent(0.25)
         tf.textColor = UIColor.white.withAlphaComponent(0.8)
         return tf
     }()
@@ -390,7 +390,7 @@ class SettingVC: UIViewController, SignUpFromAnonymousVCDelegate {
     
     private func checkAcountUpdated(){
         if showAccountUpdatedAlert{
-            let alert = UIAlertController(title: "Your account was updated.", message: "", preferredStyle: .alert)
+            let alert = UIAlertController(title: "Your account info was updated.".localized(), message: "", preferredStyle: .alert)
             let action = UIAlertAction(title: "ok", style: .default) { (action) in
             }
             alert.addAction(action)
@@ -487,7 +487,7 @@ class SettingVC: UIViewController, SignUpFromAnonymousVCDelegate {
     
     private func setUIBackAfterSavingUserInfo(){
         self.hud.dismiss()
-        let alert = UIAlertController(title: "Your account info was updated.", message: "", preferredStyle: .alert)
+        let alert = UIAlertController(title: "Your account info was updated.".localized(), message: "", preferredStyle: .alert)
         let action = UIAlertAction(title: "ok", style: .default) { (action) in
             //これらをalertの外部(self.pesentのラインの後)に置いたら、うまく機能しなかったのでここに。
             self.nameTextField.resignFirstResponder()
@@ -536,7 +536,8 @@ class SettingVC: UIViewController, SignUpFromAnonymousVCDelegate {
             if let error = error{
                 self.hud.dismiss()
                 let alert = AlertService(vc: self)
-                alert.showSimpleAlert(title: "Facebookでの承認が失敗しました:\(error.localizedDescription)", message: "", style: .alert)
+                alert.showSimpleAlert(title: "Failed to log in with Facebook. Please try again later.", message: "", style: .alert)
+                print("DEBUG: Error.Failed to login with Facebook: \(error.localizedDescription) ")
                 return
             }
             self.hud.show(in: self.blurredView.contentView)
@@ -554,9 +555,9 @@ class SettingVC: UIViewController, SignUpFromAnonymousVCDelegate {
             self.twitterImageView.alpha = 1.0
             if let error = error{
                 self.hud.dismiss()
-                print("DEBUG: ログインエラーです \(error.localizedDescription)")
+                print("DEBUG: Error.Failed to login with Twitter: \(error.localizedDescription)")
                 let alert = AlertService(vc: self)
-                alert.showSimpleAlert(title: "Twitterでの承認が失敗しました:\(error.localizedDescription)", message: "", style: .alert)
+                alert.showSimpleAlert(title: "Failed to log in with Twitter. Please try again later.", message: "", style: .alert)
                 return
             }
             guard let credential = credential else{print("DEBUG: credentialがnilです");self.hud.dismiss(); return}
@@ -571,7 +572,7 @@ class SettingVC: UIViewController, SignUpFromAnonymousVCDelegate {
             if let error = error{
                 print("DEBUG: Failed to link two accounts: \(error.localizedDescription)")
                 let alert = AlertService(vc: self)
-                alert.showSimpleAlert(title: "新規アカウント作成に失敗しました。:\(error.localizedDescription)", message: "", style: .alert)
+                alert.showSimpleAlert(title: "Failed to link with a new account. Please try again later.", message: "", style: .alert)
                 return
             }
             NotificationCenter.default.post(name: NSNotification.Name(rawValue: "accountUpdated"), object: nil, userInfo: nil)
@@ -584,7 +585,7 @@ class SettingVC: UIViewController, SignUpFromAnonymousVCDelegate {
     @objc private func logoutButtonPressed(){
         var text = ""
         if loginProvider == .anonymous{
-            text = "If you log out, all your account information will be lost permanently. To keep your data, sign up or login from the buttons below. Are you still would like to log out?"
+            text = "If you log out, all your account information will be lost permanently. To keep your data, sign up or login from the buttons below. Are you still would like to log out?".localized()
         }else{
             text = "Would you really like to log out?".localized()
         }

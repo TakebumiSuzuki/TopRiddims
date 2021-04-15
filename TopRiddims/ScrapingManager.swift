@@ -48,7 +48,7 @@ class ScrapingManager{
     
     private var timerCount: Float = 0{
         didSet{
-            if timerCount > 30{
+            if timerCount > 40{
                 timer.invalidate()
                 delegate?.timeOutNotice()
             }

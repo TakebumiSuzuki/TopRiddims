@@ -152,7 +152,7 @@ class LikesTableViewCell: UITableViewCell {
     private let dateLabel: UILabel = {
        let lb = UILabel()
         lb.font = UIFont.systemFont(ofSize: 11, weight: .light)
-        lb.textColor = .systemGray5
+        lb.textColor = UIColor(named: "SecondaryLabelColor")
         return lb
     }()
 

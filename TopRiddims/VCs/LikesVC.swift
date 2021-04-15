@@ -288,7 +288,6 @@ extension LikesVC: LikesTableViewCellDelegate{
         firestoreService.saveAllChartData(uid: self.uid, allChartData: user.allChartData, updateNeedToBeUpdated: false) { (error) in
             //特にエラーハンドリングの必要ないかと。
         }
-        print("checked\(buttonState)")
         
     }
     

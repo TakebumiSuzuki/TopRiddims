@@ -201,9 +201,9 @@ class ChartCollectionViewCell: UICollectionViewCell {
         videoCollectionView.widthAnchor.constraint(equalTo: self.widthAnchor, multiplier: K.videoCollectionViewWidthMultiplier).isActive = true
         
         
-        leftArrow.anchor(top: videoCollectionView.topAnchor, left: self.leftAnchor, bottom: videoCollectionView.bottomAnchor, right: videoCollectionView.leftAnchor)
+        leftArrow.anchor(top: videoCollectionView.topAnchor, left: self.leftAnchor, bottom: videoCollectionView.bottomAnchor, right: videoCollectionView.leftAnchor, paddingRight: -10)
         
-        rightArrow.anchor(top: videoCollectionView.topAnchor, left: videoCollectionView.rightAnchor, bottom: videoCollectionView.bottomAnchor, right: self.rightAnchor)
+        rightArrow.anchor(top: videoCollectionView.topAnchor, left: videoCollectionView.rightAnchor, bottom: videoCollectionView.bottomAnchor, right: self.rightAnchor, paddingLeft: -10)
 
         songNameLabel.centerX(inView: self, topAnchor: videoCollectionView.bottomAnchor, paddingTop: 3)
         songNameLabel.setWidth(videoWidth+22)
