@@ -123,14 +123,15 @@ class LikesTableViewCell: UITableViewCell {
         let lb = UILabel()
         lb.font = UIFont.systemFont(ofSize: 15, weight: .medium)
         lb.textAlignment = .left
-        lb.tintColor = UIColor(named: "SecondaryLabelColor")
+        lb.textColor = UIColor(named: "SecondaryLabelColor")
         return lb
     }()
+    
     let artistNameLabel: UILabel = {
         let lb = UILabel()
         lb.font = UIFont.systemFont(ofSize: 14, weight: .regular)
         lb.textAlignment = .left
-        lb.tintColor = UIColor(named: "SecondaryLabelColor")
+        lb.textColor = UIColor(named: "SecondaryLabelColor")
         return lb
     }()
 
@@ -140,6 +141,7 @@ class LikesTableViewCell: UITableViewCell {
         bn.addTarget(self, action: #selector(heartButtonPressed), for: .touchUpInside)
         return bn
     }()
+    
     private lazy var checkButton: UIButton = {
         let bn = UIButton(type: .system)
         bn.contentMode = .scaleAspectFit
@@ -150,7 +152,7 @@ class LikesTableViewCell: UITableViewCell {
     private let dateLabel: UILabel = {
        let lb = UILabel()
         lb.font = UIFont.systemFont(ofSize: 11, weight: .light)
-        lb.tintColor = .systemGray5
+        lb.textColor = .systemGray5
         return lb
     }()
 

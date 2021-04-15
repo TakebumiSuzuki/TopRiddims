@@ -23,7 +23,7 @@ class ChartCollectionFooterView: UICollectionReusableView{
         let config = UIImage.SymbolConfiguration(pointSize: K.ChartCollectionFooterPlusPointSize, weight: .ultraLight, scale: .default)
         let plusImage = UIImage(systemName: "plus.circle", withConfiguration: config)
         bn.setImage(plusImage, for: .normal)
-        bn.tintColor = UIColor(named: "SecondaryLabelColor")?.withAlphaComponent(0.5)
+        bn.tintColor = UIColor(named: "SecondaryLabelColor")?.withAlphaComponent(0.7)
         bn.clipsToBounds = true
         bn.addTarget(self, action: #selector(footerButtonPressed), for: .touchUpInside)
         return bn

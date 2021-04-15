@@ -106,10 +106,8 @@ class SettingVC: UIViewController, SignUpFromAnonymousVCDelegate {
     private lazy var providerInfoLabel: UILabel = {
         let lb = UILabel()
         lb.font = UIFont.systemFont(ofSize: 16, weight: .regular)
-        lb.textColor = UIColor.label.withAlphaComponent(0.3)
+        lb.textColor = UIColor.secondaryLabel.withAlphaComponent(0.75)
         lb.numberOfLines = 0
-        
-        
         lb.text = loginProvider.text
         return lb
     }()
@@ -117,15 +115,15 @@ class SettingVC: UIViewController, SignUpFromAnonymousVCDelegate {
     
     private lazy var nameTextField: CustomTextField = {
         let tf = CustomTextField(placeholder: "Enter new name here..")
-        tf.backgroundColor = UIColor.separator.withAlphaComponent(0.2)
-        tf.textColor = UIColor.white.withAlphaComponent(0.95)
+        tf.backgroundColor = UIColor.gray.withAlphaComponent(0.3)
+        tf.textColor = UIColor.white.withAlphaComponent(0.8)
         return tf
     }()
     
     private lazy var emailTextField: CustomTextField = {
         let tf = CustomTextField(placeholder: "Enter new email here..")
-        tf.backgroundColor = UIColor.separator.withAlphaComponent(0.2)
-        tf.textColor = UIColor.white.withAlphaComponent(0.95)
+        tf.backgroundColor = UIColor.gray.withAlphaComponent(0.3)
+        tf.textColor = UIColor.white.withAlphaComponent(0.8)
         return tf
     }()
     

@@ -27,32 +27,62 @@ class AfterFetchingChartCoachMarkVC: SpotlightViewController {
     
     
     //MARK: - UI Elements
-    private var textLabel: UILabel = {
+    private var heartButtonText: UILabel = {
         let lb = UILabel()
-        lb.text = "Select any countries/areas you like and tap Done button. Don't forget you can scroll this map horizontally!"
+        lb.text = "Add likes to your favorites. \nThese songs will be listed in likes page."
         lb.textColor = .white
-        lb.font = UIFont.systemFont(ofSize: 20, weight: .light)
+        lb.font = UIFont.systemFont(ofSize: 18, weight: .light)
         lb.numberOfLines = 0
+        lb.textAlignment = .right
+        return lb
+    }()
+    
+    private var checkButtonText: UILabel = {
+        let lb = UILabel()
+        lb.text = "Check mark can be used to remember \nif you've already checked the song."
+        lb.textColor = .white
+        lb.font = UIFont.systemFont(ofSize: 18, weight: .light)
+        lb.numberOfLines = 0
+        lb.textAlignment = .right
+        return lb
+    }()
+    
+    private var reloadButtonText: UILabel = {
+        let lb = UILabel()
+        lb.text = "Tap this button to update the chart data."
+        lb.textColor = .white
+        lb.font = UIFont.systemFont(ofSize: 18, weight: .light)
+        lb.numberOfLines = 0
+        lb.textAlignment = .right
         return lb
     }()
     
     //MARK: - ViewLifeCycles
     override func viewDidLoad() {
         super.viewDidLoad()
-        self.alpha = 0.5
+        self.alpha = 0.8
         delegate = self
         spotlightView.delegate = self
-        view.addSubview(textLabel)
+        view.addSubview(heartButtonText)
+        view.addSubview(checkButtonText)
+        view.addSubview(reloadButtonText)
     }
     
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
-        textLabel.anchor(top: view.topAnchor, left: view.leftAnchor, right: view.rightAnchor, paddingTop: 130, paddingLeft: 25, paddingRight: 25)
+        let heartButtonCenterY = centerPoints[0].y
+        heartButtonText.anchor(top: view.topAnchor, left: view.leftAnchor, right: view.rightAnchor, paddingTop: heartButtonCenterY+18, paddingLeft: 30, paddingRight: 15)
+        checkButtonText.anchor(top: view.topAnchor, left: view.leftAnchor, right: view.rightAnchor, paddingTop: heartButtonCenterY+18, paddingLeft: 30, paddingRight: 15)
+        
+        let reloadButtonCenterY = centerPoints[2].y
+        reloadButtonText.anchor(top: view.topAnchor, left: view.leftAnchor, right: view.rightAnchor, paddingTop: reloadButtonCenterY+25, paddingLeft: 30, paddingRight: 15)
     }
     
     
     //MARK: - Methods
     func next(_ labelAnimated: Bool) {
+        
+        updateAnnotationView(labelAnimated)
         
         switch stepIndex{
         case 0:
@@ -68,12 +98,21 @@ class AfterFetchingChartCoachMarkVC: SpotlightViewController {
         }
         stepIndex += 1
     }
+    
+    func updateAnnotationView(_ animated: Bool) {
+        let annotationViews = [heartButtonText, checkButtonText, reloadButtonText]
+        annotationViews.enumerated().forEach { index, view in
+            UIView.animate(withDuration: animated ? 0.25 : 0) {
+                view.alpha = index == self.stepIndex ? 1 : 0
+            }
+        }
+    }
 }
 
 //MARK: - Delegate Methods
 extension AfterFetchingChartCoachMarkVC: SpotlightViewControllerDelegate{
     func spotlightViewControllerWillPresent(_ viewController: SpotlightViewController, animated: Bool) {
-        next(false)
+        next(true)
     }
     
     func spotlightViewControllerWillDismiss(_ viewController: SpotlightViewController, animated: Bool) {
@@ -81,7 +120,7 @@ extension AfterFetchingChartCoachMarkVC: SpotlightViewControllerDelegate{
     }
     
     func spotlightViewControllerTapped(_ viewController: SpotlightViewController, tappedSpotlight: SpotlightType?) {
-        next(false)
+        next(true)
     }
 }
 

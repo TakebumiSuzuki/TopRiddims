@@ -8,7 +8,6 @@
 import UIKit
 import iCarousel
 import NVActivityIndicatorView
-import JGProgressHUD
 
 protocol ChartCollectionViewCellDelegate: class{
     func heartButtonTapped(chartCellIndexNumber: Int, currentPageIndexNum: Int, buttonState: Bool)
@@ -22,20 +21,15 @@ class ChartCollectionViewCell: UICollectionViewCell {
     
     static var identifier = "ChartCell"
     weak var delegate: ChartCollectionViewCellDelegate?
-//    var user: User?
     
     private var videoWidth: CGFloat{ return self.cellSelfWidth*K.videoCoverWidthMultiplier }
     private var videoHeight: CGFloat{ return videoWidth/16*9 }
     
     private var heartButtonOnOff: Bool = false{
-        didSet{
-            heartButtonOnOffHandling()
-        }
+        didSet{ heartButtonOnOffHandling() }
     }
     private var checkButtonOnOff: Bool = false{
-        didSet{
-            checkButtonOnOffHandling()
-        }
+        didSet{ checkButtonOnOffHandling() }
     }
     
     //MARK: - Dequeue Properties
@@ -157,17 +151,16 @@ class ChartCollectionViewCell: UICollectionViewCell {
         let image = UIImage(systemName: "arrowtriangle.left.fill", withConfiguration: config)
         bn.setImage(image, for: .normal)
         bn.tintColor = UIColor.tertiaryLabel
-//        bn.setBackgroundColor(UIColor.tertiaryLabel, for: .highlighted)
         bn.addTarget(self, action: #selector(leftArrowTapped), for: .touchUpInside)
         return bn
     }()
+    
     private lazy var rightArrow: UIButton = {
         let bn = UIButton(type: .system)
         let config = UIImage.SymbolConfiguration(pointSize: 10, weight: .thin, scale: .large)
         let image = UIImage(systemName: "arrowtriangle.right.fill", withConfiguration: config)
         bn.setImage(image, for: .normal)
         bn.tintColor = UIColor.tertiaryLabel
-//        bn.setBackgroundColor(UIColor.tertiaryLabel, for: .highlighted)
         bn.addTarget(self, action: #selector(rightArrowTapped), for: .touchUpInside)
         return bn
     }()

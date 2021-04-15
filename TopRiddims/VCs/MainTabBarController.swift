@@ -10,7 +10,6 @@ import youtube_ios_player_helper
 import NVActivityIndicatorView
 import Firebase
 import Gecco
-//import FBSDKLoginKit
 
 class MainTabBarController: UITabBarController {
     
@@ -42,13 +41,6 @@ class MainTabBarController: UITabBarController {
         return vp
     }()
     
-    private lazy var scaleChangeButton: UIButton = {
-        let bn = UIButton(type: .system)
-        bn.setImage(UIImage(systemName: "arrow.up.and.down.square"), for: .normal)
-        bn.addTarget(self, action: #selector(scaleChangeButtonTapped), for: .touchUpInside)
-        return bn
-    }()
-    
     private let blackImageView: UIImageView = {
         let iv = UIImageView()
         iv.image = UIImage(named: "BlackScreen")
@@ -72,14 +64,17 @@ class MainTabBarController: UITabBarController {
         return spinner
     }()
     
-    var accountUpdatedNotificationReceived: Bool = false
+    
     //MARK: - ViewLifeCycles
     override func viewDidLoad() {
         super.viewDidLoad()
         setupNotificationsForCoachMarks()
-        userDefaults.setValue([String](), forKey: "userList")
-        
-        
+        setupNotificationForAccountUpdate()
+        userDefaults.setValue([String](), forKey: "userList")  //開発用
+    }
+    
+    var accountUpdatedNotificationReceived: Bool = false
+    private func setupNotificationForAccountUpdate(){
         NotificationCenter.default.addObserver(forName: NSNotification.Name("accountUpdated"), object: nil, queue: nil) { [weak self](notification) in
             guard let self = self else{return}
             self.accountUpdatedNotificationReceived = true
@@ -129,7 +124,7 @@ class MainTabBarController: UITabBarController {
             
             guard let uid = auth.currentUser?.uid, let userIsAnonymous = auth.currentUser?.isAnonymous else{
                 //未ログインの場合
-                print("Listenerがuidはnilになっている事を検知したのでLoginVCを表示します")
+                print("MainTabBarのListenerがuidはnilになっている事を検知したのでLoginVCを表示します")
                 let vc = LoginVC()
                 let nav = UINavigationController(rootViewController: vc)
                 nav.modalPresentationStyle = .fullScreen
@@ -139,7 +134,7 @@ class MainTabBarController: UITabBarController {
             
             
             //ここでデータを全て初期化する必要ありuser/allCountryData。ここで一旦各Tabのビューコントローラを呼ぶべきか。。
-            print("Listenerがユーザーのログイン済み状態を検知しました")
+            print("MainTabBarのListenerがユーザーのログイン済み状態を検知しました")
             if userIsAnonymous{
                 self.loginProvider = .anonymous
             }else{
@@ -157,7 +152,7 @@ class MainTabBarController: UITabBarController {
             
             self.uid = uid
             self.dismiss(animated: true, completion: nil)
-            self.selectedIndex = self.accountUpdatedNotificationReceived ? 2 : 0
+            self.selectedIndex = self.accountUpdatedNotificationReceived ? 2 : 0 //Accoutアップデートの場合にはAccountページを表示するように。
             self.determineFirstTimeLaunchOrNot()
             
             self.firestoreService.fetchUserInfoWithUid(uid: uid) { (result) in
@@ -235,7 +230,6 @@ class MainTabBarController: UITabBarController {
     //MARK: - Video Player設定
     private func setupVideoView(){
         view.addSubview(videoPlayer)
-        view.addSubview(scaleChangeButton)
         view.addSubview(blackImageView)
         view.addSubview(logoImageView)
         view.addSubview(spinner)
@@ -252,9 +246,6 @@ class MainTabBarController: UITabBarController {
         let playerWidth = view.frame.width * K.floatingPlayerWidthMultiplier
         videoPlayer.centerX(inView: view, topAnchor: view.safeAreaLayoutGuide.topAnchor, paddingTop: nav.navigationBar.frame.maxY + K.floatingPlayerTopBottomInsets)
         videoPlayer.setDimensions(height: playerWidth/16*9, width: playerWidth)
-        
-        scaleChangeButton.anchor(top: videoPlayer.topAnchor, left: videoPlayer.rightAnchor,paddingTop: 10, paddingLeft: 20, width: 20, height: 20)
-        
         
         blackImageView.centerX(inView: view, topAnchor: view.safeAreaLayoutGuide.topAnchor, paddingTop: nav.navigationBar.frame.maxY + K.floatingPlayerTopBottomInsets)
         blackImageView.setDimensions(height: playerWidth/16*9, width: playerWidth)

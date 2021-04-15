@@ -23,12 +23,12 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         
         
         
-//        // ① ナビゲーションバーの背景色
-////        UINavigationBar.appearance().barTintColor = UIColor.label
-//        // ② ナビゲーションバーのタイトルの色
+        // ① ナビゲーションバーの背景色
+//        UINavigationBar.appearance().barTintColor = UIColor.label
+        // ② ナビゲーションバーのタイトルの色
         UINavigationBar.appearance().titleTextAttributes = [.foregroundColor: UIColor(named: "Black_Yellow")!,
                                                             .font: UIFont.systemFont(ofSize: 28, weight: .light)]
-//        // ③ ナビゲーションバー上のアイテムの色
+        // ③ ナビゲーションバー上のアイテムの色
         UINavigationBar.appearance().tintColor = UIColor(named: "Black_Yellow")!
     }
 
