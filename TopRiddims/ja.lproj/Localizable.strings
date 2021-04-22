@@ -17,14 +17,14 @@
 
 //LoginVC
 "Loading" = "ロード中です";
-"Welcome to TopRiddims!!" = "TopRiddimsにようこそ！";
+"Welcome to TopRiddims!!" = "TopRiddimsへようこそ！";
 "Continue as Guest" = "ゲストアカウントでログイン";
-"If you have account" = "アカウントを既にお持ちですか?";
+"If you have account" = "アカウントを既にお持ちの方";
 "Enter email" = "emailを入力";
 "Enter password" = "パスワードを入力";
 "Forgot password?" = "パスワードをお忘れですか?";
 "Login" = "ログイン";
-"or connect with..." = "以下のアプリでサインイン";
+"or connect with..." = "以下のアプリからサインイン";
 "Sign Up" = "サインアップ";
 
 
@@ -36,7 +36,7 @@
 //SettingVC
 "You're logging in with Facebook" = "Facebookでログインしています";
 "You're logging in with Twitter" = "Twitterでログインしています";
-"You're logging in with email and password" = "emailとpasswordでログインしています";
+"You're logging in with email and password" = "Emailを使ってログインしています";
 "Currently you're logged in with a temporary guest account. Please sign in from buttons below so that you can keep your data." = "現在ゲストアカウントで一時的にログインしています。使用データを保持する為には下のボタンのどれかからサインインを行ってください";
 "Updating account information" = "アカウント情報のアップデート中";
 "Enter new name here.." = "新しい名前を入力";
@@ -60,9 +60,9 @@
 "Select countries/areas you like, then tap Done button. Don't forget you can scroll the map horizontally!" = "チャートに加える国を選んで完了ボタンをタップしてください。(この地図は左右にスクロールできます)";
 
 //AfterFetchingChartCoachMarkVC
-"Add likes to your favorites. \nThese songs will be listed in likes page." = "お気に入りに加えるにはlikeボタンをタップ";
-"Check mark can be used to remember \nif you've already checked the song." = "チェックマークは既にチェック済みの曲を\n記録するのにお使いいだだけます";
-"Tap this button to update the chart data." = "このボタンをタップするとチャートデータを更新できます。";
+"Add likes to your favorites. \nThese songs will be listed in likes page." = "お気に入りに加えるには\nlikeボタンをタップ";
+"Check mark can be used to remember \nif you've already checked the song." = "チェックマークは\n既にチェック済みの曲を\n記録するのにお使いいだだけます";
+"Tap this button to update the chart data." = "このボタンをタップすると\nチャートデータを更新できます。";
 
 //MainTabBarController
 "Thank you for downloading TopRiddims! First let's choose countries to get music charts." = "TopRiddimsをダウンロードいただきありがとうございます。まずはチャート情報を取得する為に国を選びましょう。";
